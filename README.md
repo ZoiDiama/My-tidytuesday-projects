@@ -25,13 +25,14 @@ The data this week comes from the NASA GISS Surface Temperature Analysis (GISTEM
 
 
 ### Week 31 | US States
-  
+</details>  
 
 
 <details>
   <summary> August </details>
     
 ### Week 32 | Hot Ones Episodes
-  
+
+</details>  
 
 </details>
