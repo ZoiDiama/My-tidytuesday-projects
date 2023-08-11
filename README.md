@@ -19,17 +19,17 @@ Check out my awesome TidyTuesday projects on GitHub! 🌟 Get inspired by the co
 
 <details>
   <summary>Week 30 | Scurvy</summary>
-  
+  h
 </details>
 
 <details>
   <summary>Week 31 | US States</summary>
-  
+  h
 </details>
 
 <details>
   <summary>Week 32 | Hot Ones Episodes</summary>
   
-
+h
 </details>
 </details>
