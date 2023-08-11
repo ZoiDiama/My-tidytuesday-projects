@@ -5,10 +5,10 @@ Check out my awesome TidyTuesday projects on GitHub! 🌟 Get inspired by the co
   <summary>2023</summary>
 
 ### Week 28 | Global Surface Temperatures
-
 This week's data is sourced from NASA GISS Surface Temperature Analysis (GISTEMP v4). It consists of global and hemispheric monthly means and zonal annual means, combining land, air, and sea-surface temperature anomalies (Land-Ocean Temperature Index, L-OTI). To visualize this data, I chose a heatmap, providing an intuitive and visually appealing representation of temperature patterns. 
 
 Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/4af0c90acb7b5255ed37e3b07756bb30bed0bf0a/Code/2023/Week28Global%20Surface%20Temperatures#L1C1-L80C4).
+
 ![TidyTuesday2023Week28](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/5806ddc8-3a22-4ff3-9ab6-284a32dc7c5e)
 
 
