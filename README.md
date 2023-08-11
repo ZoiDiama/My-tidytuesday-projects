@@ -8,7 +8,7 @@ Check out my awesome TidyTuesday projects on GitHub! 🌟 Get inspired by the co
 
 The data this week comes from the NASA GISS Surface Temperature Analysis (GISTEMP v4). This datasets are tables of global and hemispheric monthly means and zonal annual means which combine land-surface, air and sea-surface water temperature anomalies (Land-Ocean Temperature Index, L-OTI). For visualizing these data, I opted for a heatmap which offers an intuitive and visually appealing representation of temperature patterns.
 
-Check the code here: https://github.com/ZoiDiama/My-tidytuesday-projects/blob/4af0c90acb7b5255ed37e3b07756bb30bed0bf0a/Code/2023/Week28Global%20Surface%20Temperatures#L1C20-L1C20
+Check the code here: [https://github.com/ZoiDiama/My-tidytuesday-projects/blob/4af0c90acb7b5255ed37e3b07756bb30bed0bf0a/Code/2023/Week28Global%20Surface%20Temperatures#L1C20-L1C20](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/4af0c90acb7b5255ed37e3b07756bb30bed0bf0a/Code/2023/Week28Global%20Surface%20Temperatures#L1C1-L80C4)
 
 
 
