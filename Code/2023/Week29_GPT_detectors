@@ -1,0 +1,33 @@
+library(hrbrthemes)
+library(viridis)
+library(tidyverse)
+library(ggtext)
+library(forcats)
+library(grid)
+detectors <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2023/2023-07-18/detectors.csv')
+
+detectors %>%
+  filter(!is.na(native)) %>%
+  mutate(native = ifelse(native == 'No',"Non-native \nEnglish writers","Native \nEnglish writers")) %>% 
+  ggplot() +
+  aes(x = detector, y = .pred_AI, fill = detector,color=detector) +
+  geom_violin(bw = .05) +
+  labs(
+    title="GPT detectors are biased against non-native English writers", 
+    subtitle=stringr::str_wrap("The chart displays the predicted probability of identifying AI-generated text by multiple commonly used GPT detectors, after testing writing samples from both native and non-native English writers. The results suggest that GPT detectors are inclined to recognize writing by non-native speakers with limited language skills as AI-generated.",width = 95),
+    x = " ",
+    y = "Predicted probability that\nsample was written by AI") +
+  coord_flip() +
+  facet_grid(~`native`)+
+  scale_y_continuous(breaks=seq(0,1,0.25))+
+  scale_fill_viridis(discrete=TRUE) +
+  scale_color_viridis(discrete=TRUE) +
+  theme_ipsum() +
+  theme(plot.margin = unit(c(1,2,1,1), "cm"),
+        plot.title.position = "plot",
+        axis.text.x = element_text(angle = 0, vjust = 0.5, hjust =0.5 ,size=9),
+        panel.grid.major.y = element_blank(),
+        legend.position = "none",
+    plot.title = element_text(size = 16, vjust = 0, hjust =0 ,face = "bold"),
+    plot.subtitle = element_text(size = 11),
+    strip.text.x = element_text(size = 9))
