@@ -5,7 +5,7 @@ Check out my awesome TidyTuesday projects on GitHub! 🌟 Get inspired by the co
   <summary>**2023**</summary>
 
 <details>
-  <summary>Week 28 | Global Surface Temperatures</summary>
+  <summary>**Week** 28 | Global Surface Temperatures</summary>
 
 The data this week comes from the NASA GISS Surface Temperature Analysis (GISTEMP v4). This datasets are tables of global and hemispheric monthly means and zonal annual means which combine land-surface, air and sea-surface water temperature anomalies (Land-Ocean Temperature Index, L-OTI). 
 
