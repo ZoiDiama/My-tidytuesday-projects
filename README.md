@@ -2,7 +2,7 @@
 Check out my awesome TidyTuesday projects on GitHub! 🌟 Get inspired by the coolest social data visualizations and analyses. Join the data community at : R4DS Online Learning Community (2023). Tidy Tuesday: A weekly social data project. https://github.com/rfordatascience/tidytuesday.
 
 <details>
-  <summary>2023</summary>
+  <summary>**2023**</summary>
 
 <details>
   <summary>Week 28 | Global Surface Temperatures</summary>
