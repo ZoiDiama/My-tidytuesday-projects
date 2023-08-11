@@ -4,9 +4,6 @@ Check out my awesome TidyTuesday projects on GitHub! 🌟 Get inspired by the co
 <details>
   <summary>2023</summary>
 
-<details>
-  <summary> July </summary>
-  
 ### Week 28 | Global Surface Temperatures
 
 The data this week comes from the NASA GISS Surface Temperature Analysis (GISTEMP v4). This datasets are tables of global and hemispheric monthly means and zonal annual means which combine land-surface, air and sea-surface water temperature anomalies (Land-Ocean Temperature Index, L-OTI). For visualizing these data, I opted for a heatmap which offers an intuitive and visually appealing representation of temperature patterns.
@@ -31,14 +28,8 @@ Check the code here: https://github.com/ZoiDiama/My-tidytuesday-projects/blob/4a
 
 ### Week 31 | US States
 
-</details>  
-
-
-<details>
-  <summary> August </summary>
-    
+   
 ### Week 32 | Hot Ones Episodes
 
-</details>  
 
 </details>
