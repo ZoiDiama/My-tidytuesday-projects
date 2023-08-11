@@ -20,16 +20,17 @@ The data this week comes from the NASA GISS Surface Temperature Analysis (GISTEM
 ![TT_2023Week29](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/8df46a9f-a944-4110-af1e-10c019264a07)
 
 
-### Week 30 | Scurvy</summary>
+### Week 30 | Scurvy
   
 
 
 ### Week 31 | US States
+
 </details>  
 
 
 <details>
-  <summary> August </details>
+  <summary> August </summary>
     
 ### Week 32 | Hot Ones Episodes
 
