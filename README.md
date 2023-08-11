@@ -15,9 +15,9 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/4
 
 
 ### Week29 | GPT detectors
-This week's dataset comes from the R data package detectors which contains predictions from various GPT detectors. These predictions are based on a research paper titled "GPT Detectors Are Biased Against Non-Native English Writers" by Weixin Liang, Mert Yuksekgonul, Yining Mao, Eric Wu, and James Zou, published in CellPress Patterns.The study revealed these detectors have a bias against non-native English writers, since they tend to wrongly classify real writing from non-native English speakers as AI-generated. 
+This week's dataset is sourced from the R data package "detectors," which contains predictions from various GPT detectors. These predictions are based on a research paper titled "GPT Detectors Are Biased Against Non-Native English Writers" by Weixin Liang, Mert Yuksekgonul, Yining Mao, Eric Wu, and James Zou, published in CellPress Patterns. The study revealed that these detectors exhibit a bias against non-native English writers, as they tend to misclassify authentic writing from non-native English speakers as AI-generated. To effectively showcase the distributional characteristics of the predictions from GPT detectors and identify biases or patterns within the data, a violin plot was employed. This plot allowed for the comparison of predictions between detectors, shedding light on potential biases or patterns present in the data.
 
-Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/6af2a7e0af3014c1680eeb3b41d50830f453f767/Code/2023/Week29_GPT_detectors#L1-L33)
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/6af2a7e0af3014c1680eeb3b41d50830f453f767/Code/2023/Week29_GPT_detectors#L1-L33).
   
 ![TT_2023Week29](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/8df46a9f-a944-4110-af1e-10c019264a07)
 
