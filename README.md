@@ -7,3 +7,11 @@ Check out my awesome TidyTuesday projects on GitHub! 🌟 Get inspired by the co
 
 ### Week 29 | GPT detectors
 ![TT_2023Week29](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/8df46a9f-a944-4110-af1e-10c019264a07)
+
+### Week 30 | Scurvy
+
+
+### Week 31 | US States
+
+
+### Week 32 | Hot Ones Episodes
