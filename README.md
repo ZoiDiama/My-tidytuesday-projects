@@ -10,14 +10,14 @@ This week's data is sourced from NASA GISS Surface Temperature Analysis (GISTEMP
 
 Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/4af0c90acb7b5255ed37e3b07756bb30bed0bf0a/Code/2023/Week28Global%20Surface%20Temperatures#L1C1-L80C4).
 
-
-
-
 ![TidyTuesday2023Week28](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/5806ddc8-3a22-4ff3-9ab6-284a32dc7c5e)
 
 
 
 ### Week29 | GPT detectors
+This week's dataset comes from the R data package detectors which contains predictions from various GPT detectors. These predictions are based on a research paper titled "GPT Detectors Are Biased Against Non-Native English Writers" by Weixin Liang, Mert Yuksekgonul, Yining Mao, Eric Wu, and James Zou, published in CellPress Patterns.The study revealed these detectors have a bias against non-native English writers, since they tend to wrongly classify real writing from non-native English speakers as AI-generated. 
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/6af2a7e0af3014c1680eeb3b41d50830f453f767/Code/2023/Week29_GPT_detectors#L1-L33)
   
 ![TT_2023Week29](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/8df46a9f-a944-4110-af1e-10c019264a07)
 
