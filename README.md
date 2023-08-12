@@ -21,6 +21,11 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/6
 
 
 ### Week 30 | Scurvy
+This week's dataset comes from the medicaldata R package and the Scurvy dataset. The data are based on  James Lind published in 1757  "A Treatise on the Scurvy in Three Parts". Within this study, 12 participants with comparable scurvy severity underwent six distinct therapies. Subsequently, after a six-day period, they were invited to assess the severity of their condition using a 0-3 Likert scale. The graph below showcases the outcomes following the six days of treatment, providing a participant-specific breakdown across each treatment category. 
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/7daa9b29c8756a2f1d5c6863d426c17231363a8c/Code/2023/Week30_Scurvy#L1C1-L1C1)
+
+![TT2023Week30_Scurvy](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/13bf6ade-c546-4e59-8028-39acaf8ee92e)
   
 
 
