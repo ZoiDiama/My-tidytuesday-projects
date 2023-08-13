@@ -34,7 +34,7 @@ The data this week comes from three Wikipedia articles: List of states and terri
 
 Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/6be7b5fb61a83f814f43331f1c10a063c7d8fd83/Code/2023/Week31#L1-L169)
 
-![TT2023Week31](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/22daadfd-6c5a-4bf2-9e19-751f8ae275fb)
+![TT2023Week31_Scurvy](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/12d1b3c3-6407-4a11-82a9-73bd49fa21a2)
 
    
 ### Week 32 | Hot Ones Episodes
