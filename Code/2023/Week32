@@ -1,0 +1,77 @@
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(ggtext)
+library(forcats)
+library(ggrepel)
+
+# Option 2: Read directly from GitHub
+
+episodes <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2023/2023-08-08/episodes.csv')
+sauces <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2023/2023-08-08/sauces.csv')
+seasons <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2023/2023-08-08/seasons.csv')
+
+
+dt<-sauces %>% 
+  mutate(sauce_name=recode(sauce_name, "Da' Bomb Beyond Insanity"=
+                             "Da' Bomb – Beyond Insanity"),
+         season=as.character(season)) %>% 
+  mutate(
+    scoville_group = case_when(
+      scoville >1500000 ~ "Extreme hot",
+      scoville >1000000 & scoville <=1500000 ~ "Fiery hot",
+      scoville > 500000 & scoville <=1000000 ~ "Really hot",
+      scoville >250000 & scoville <=500000 ~ "Very hot",
+      scoville >100000 & scoville <=250000 ~ "Spicy hot",
+      scoville >50000 & scoville <=100000 ~ "Hot",
+      scoville >2000 & scoville <=50000 ~ "Mild hot",
+      scoville >0 & scoville <=2000 ~ "Mild"
+    ),
+    # Convert to factor
+    scoville_group = factor(
+      scoville_group,
+      level = c("Extreme hot", "Fiery hot",
+                "Really hot","Very hot","Spicy hot","Hot",
+                "Mild hot","Mild")
+    )
+  )  %>% 
+   group_by(season,scoville_group) %>% 
+summarise(n=n())  
+  
+plot<-ggplot(data = dt, mapping = aes(x = scoville_group, 
+                                y = n,color=scoville_group)) + 
+  # modify jitter geom to look like a bubble plot
+  geom_jitter(alpha=0.5, size=5,position = position_jitter(width = 0.4))+
+  scale_y_continuous(breaks=seq(0,10,1))+
+  
+  geom_vline(
+    xintercept = seq(1.5, length(unique(dt$scoville_group)), by = 1),
+    color = "gray90",
+    size = 1) +
+  labs(
+    title = "Hot ones: distribution of sauces per scoville scale and season",
+    subtitle = "Results grouped per scale and season group",
+    x = "Scoville scale (0-2M)",
+    y = "Frequency",
+    caption = "Data source:Wikipedia articles: Hot Ones and List of Hot Ones episodes. | Creator:Zoi Diamantakou | tidytuesday | 2023, week 32") +
+  scale_color_manual(values = c("#d73027","#fc8d59","#fdae61", "#fee08b",
+                            "#ffffbf","#d9ef8b","#91cf60","#1a9850"))+ 
+  theme_minimal() +
+theme(plot.margin = unit(c(1,2,1,1), "cm"),
+  plot.title = element_text(size = 18, face = "bold",hjust = 0),
+  plot.subtitle = element_text(size = 14,hjust = 0),
+  plot.caption = element_text(size = 8,hjust = 0.5),
+  axis.title.x = element_text(size = 8),
+  axis.title.y= element_text(size = 8),
+  axis.text.x = element_text(size=8),
+  axis.text.y = element_text(size=10),
+  legend.position="none",
+panel.grid = element_blank())+ 
+  annotate("text", x = "Really hot", y = 5, 
+           label = "Each circle represents the \n# of sauces grouped \nper season")
+ 
+plot+annotate("segment", x = "Really hot", xend = "Really hot", 
+              y = 4, yend = 1.8, colour = "black")
+
+
+ggsave("TT2023Week32_Hot.png", width = 12, height = 6, dpi = 300, bg = "white")
