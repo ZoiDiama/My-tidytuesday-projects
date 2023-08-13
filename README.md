@@ -26,10 +26,15 @@ This week's dataset comes from the medicaldata R package and the Scurvy dataset.
 Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/7daa9b29c8756a2f1d5c6863d426c17231363a8c/Code/2023/Week30_Scurvy#L1C1-L1C1)
 
 ![TT2023Week30_Scurvy](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/13bf6ade-c546-4e59-8028-39acaf8ee92e)
-  
 
 
 ### Week 31 | US States
+
+The data this week comes from three Wikipedia articles: List of states and territories of the United States, List of demonyms for US states and territories, and List of state and territory name etymologies of the United States.
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/6be7b5fb61a83f814f43331f1c10a063c7d8fd83/Code/2023/Week31#L1-L169)
+
+![TT2023Week31](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/22daadfd-6c5a-4bf2-9e19-751f8ae275fb)
 
    
 ### Week 32 | Hot Ones Episodes
