@@ -33,6 +33,10 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/7
 
    
 ### Week 32 | Hot Ones Episodes
+The data this week comes from Wikipedia articles: Hot Ones and List of Hot Ones episodes.
 
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/13dc335ddcf54d3f0f1b86576b0bf70f537cebcf/Code/2023/Week32#L1-L77).
+
+![TT2023Week32_Hot](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/60f46bcf-deb9-41c6-8e33-a7be0c5158b2)
 
 </details>
