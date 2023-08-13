@@ -1,0 +1,171 @@
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(ggtext)
+library(forcats)
+library(grid)
+
+
+library(ggrepel)   
+library(urbnmapr)
+library(maps)
+library(stringr)
+
+
+# Load basic state data from Wikipedia.
+states <- read_html("https://en.wikipedia.org/wiki/List_of_states_and_territories_of_the_United_States") |> 
+  html_table(header = TRUE) |> 
+  # Try out the new-ish use of _ for subsetting with the base pipe.
+  _[[2]][-1,]
+colnames(states) <- c(
+  "state",
+  "postal_abbreviation",
+  "capital_city",
+  "largest_city",
+  "admission",
+  "population_2020",
+  "total_area_mi2",
+  "total_area_km2",
+  "land_area_mi2",
+  "land_area_km2",
+  "water_area_mi2",
+  "water_area_km2",
+  "n_representatives"
+)
+glimpse(states)
+
+# Clean types.
+states <- states |> 
+  mutate(
+    across(
+      c(population_2020, contains("area"), n_representatives),
+      ~ parse_number(.x) |> as.integer()
+    ),
+    admission = parse_date(admission, format = "%b %d, %Y"),
+    state = str_remove(state, fixed("[B]"))
+  )
+
+state_demonyms <- read_html("https://en.wikipedia.org/wiki/List_of_demonyms_for_US_states_and_territories") |> 
+  html_table() |> 
+  _[[1]][-1,1:2]
+colnames(state_demonyms) <- c("state", "demonym")
+states <- states |> 
+  left_join(state_demonyms, by = "state")
+
+# Confirm that the join worked!
+
+states |> 
+  filter(is.na(demonym))
+
+state_name_etymology <- read_html("https://en.wikipedia.org/wiki/List_of_state_and_territory_name_etymologies_of_the_United_States") |> 
+  html_table() |> 
+  _[[1]]
+colnames(state_name_etymology) <- c(
+  "state",
+  "date_named",
+  "language",
+  "words_in_original",
+  "meaning"
+)
+state_name_etymology <- state_name_etymology |>
+  mutate(
+    date_named = if_else(
+      date_named == "1743",
+      "January 1, 1743",
+      date_named
+    ) |> 
+      parse_date(format = "%B %d, %Y"),
+    # We remove footnotes, but will reference them in the dictionary.
+    across(
+      c(words_in_original, meaning),
+      ~ str_remove_all(.x, "\\[\\d+\\]")
+    )
+  )
+
+# Confirm that the tables match up.
+states |> 
+  full_join(state_name_etymology, by = "state") |> 
+  filter(is.na(date_named))
+states |> 
+  full_join(state_name_etymology, by = "state") |> 
+  filter(is.na(admission))
+
+write_csv(
+  states,
+  here(
+    "data",
+    "2023",
+    "2023-08-01",
+    "states.csv"
+  )
+)
+write_csv(
+  state_name_etymology,
+  here(
+    "data",
+    "2023",
+    "2023-08-01",
+    "state_name_etymology.csv"
+  )
+)
+
+dt<-states %>% 
+  mutate(population_density=round(population_2020/land_area_km2,2)) %>% 
+  select(region=state,PA=postal_abbreviation,population_density)
+
+
+MainStates <- map_data("state")
+dt$region<-tolower(dt$region)
+
+MergedStates <- inner_join(MainStates, dt, by = "region") %>% 
+  mutate(
+    pd = case_when(
+      population_density >90 ~ ">90",
+      population_density > 80 & population_density <=90 ~ "80-90",
+      population_density >70 & population_density <=80 ~ "70-80",
+      population_density >60 & population_density <=70 ~ "60-70",
+      population_density >50 & population_density <=60 ~ "50-60",
+      population_density >40 & population_density <=50 ~ "40-50",
+      population_density >30 & population_density <=40 ~ "30-40",
+      population_density >20 & population_density <=30 ~ "30-40",
+      population_density <=20 ~ "<=20"
+    ),
+    # Convert to factor
+    pd = factor(
+      pd,
+      level = c(">90", "90-100",
+                "80-90","70-80","60-70","50-60",
+                "40-50","30-40","20-30","<=20")
+    )
+  )  
+
+p <- ggplot()+ 
+  geom_polygon( data=MergedStates, 
+                aes(x=long, y=lat, group=group, fill = pd,labels=PA), 
+                color="white", size = 0.2)+
+  labs(title="United States of America\nPopulation density map,2020",
+       fill="Population density \nper KM2",
+       caption = "Data source:  Wikipedia articles| Creator:Zoi Diamantakou | tidytuesday | 2023, week 32",
+       x="",
+       y="")+
+  scale_fill_manual(values = c('#49006a','#7a0177','#ae017e',
+                               '#dd3497','#f768a1',"#fa9fb5","#fcc5c0",
+                               "#fde0dd" , "#fff7f3"))
+p+theme_minimal() +
+  theme(plot.margin = unit(c(1,2,1,1), "cm"),
+        plot.title = element_text(size = 22, face = "bold",
+                                  hjust = 0.5,color="#8C4830"),
+        plot.subtitle = element_text(size = 14,hjust = 0),
+        plot.caption = element_text(size = 8,
+                                    hjust = 0.5,color='#c5a397'),
+        axis.title.x = element_blank(),
+        axis.title.y= element_blank(),
+        axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        legend.position="bottom",
+        legend.title = element_text(color = "#ae7e6e", size = 10),
+        legend.text = element_text(color = "#ae7e6e"),
+        panel.grid = element_blank(),
+        plot.background = element_rect(fill="#fffdf3"))
+
+
