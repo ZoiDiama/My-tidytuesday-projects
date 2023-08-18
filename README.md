@@ -44,4 +44,11 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/1
 
 ![TT2023Week32_Hot](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/60f46bcf-deb9-41c6-8e33-a7be0c5158b2)
 
+### Week 33 | Spam emails
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/4c8a235621e20b1d3b544c53abe8c451af2217ce/Code/2023/Week%2033#L1-L53)
+
+![TT2023Week33](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/e89080b8-ab73-4a61-b718-cebd0f445e4b)
+
+
 </details>
