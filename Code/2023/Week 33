@@ -1,0 +1,53 @@
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+
+
+tuesdata <- tidytuesdayR::tt_load(2023, week = 33)
+
+spam <- tuesdata$spam
+
+spam_pivot<-spam %>%
+  pivot_longer(
+    cols = "crl.tot":"make",
+    names_to ="var",
+    values_to = "value")
+
+p<-ggplot(spam_pivot, aes(x = log10(value), fill = yesno)) +
+  geom_histogram(position = "identity", alpha = 0.5, bins = 15)+
+  facet_wrap(~var,
+             labeller = as_labeller(
+               c(bang= "Bang (!)", 
+                 crl.tot="Capital sequences \nlength",
+                 dollar="Dollar ($)",
+                 make="Make",
+                 money="Money",
+                 n000="String 000")))+
+labs(title="Insights from 6 Key Variables in Spam Email Dataset:\nSpam vs Non-Spam",
+     fill="Emails",
+     caption = "Data source:  Spam Email Rdatasets| Creator:Zoi Diamantakou | tidytuesday | 2023, week 33",
+     x="log(observations)",
+     y="")+
+  scale_fill_manual(labels=c("Not spam","Spam"),
+                    values = c('#ece581','#BF6F6F'))
+p
+
+
+p+theme_minimal() +
+  theme(plot.margin = unit(c(1,2,1,1), "cm"),
+        plot.title = element_text(size = 22, face = "bold", hjust = 0.5,color="#dcc7c0"),
+        plot.subtitle = element_text(size = 10,hjust = 0,colour = "#ffffff"),
+        plot.caption = element_text(size = 10,hjust = 0.5,color='#dcc7c0'),
+        axis.title.x = element_text(size = 8,hjust = 0.5,colour = "#ffffff"),
+        axis.title.y= element_text(size = 8,hjust = 0.5,colour = "#ffffff"),
+        axis.text.x = element_text(size = 8,hjust = 0,colour = "#ffffff"),
+        axis.text.y = element_text(size = 8,hjust = 0,colour = "#ffffff"),
+        strip.text.x = element_text(size = 12,colour="#f1e8e5",face="bold"),
+        legend.position='bottom',
+        legend.text = element_text(color = "#f1e8e5",size=12),
+        legend.title = element_text(color = "#ffffff"),
+        panel.grid = element_blank(),
+        panel.spacing = unit(2, "lines"),
+        plot.background = element_rect(fill="#330C59"))
+
+ggsave("TT2023Week33.png", width = 12, height = 9, dpi = 300, bg = "white")
