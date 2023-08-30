@@ -50,5 +50,15 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/4
 
 ![TT2023Week33](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/e89080b8-ab73-4a61-b718-cebd0f445e4b)
 
+### Week 34 | Refugees
+
+The data this week comes from PopulationStatistics {refugees} R package. I created a barchart showcasing refugee data trends since 2010, with annotations highlighting the most significant crises during this period.
+
+Check the code [here] (https://github.com/ZoiDiama/My-tidytuesday-projects/blob/c0dee5214455870cac4ce6eaad1dafe756ffb145/Code/2023/Week%2034#L1-L114)
+
+![TT2023Week34](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/afbab5af-72ef-4766-a52d-84269f82c28c)
+
+
+
 
 </details>
