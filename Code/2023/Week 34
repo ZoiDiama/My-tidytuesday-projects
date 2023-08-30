@@ -1,0 +1,114 @@
+tuesdata <- tidytuesdayR::tt_load('2023-08-22')
+
+library(tidyverse)
+library(refugees)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(scales)
+
+populations <- refugees::population
+
+# Get just the years from 2010 to 2022
+
+populations2010 <- filter(populations, year >= 2010)
+
+write_csv(populations2010, "population.csv")
+
+dt<-populations2010 %>% 
+  select(year,coo_name,refugees,asylum_seekers,idps,ooc,oip) %>% 
+  pivot_longer(cols = refugees:oip,
+               names_to ="population_type",
+               values_to = "total") %>% 
+  
+  mutate(population_type=factor(population_type, 
+                                levels=c("oip", "ooc","asylum_seekers", "refugees","idps")), 
+         population_type=recode(population_type,
+                                refugees="Refugees under UNHCR’s mandate",
+                                asylum_seekers="Asylum-seekers",
+                                oip="Other people in need of international protection",
+                                idps="Internally displaced persons",
+                                ooc="Other people of concern to UNHCR")) %>% 
+  arrange(year, population_type) %>% 
+  filter(!is.na(total)) %>% 
+  group_by(year,population_type) %>% 
+  summarise(total=sum(total)) %>% 
+  mutate(rounded=round(total/1000000,2))
+
+plot<- 
+  ggplot(dt, aes(x = year, y=rounded,fill = population_type))+
+  geom_bar(position="stack",stat = "identity")+
+  labs(title="People forced to flee | 2010 - 2022",
+       subtitle=stringr::str_wrap("By the end of 2022, 108.4 million people were forcibly displaced worldwide as a result of persecution, conflict, violence or human rights violations.",width = 95),
+       fill="",
+       caption = "Data source: UNHCR Refugee Data Finder| Creator:Zoi Diamantakou | tidytuesday | 2023, week 34",
+       x="",
+       y="Number of people (in million)")+
+  scale_fill_manual(values = c("#EF4A60","#8EBEFF","#18375F",
+                               "#0072BC",'#00B398'))+
+  scale_x_continuous(breaks = seq(2010,2022,1)) +
+  scale_y_continuous(expand = expansion(c(0, 0.1)), 
+                     breaks= pretty_breaks(n = 5), 
+                     labels = label_number(scale_cut = cut_long_scale()))+
+  theme(
+  plot.margin = unit(c(1,3,1,1), "cm"),
+  plot.title = element_text(size = 22, face = "bold",hjust = 0.5),
+  plot.subtitle = element_text(size = 10,hjust = 0.5),
+  plot.caption = element_text(size = 8,hjust = 0.5),
+  axis.title.x = element_text(size = 8),
+  axis.title.y= element_text(size = 8),
+  axis.text.x = element_text(size=8),
+  axis.text.y = element_text(size=10),
+  strip.text.x = element_text(size = 10,colour="white",face="bold"),
+  strip.text.y = element_text(size = 10,angle = 0), 
+  legend.position="bottom",
+  legend.title = element_text(size = 10),
+  legend.key = element_blank(),
+  panel.background = element_rect(fill = "white"),
+  panel.grid.major.y = element_line(color = "#e8e7da",
+                                    size = 0.5),
+  panel.grid = element_blank())+
+  guides(fill=guide_legend(nrow=2, byrow=TRUE,
+                           override.aes = list(size = 0.01)))+
+annotate(geom = "curve", x = 2023, y = 45, xend = 2022, yend = 44,
+      curvature = .3, arrow = arrow(length = unit(2, "mm"))) +
+    annotate(geom = "text", x = 2023, y = 44, 
+             label = "57 million \ninternally displaced \npeople", 
+             colour = '#00B398',hjust = "left")+
+    coord_cartesian(clip = 'off') +
+    annotate(geom = "curve", x = 2023, y = 70, xend = 2022, yend = 69,
+             curvature = .3, arrow = arrow(length = unit(2, "mm"))) +
+    annotate(geom = "text", x = 2023, y = 70, 
+             label = "35.3 million \nrefugees", 
+             colour = '#0072BC',hjust = "left")
+
+plot+annotate(geom = "text", x = 2011, y = 50, 
+         label ="2011: Syrian refugee \ncrisis erupts, \none of the largest \nhumanitarian ordeal.", 
+         hjust = "right",size=2.5)+
+  annotate("segment", x = 2011, xend = 2011, 
+           y = 40, yend = 30, colour = "grey")+
+  annotate(geom = "text", x = 2023, y = 100, 
+           label = "2022: Russia invades Ukraine, \ntriggering mass exodus, \n8.2 million refugees seek \nrefuge in Europe.", 
+           hjust = "left",size=2.5)+
+  annotate(geom = "text", x = 2021, y = 100, 
+           label = "2021: Afghan refugee \ncrisis.", 
+           hjust = "right",size=2.5)+
+  annotate("segment", x = 2021, xend = 2021, 
+           y = 95, yend = 88, colour = "grey")+
+  annotate(geom = "text", x = 2017, y = 80, 
+           label = "2017: Rohingya\ncrisis.", 
+           hjust = "right",size=2.5)+
+  annotate("segment", x = 2017, xend = 2017, 
+           y = 75, yend = 65, colour = "grey")+
+  annotate(geom = "text", x = 2013, y = 70, 
+           label = "2013:South Sudan and \nUganda refugee crisis", 
+           hjust = "right",size=2.5)+
+  annotate("segment", x = 2013, xend = 2013, 
+           y = 65, yend = 40, colour = "grey")+
+  annotate(geom = "text", x = 2014, y = 80, 
+           label = "2014:Venezuelan migration \nand refugee crisis", 
+           hjust = "right",size=2.5)+
+  annotate("segment", x = 2014, xend = 2014, 
+           y = 75, yend = 50, colour = "grey")
+ 
+ggsave("TT2023Week34.png", width = 12, height = 6, dpi = 300, bg = "white")                            
