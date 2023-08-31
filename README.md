@@ -58,4 +58,11 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/c
 
 ![TT2023Week34](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/5e04df52-dd01-4b6d-a68b-6f9d10ae5e06)
 
+### Week 35 | Fair use
+
+This week's data is sourced from the U.S. Copyright Office Fair Use Index. To illustrate the changing frequency of  use cases over time, across different jurisdictions and their corresponding outcome, I utilized a bubble timeline graph.
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/ffc7325327f91322c7b4dbc7fbee6c095bb7325f/Code/2023/Week%2035#L1-L78)
+
+![TT2023Week35](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/2d02c7a1-89a6-4715-a57c-af0fd15f92d2)
 </details>
