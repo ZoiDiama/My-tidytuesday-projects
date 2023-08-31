@@ -1,0 +1,80 @@
+library(ggh4x)
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+
+tuesdata <- tidytuesdayR::tt_load('2023-08-29')
+fair_use_cases <- tuesdata$fair_use_cases
+fair_use_findings <- tuesdata$fair_use_findings
+dt<-fair_use_cases %>% 
+  group_by(jurisdiction,year,fair_use_found) %>% 
+  summarise(n=n()) %>% 
+  mutate(jurisdiction=factor(jurisdiction, 
+                                levels=c("1st Circuit","2nd Circuit",                 
+                                         "3rd Circuit","4th Circuit","5th Circuit","6th Circuit",                
+                                         "7th Circuit","8th Circuit","9th Circuit","10th Circuit","11th Circuit",                
+                                         "District of Columbia Circuit","Federal Circuit","U.S. Supreme Court")), 
+         jurisdiction=recode(jurisdiction,
+                                "1st Circuit"="1st",
+                                "2nd Circuit"="2nd",                 
+                                "3rd Circuit"="3rd",
+                             "4th Circuit"="4th",
+                             "5th Circuit"="5th",
+                             "6th Circuit"="6th",                
+                                "7th Circuit"="7th",
+                             "8th Circuit"="8th",
+                             "9th Circuit"="9th",
+                             "10th Circuit"="10th",
+                             "11th Circuit"="11th",                
+                                "District of Columbia Circuit"="District of Columbia",
+                             "Federal Circuit"="Federal",
+                             "U.S. Supreme Court"="U.S. Supreme Court")) %>% 
+  arrange(jurisdiction,year) %>% 
+  mutate(fair_use_found=factor(fair_use_found,levels=c("TRUE","FALSE")),
+         fair_use_found=recode(fair_use_found,
+                               "TRUE"="Fair",
+                               "FALSE"="Not fair"))
+write_csv(fair_use_findings, "fair_use_findings.csv")
+write_csv(fair_use_cases, "fair_use_cases.csv")
+
+plot<- 
+  ggplot(dt,aes(x=year,y=jurisdiction,colour=fair_use_found,size=n))+
+ geom_point(alpha =0.5)+
+  scale_y_discrete(limits=rev)+
+  scale_x_continuous(breaks = seq(1841,2022,5))+
+  labs(title="Fair Use Index in the USA | 1841 - 2022",
+       subtitle=stringr::str_wrap("The Fair Use Index keeps tabs on court rulings, guiding lawyers and non-lawyers in distinguishing fair and unfair uses. The graph shows case counts and statuses by jurisdiction since 1841.",width = 110),
+       col="Contested use",
+       size="Number of cases",
+       caption = "Data source:  U.S. Copyright Office Fair Use Index| Creator:Zoi Diamantakou | tidytuesday | 2023, week 35",
+       x="",
+       y="Jurisdiction-Circuit courts")+
+  scale_color_manual(values = c("orange", "purple"))+
+  theme(
+  plot.margin = unit(c(1,3,1,1), "cm"),
+  plot.title = element_text(size = 22, face = "bold",hjust = 0.5),
+  plot.subtitle = element_text(size = 15,hjust = 0.5),
+  plot.caption = element_text(size = 10,hjust = 0.5),
+  axis.title.x = element_text(size = 8,),
+  axis.title.y= element_text(size = 12),
+  axis.text.x = element_text(size=12,angle = 90),
+  axis.text.y = element_text(size=12),
+  legend.position="right",
+  legend.title = element_text(size = 10),
+  legend.key = element_blank(),
+  panel.background = element_rect(fill = "white"),
+  panel.grid.major.y = element_line(color = "#e8e7da",
+                                    size = 0.5),
+  panel.grid = element_blank())
+
+plot+
+  annotate(geom = "curve", x = 2022, y = "1st", xend = 2021, yend = "2nd",
+           curvature = .3, arrow = arrow(length = unit(2, "mm"))) +
+  annotate(geom = "text", x = 2023, y = "1st",
+           hjust = "left",size=3,
+           label = stringr::str_wrap("The Second Circuit has the highest number of cases recorded (98 cases), but only 40% of them were considered as fair use.",width = 45))+
+  coord_cartesian(clip = 'off')
+
+ggsave("TT2023Week35.png", width = 14, height = 8, dpi = 300, bg = "white") 
+
+
