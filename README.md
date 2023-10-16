@@ -65,4 +65,18 @@ This week's data is sourced from the U.S. Copyright Office Fair Use Index. To il
 Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/ffc7325327f91322c7b4dbc7fbee6c095bb7325f/Code/2023/Week%2035#L1-L78)
 
 ![TT2023Week35](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/2d02c7a1-89a6-4715-a57c-af0fd15f92d2)
+
+
+### Week 36 | Union Membership in the United States
+
+The data this week comes from the Union Membership, Coverage, and Earnings from the CPS by Barry Hirsch (Georgia State University), David Macpherson (Trinity University), and William Even (Miami University).
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/e3e0516b72bc8f910db52a65ab83c4960ae77296/Code/2023/Week36#L1-L56)
+
+![TT2023Week36](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/732b6a58-c086-4567-b666-0ab044448bc5)
 </details>
+
+
+
+
+
