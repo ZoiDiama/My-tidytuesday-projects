@@ -85,6 +85,16 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/1
 
 ![TT2023Week37](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/87236677-ef6b-4bb0-b5d0-a0bfe70b28aa)
 
+### Week 38 | Roy Kent F**k count
+
+The data this week comes from Deepsha Menghani who created the dataset by watching the show and counting the number of F-cks used in sentences and as gestures.
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/4fe4900d1905b7c44c82a0a5f130e76c474cef55/Code/2023/Week%2039#L1-L121)
+
+![TT2023Week39](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/97011b5d-0bac-4962-b155-2d6fb4668377)
+
+
+
 
 
 
