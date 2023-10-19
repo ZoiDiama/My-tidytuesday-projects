@@ -1,8 +1,7 @@
 # My-tidytuesday-projects
 Check out my TidyTuesday projects on GitHub! 🌟 Join the data community at : R4DS Online Learning Community (2023). Tidy Tuesday: A weekly social data project. https://github.com/rfordatascience/tidytuesday.
 
-<details>
-  <summary>2023</summary>
+### 2023
 
 ### Week 28 | Global Surface Temperatures
 This week's data is sourced from NASA GISS Surface Temperature Analysis (GISTEMP v4). It consists of global and hemispheric monthly means and zonal annual means, combining land, air, and sea-surface temperature anomalies (Land-Ocean Temperature Index, L-OTI). To visualize this data, I chose a heatmap, providing an intuitive and visually appealing representation of temperature patterns. 
@@ -88,7 +87,7 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/1
 
 
 
-</details>
+
 
 
 
