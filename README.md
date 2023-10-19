@@ -73,9 +73,22 @@ The data this week comes from the Union Membership, Coverage, and Earnings from 
 
 Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/e3e0516b72bc8f910db52a65ab83c4960ae77296/Code/2023/Week36#L1-L56)
 
-![TT2023Week36](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/732b6a58-c086-4567-b666-0ab044448bc5)
-</details>
 
+![TT2023Week36](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/732b6a58-c086-4567-b666-0ab044448bc5)
+
+
+### Week 37 | The Global Human Day
+
+The data this week comes from the The Human Chronome Project an initiative based at McGill University in Montreal, from their paper The global human day in PNAS and the associated dataset on Zenodo.
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/1a44f946eedf2792eb651dc56ea671d34e92d1cb/Code/2023/Week%2037#L1-L54)
+
+
+![TT2023Week37](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/87236677-ef6b-4bb0-b5d0-a0bfe70b28aa)
+
+
+
+</details>
 
 
 
