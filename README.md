@@ -8,7 +8,7 @@ This week's data is sourced from NASA GISS Surface Temperature Analysis (GISTEMP
 
 Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/4af0c90acb7b5255ed37e3b07756bb30bed0bf0a/Code/2023/Week28Global%20Surface%20Temperatures#L1C1-L80C4).
 
-![TidyTuesday2023Week28](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/5806ddc8-3a22-4ff3-9ab6-284a32dc7c5e)
+![TT2023Week28](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/67775e46-398d-4823-872c-82e1d86e5fc3)
 
 
 ### Week29 | GPT detectors
