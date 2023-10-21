@@ -91,7 +91,7 @@ The data this week comes from Deepsha Menghani who created the dataset by watchi
 
 Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/4fe4900d1905b7c44c82a0a5f130e76c474cef55/Code/2023/Week%2039#L1-L121)
 
-![TT2023Week39](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/97011b5d-0bac-4962-b155-2d6fb4668377)
+![TT2023Week39](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/f1dc9f0f-7722-45b4-ad09-ddd4c147171a)
 
 
 
