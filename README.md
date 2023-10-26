@@ -102,7 +102,7 @@ The data this week comes from the R4DS Online Learning Community who exported al
 
 Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/af8e13c0940b29831ed075fb7399c757a2330d05/Code/2023/Week%2040#L1-L225)
 
-![TT2023Week40](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/20d017c2-ebff-4771-8694-fee9a41f32dd)
+![TT2023Week40](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/29152280-9b60-45c9-a3c0-6bc00c14d96c)
 
 
 
