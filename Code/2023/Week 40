@@ -1,0 +1,225 @@
+#US Government Grant Opportunities
+#load libraries 
+library(tidyverse)
+library(showtext)
+library(ggtext)
+library(tidytuesdayR)
+library(glue)
+library(Cairo)
+library(ggstream)
+
+
+#1.DATA LOADING
+tuesdata <- tidytuesdayR::tt_load('2023-10-03')
+grants <- tuesdata$grants
+grant_opportunity_details <- tuesdata$grant_opportunity_details
+glimpse(grants)
+glimpse(grant_opportunity_details)
+
+
+#2.DATA WRANGLING
+#preparing the dataset
+dt<-grant_opportunity_details %>% 
+  select(opportunity_id,posted_date,agency_name,
+  Agriculture=category_agriculture,
+  Arts=category_arts,
+  Business=category_business,
+  Community_development=category_community_development,
+  consumer_protection=category_consumer_protection,
+  Disaster=category_disaster,
+  Education=category_education,
+  Employment=category_employment,
+  Energy=category_energy,
+  Environment=category_environment,
+  Food=category_food,
+  Health=category_health,
+  Humanities=category_humanities,
+  Iija=category_iija,
+  Income_secutiry=category_income_security,
+  Law=category_law,
+  Natural_resources=category_natural_resources,
+  Regional_devlopment=category_regional_development,
+  Science=category_science,
+  Trasportation=category_transportation,	
+  Other=category_other) %>% 
+  pivot_longer(cols = Agriculture:Other,names_to = "Category",values_to = "Count") %>% 
+  mutate(Count=as.integer(as.logical(Count)),Year=format(posted_date, format="%Y")) %>% 
+  ungroup()
+
+#Dara for the plot
+ dt_areaplot<-dt %>% 
+   mutate(cat=recode(Category,  #creating a new column with the key categories Science,Energy,Education,Income_secutiry,Transportation,Disaster,Food,Community_development,Natural_resources
+   "Arts"="Other","Business"="Other",
+   "Community_development"="Other","Trasportation"="Other",
+ "consumer_protection"="Other",
+ "Income_security"="Other",
+ "Humanities"="Other",
+ "Iija"="Other",
+ "Law"="Other",
+ "Regional_devlopment"="Other"))%>% 
+   group_by(Year,cat) %>% 
+   mutate(Year=as.numeric(Year)) %>% 
+   filter(Year>=2015) %>% 
+  summarise(n=sum(Count)) %>% 
+   #mutate(Percent = round(n/sum(n)*100, 1)) %>%
+   mutate(cat=factor(cat,levels =c("Health","Science",
+                                        "Education","Environment",
+                                        "Income_secutiry",
+                                        "Natural_resources",
+                                        "Food",
+                                        "Energy",
+                                        "Agriculture",
+                                        "Disaster",
+                                        "Employment","Other"))) 
+ #3. PLOT VIZUALIZATION 
+ ## Load Google fonts (https://fonts.google.com/)
+ font_add_google("Titillium Web", family = "title")                           
+ font_add_google("Dosis", family = "subtitle")  
+ showtext::showtext_auto()
+ showtext::showtext_opts(dpi = 300) 
+ 
+ ##Title,subtitle & caption 
+ tt <- str_glue("Grant Explosion: Unveiling the Rise of \nFunding Opportunities in the U.S.")
+ st <- str_glue(stringr::str_wrap("Today, we explore the evolution of U.S. federal grant distribution from 2015 to 2023. 
+ The graph below showcases the number of grants published across key categories. The analysis uncovers a striking surge in grant numbers, particularly 
+ in the areas of health, science,education and enviroment in recent years. Together, these three categories accounted for more than two-thirds of all federal 
+                                  grants posted in 2023.",
+                                  width=100))
+ ct  <- str_glue(stringr::str_wrap("Data Source: grant.gov-R4DS Online Learning Community | 
+                                  Creator:Zoi Diamantakou | tidytuesday | 2023, 
+                                  week 40",width=100))
+   
+ plot<-
+   ggplot(dt_areaplot, aes(x=Year, y=n, fill=cat)) +
+   geom_stream(extra_span = .05,true_range = "none",bw = .85,size = 1.25) +
+   geom_stream(geom = "contour", color = "white",extra_span = .05,
+               true_range = "none",bw = .85,size = 0.09)+
+   
+   scale_x_continuous(breaks = seq(2015,2023,1))+
+    scale_fill_manual(breaks =c("Health","Science",
+                               "Education","Environment",
+                               "Income_secutiry",
+                               "Natural_resources",
+                               "Food",
+                               "Energy",
+                               "Agriculture",
+                               "Disaster",
+                               "Employment","Other"),
+                     values = c("#a6cee3","#1f78b4","#b2df8a","#33a02c","#fb9a99",
+                                "#e31a1c","#fdbf6f","#ff7f00","#cab2d6",
+                                "#6a3d9a","#b15928","#889197"))+
+   labs(title=tt,
+        subtitle=st,
+        caption = ct,
+        x="",
+        y="",
+        fill="")+
+ 
+ ## theme
+ theme_minimal(base_family = "Reem Kufi")+
+   theme(
+     plot.margin           = margin(t = 10, r = 15, b = 10, l = 25),
+     plot.title.position   = "plot",
+     plot.caption.position = "plot",
+     legend.position       = 'bottom',
+     plot.title            = element_text(
+       family= 'title',face= "bold",size= 30,colour="#707172",
+       margin= margin(t = 10, b = 5)),
+     plot.subtitle = element_text(
+       family= 'subtitle', lineheight= 0.9,size  = 16,margin= margin(t = 5, b = 10)),
+     legend.key = element_blank(),
+     axis.text.y=element_blank(), 
+     plot.background = element_rect(fill = "#e0e3e4", color = NA),
+     panel.background = element_blank(),
+     panel.grid.major.y = element_blank(),
+     panel.grid.major.x = element_line(color = "white",
+                                       size = 0.75,linetype = 2),
+     panel.grid = element_blank(),
+     legend.text = element_text(color = "grey40", size = 10),
+     legend.box.margin = margin(t = 30),
+     legend.background = element_rect(color = "grey40",
+                                      size = .3,
+                                      fill = "grey95"),
+     legend.key.height = unit(.25, "lines"),
+     legend.key.width = unit(2.5, "lines"))
+  
+ 
+ ##annotate
+ plot+
+   geom_label(aes(x = 2022.5, y = 600, 
+                  label = stringr::str_wrap("In 2023, a remarkable surge of 1,480 US federal 
+                                      grants was recorded, marking a 
+                                      remarkable 135% increase from the previous 
+                                      year and a staggering 
+                                      jump compared to 2015,when only 
+                                      22 federal grants were posted. ",width = 32)),
+              inherit.aes = F,
+              family = "Reem Kufi",
+              size = 3.5,
+              color = "#9e146c",
+              lineheight = .85,
+              hjust = 1,
+              fill = "white")+
+   geom_vline(xintercept = 2023,color="#9e146c", linetype="dashed")+
+   annotate(geom = "text", x = 2023.1, y =850,
+            inherit.aes = F,
+            family = "Reem Kufi",
+            size = 3,
+            color = "#9e146c",
+            lineheight = .85,
+            hjust = 0,
+            label = "Number of grants \nTotal:1,480")+
+   annotate(geom = "text", x = 2023.1, y =500,
+            inherit.aes = F,
+            family = "Reem Kufi",
+            size = 3,
+            color = "white",
+            lineheight = .85,
+            hjust = 0,
+            label = "462\n(31%)")+
+   annotate(geom = "text", x = 2023.1, y =150,
+            inherit.aes = F,
+            family = "Reem Kufi",
+            size = 3,
+            color = "white",
+            lineheight = .85,
+            hjust = 0,
+            label = "263\n(18%)")+
+   annotate(geom = "text", x = 2023.1, y =-50,
+            inherit.aes = F,
+            family = "Reem Kufi",
+            size = 3,
+            color = "white",
+            lineheight = .85,
+            hjust = 0,
+            label = "181\n(12%)")+
+   annotate(geom = "text", x = 2023.1, y =-220,
+            inherit.aes = F,
+            family = "Reem Kufi",
+            size = 3,
+            color = "white",
+            lineheight = .85,
+            hjust = 0,
+            label = "131\n(9%)")+
+   geom_segment(aes(x=2023.45,xend=2023.45,y=-300,yend=-730))+
+     annotate(geom = "text", x = 2023.5, y =-500,
+            inherit.aes = F,
+            family = "Reem Kufi",
+            size = 3,
+            color = "black",
+            lineheight = .85,
+            hjust = 0,
+            label = "443\n(30%)")+
+   geom_segment(aes(x=2023.45,xend=2023.45,y=-250,yend=750))+
+   annotate(geom = "text", x = 2023.5, y =200,
+            inherit.aes = F,
+            family = "Reem Kufi",
+            size = 3,
+            color = "black",
+            lineheight = .85,
+            hjust = 0,
+            label = "1,037\n(70%)")
+ 
+#save the plot
+ggsave("TT2023Week40.png", width = 12, height = 8, 
+       type = "Cairo",dpi = 300, bg = "white") 
