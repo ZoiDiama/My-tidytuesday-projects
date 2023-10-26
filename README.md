@@ -88,13 +88,24 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/1
 
 ![TT2023Week37](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/9e5e3cfb-6ea0-41bf-b34b-f70c598c2998)
 
-### Week 38 | Roy Kent F**k count
+### Week 39 | Roy Kent F**k count
 
 The data this week comes from Deepsha Menghani who created the dataset by watching the show and counting the number of F-cks used in sentences and as gestures.
 
 Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/4fe4900d1905b7c44c82a0a5f130e76c474cef55/Code/2023/Week%2039#L1-L121)
 
 ![TT2023Week39](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/f1dc9f0f-7722-45b4-ad09-ddd4c147171a)
+
+### Week 40 | US Government Grant Opportunities
+
+The data this week comes from the R4DS Online Learning Community who exported all grants past and present listed on Grants.gov.
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/af8e13c0940b29831ed075fb7399c757a2330d05/Code/2023/Week%2040#L1-L225)
+
+![TT2023Week40](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/20d017c2-ebff-4771-8694-fee9a41f32dd)
+
+
+
 
 
 
