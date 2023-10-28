@@ -110,7 +110,7 @@ The data this week comes from taylor R package from W. Jake Thompson which is a 
 
 Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/af8e13c0940b29831ed075fb7399c757a2330d05/Code/2023/Week%2040#L1-L225)
 
-![TT2023Week42](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/28afda88-cb3c-4a42-b72f-65e9606cf12e)
+![TT2023Week42](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/f6d60abd-3528-4695-b57e-ae55b8bce229)
 
 
 
