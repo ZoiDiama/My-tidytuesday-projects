@@ -104,6 +104,15 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/a
 
 ![TT2023Week40](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/29152280-9b60-45c9-a3c0-6bc00c14d96c)
 
+### Week 42 | Taylor Swift data
+
+The data this week comes from taylor R package from W. Jake Thompson which is a curated data set of Taylor Swift songs, including lyrics and audio characteristics. The data comes from Genius and the Spotify API.
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/af8e13c0940b29831ed075fb7399c757a2330d05/Code/2023/Week%2040#L1-L225)
+
+![TT2023Week42](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/28afda88-cb3c-4a42-b72f-65e9606cf12e)
+
+
 
 
 
