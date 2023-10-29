@@ -104,6 +104,15 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/a
 
 ![TT2023Week40](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/29152280-9b60-45c9-a3c0-6bc00c14d96c)
 
+### Week 41 | Haunted Places in the United States
+
+The data this week comes from a compilation of Haunted Places in the United States. The dataset was compiled by Tim Renner, using The Shadowlands Haunted Places Index, and shared on data.world.
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/709119e62b0e3bc35237645ae7b1a69fc809203f/Code/2023/Week%2041#L1-L104)
+
+![TT2023Week41](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/51d512bf-aaa1-47e2-b2a1-a3c2102f1e83)
+
+
 ### Week 42 | Taylor Swift data
 
 The data this week comes from taylor R package from W. Jake Thompson which is a curated data set of Taylor Swift songs, including lyrics and audio characteristics. The data comes from Genius and the Spotify API.
