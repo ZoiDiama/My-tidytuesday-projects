@@ -1,0 +1,64 @@
+create_gradient_state_tile_map <- function(state, value, 
+                                           title, legend_title, 
+                                           low_color='#CD7F4F', 
+                                           high_color="#6E3845", 
+                                           state_grid='us_state_grid2') {
+  
+  p <- dt%>% 
+    ggplot()+
+    geom_bar(mapping=aes(x=1, fill=value))  +
+    facet_geo(~ state) +
+    scale_fill_continuous(low = low_color, 
+                          high= high_color,
+                          guide = guide_colorbar(title = legend_title))+ # creates shading pattern
+   
+    labs(title=tt,
+         subtitle=st,
+         caption = ct,
+         x="",
+         y="",
+         fill="x")+
+    
+    theme_classic()+
+    theme(plot.margin           = margin(t = 10, r = 15, b = 10, l = 25),
+          plot.caption.position = "plot",
+          legend.position       = 'bottom',
+          plot.title            = element_text(
+            family= 'title',face= "bold",size= 32,
+            colour="#E9BC83",hjust = 0.5,
+            margin= margin(t = 10, b = 5)),
+          plot.subtitle = element_text(
+            family= 'subtitle', 
+            lineheight= 0.9,
+            size  = 16,
+            colour="white",
+            margin= margin(t = 5, b = 10)),
+          plot.caption = element_text(size=10,colour="#E9BC83"),
+          axis.text.y=element_blank(), 
+          plot.background = element_rect(fill = "#223343", color = NA),
+          legend.text = element_text(color = "#E9BC83", size = 10),
+          legend.title = element_text(size=10,
+                                      color = "#E9BC83",
+                                      vjust=0.5),
+          legend.key.height = unit(.25, "lines"),
+          legend.key.width = unit(2.5, "lines"),
+          legend.background = element_rect(color = "#223343",
+                                           size = .3,
+                                           fill = "#223343"),
+          axis.title=element_blank(),
+          axis.text=element_blank(),
+          axis.ticks = element_blank(),
+          strip.text.x = element_blank(),
+          axis.line = element_blank()) +
+    geom_text(aes(x=1, y=0.5, label=state), color='white', size=10) 
+  
+  return(p)
+}
+tile_map <- create_gradient_state_tile_map(dt$state, 
+                                           dt$value, 
+                                           legend_title = "Number of \nhaunted places")
+tile_map
+
+#save the plot
+ggsave("TT2023Week41.png", width = 12, height = 8, 
+       type = "Cairo",dpi = 300, bg = "white") 
