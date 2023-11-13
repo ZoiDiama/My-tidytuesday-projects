@@ -121,6 +121,14 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/a
 
 ![TT2023Week42](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/f6d60abd-3528-4695-b57e-ae55b8bce229)
 
+### Week 43 | TBA
+
+### Week 44 | Horror Legends
+The data this week comes from snopes.com. 
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/2bf0d72551409886a1896a4630b7e03d93e2baeb/Code/2023/Week_44#L1-L112)
+
+![TT2023Week44](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/8feafe29-ccb0-4a53-ae07-66274c121e56)
 
 
 
