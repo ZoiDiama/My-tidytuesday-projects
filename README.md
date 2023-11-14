@@ -130,6 +130,14 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/2
 
 ![TT2023Week44](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/8feafe29-ccb0-4a53-ae07-66274c121e56)
 
+### Week 45 | US House Election Results
+The data this week comes from the MIT Election Data and Science Lab (MEDSL). 
+
+Check the code[here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/710960a0d90b446587f63b8278db370592f36ac9/Code/2023/Week_45#L1-L109)
+
+![TT2023Week45](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/178bc72c-446d-4e89-8fa7-43c72702687d)
+
+
 
 
 
