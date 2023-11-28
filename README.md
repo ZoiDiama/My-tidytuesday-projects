@@ -137,6 +137,15 @@ Check the code[here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/71
 
 ![TT2023Week45](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/178bc72c-446d-4e89-8fa7-43c72702687d)
 
+### Week 46 | Diwali Sales Data
+
+The data this week comes from sales data for a retail store during the Diwali festival period in India.The graph was prepared with ggplot but the final editing was completed in Figma. 
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/19fcb485eabf89799b0f6dcf633dc368ec0dfc24/Code/2023/Week_46#L1-L110)
+
+![TT2023Week46](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/dfd68c4a-b76c-4cef-86de-9a56716df71c)
+
+
 
 
 
