@@ -139,7 +139,7 @@ Check the code[here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/71
 
 ### Week 46 | Diwali Sales Data
 
-The data this week comes from sales data for a retail store during the Diwali festival period in India.The graph was prepared with ggplot but the final editing was completed in Figma. 
+The data this week comes from sales data for a retail store during the Diwali festival period in India.The graph was prepared with ggplot while the final editing was completed in Figma. 
 
 Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/19fcb485eabf89799b0f6dcf633dc368ec0dfc24/Code/2023/Week_46#L1-L110)
 
@@ -147,7 +147,7 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/1
 
 ### Week 47 | R-Ladies Chapter Events
 
-The data this week comes from  R-Ladies Global Website .The graph was prepared with ggplot but the final editing was completed in Figma. 
+The data this week comes from  R-Ladies Global Website .The graph was prepared with ggplot while the final editing was completed in Figma. 
 
 Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/40cc4b705016af1cc0df352ec898fa3ef69f8f06/Code/2023/Week_47#L1-L99)
 
