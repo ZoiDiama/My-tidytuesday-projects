@@ -145,6 +145,14 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/1
 
 ![TT2023Week46](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/dfd68c4a-b76c-4cef-86de-9a56716df71c)
 
+### Week 47 | R-Ladies Chapter Events
+
+The data this week comes from  R-Ladies Global Website .The graph was prepared with ggplot but the final editing was completed in Figma. 
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/40cc4b705016af1cc0df352ec898fa3ef69f8f06/Code/2023/Week_47#L1-L99)
+
+![TT_week_47_2023](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/c99ebfef-6131-445d-b7bf-26995e016479)
+
 
 
 
