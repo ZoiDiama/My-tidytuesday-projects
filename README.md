@@ -153,6 +153,16 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/4
 
 ![TT_week_47_2023](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/c99ebfef-6131-445d-b7bf-26995e016479)
 
+### Week 48 |Doctor Who Episodes
+
+The data this week comes from  Wikipedia's [List of Doctor Who episodes] via the {datardis} package.The graph was prepared with ggplot while the final editing was completed in Figma. 
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/ed0ed78637ff67ee5d48e5e85db7b775f7d33863/Code/2023/Week%2048#L1-L88)
+
+![Untitled](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/82e05320-3648-4f36-9364-d6ff22b15d65)
+
+
+
 
 
 
