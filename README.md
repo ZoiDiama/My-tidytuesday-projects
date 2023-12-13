@@ -165,9 +165,10 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/e
 
 The data this week comes from  the Our World in Data Life Expectancy report.The graph was prepared with ggplot while the final editing was completed in Figma. 
 
-Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/ed0ed78637ff67ee5d48e5e85db7b775f7d33863/Code/2023/Week%2048#L1-L88)
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/bc38a04d5ce5cd5eda059e300d0c3e6268640ff1/Code/2023/Week%2049#L1-L206)
 
-![TT2023Week49](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/f886a30f-47cf-4ea8-bd8e-c2bfcc6e7fa9)
+![TT2023Week49 (1)](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/b39a69d7-9956-4b1d-b73a-79975f7742c0)
+
 
 
 
