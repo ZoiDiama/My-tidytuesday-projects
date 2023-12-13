@@ -142,7 +142,64 @@ angle= label_data$angle, inherit.aes = FALSE ) +
             colour = "black", alpha=0.8, size=4, 
             fontface="italic", inherit.aes = FALSE)
 
-## theme
+dt<-life_expectancy %>% #dataset for overall
+  filter(Entity%in%c("Africa",
+                     "Americas",
+                     "Asia", 
+                     "Europe",
+                     "Oceania")) %>% 
+  filter(Year>=1950) %>% 
+  mutate(
+    Year_group = case_when(
+      Year >=2020 ~ "2020's",
+      Year >=2010 & Year <=2019 ~ "2010's",
+      Year >=2000 & Year <=2009 ~ "2000's",
+      Year >=1990 & Year <=1999 ~ "90's",
+      Year >=1980 & Year <=1989 ~ "80's",
+      Year >=1970 & Year <=1979 ~ "70's",
+      Year >=1960 & Year <=1969 ~ "60's",
+      Year >=1950 & Year <=1959 ~ "50's",
+    ),
+    # Convert to factor
+    Year_group = factor(
+      Year_group,
+      level = c("50's","60's","70's","80's","90's",
+                "2000's","2010's","2020's")
+    )) 
+
+
+p <- 
+  ggplot(dt, aes(x=Year, y=LifeExpectancy, fill=Year_group)) +       # Note that id is a factor. If x is numeric, there is some space between the first bar
+  
+  geom_bar( 
+    stat="identity", alpha=0.5) +
+  scale_x_continuous(breaks = c(1950,2021,10))+
+  #scale_y_continuous(breaks = c(0,80,20))+
+  facet_wrap(~Entity,ncol=1)+
+  scale_fill_manual(labels=c("2020's","2010's","2000's",
+                             "90's","80's","70's","60's","50's"),
+                    values=c("#d31e25",
+                             "#d7a32e",
+                             "#d1c02b",
+                             "#369e4b",
+                             "#5db5b7",
+                             "#31407b",
+                             "#8a3f64",
+                             "#4f2e39"))+
+  theme_minimal()+
+  theme(
+    legend.position = "none",
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    panel.grid = element_blank(),
+    panel.background = element_rect(fill = "white"),
+    strip.background=element_rect(colour="black",
+                                  fill="white"),
+    panel.grid.major.y = element_blank()
+  ) 
+
+ggsave("TT2023Week49_countries.svg", width = 6, height = 8, 
+       dpi = 300, bg = "white") 
 
 #4. SAVE THE PLOT
 ggsave("TT2023Week49.svg", width = 12, height = 8, 
