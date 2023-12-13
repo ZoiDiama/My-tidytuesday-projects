@@ -1,0 +1,150 @@
+#Title:Life Expectancy
+#load libraries 
+library(tidyverse)
+library(showtext)
+library(ggtext)
+library(tidytuesdayR)
+library(glue)
+library(ggrepel)
+library(Cairo)
+library(egg)
+library(devtools)
+library(ggpubr)
+
+
+
+#1.DATA LOADING
+
+tuesdata <- tidytuesdayR::tt_load(2023, week = 49)
+
+life_expectancy <- tuesdata$life_expectancy
+life_expectancy_different_ages <- tuesdata$life_expectancy_different_ages
+life_expectancy_female_male <- tuesdata$life_expectancy_female_male
+
+
+#2.DATA WRANGLING
+#preparing the dataset
+#Data for the plot
+dt<-life_expectancy %>% #dataset for overall
+  filter(Entity%in%c("Africa",
+                     "Americas",
+                     "Asia", 
+                     "Europe",
+                     "Oceania")) %>% 
+  filter(Year>=1950) %>% 
+  group_by(Year) %>% 
+  summarise(n=mean(round(LifeExpectancy,0))) %>% 
+  mutate(
+    Year_group = case_when(
+      Year >=2020 ~ "2020's",
+      Year >=2010 & Year <=2019 ~ "2010's",
+      Year >=2000 & Year <=2009 ~ "2000's",
+      Year >=1990 & Year <=1999 ~ "90's",
+      Year >=1980 & Year <=1989 ~ "80's",
+      Year >=1970 & Year <=1979 ~ "70's",
+      Year >=1960 & Year <=1969 ~ "60's",
+      Year >=1950 & Year <=1959 ~ "50's",
+    ),
+    # Convert to factor
+    Year_group = factor(
+      Year_group,
+      level = c("50's","60's","70's","80's","90's",
+                "2000's","2010's","2020's")
+    )) 
+
+
+
+
+#3. PLOT VIZUALIZATION 
+## Load Google fonts (https://fonts.google.com/)
+font_add_google("Roboto", family = "title")                           
+font_add_google("Lato", family = "subtitle")  
+showtext::showtext_auto()
+showtext::showtext_opts(dpi = 300) 
+
+##Title,subtitle & caption 
+tt <- str_glue("Title")
+st <- str_glue(stringr::str_wrap("Sutitle",
+                                 width=100))
+ct  <- str_glue(stringr::str_wrap("Data Source: World in Data | 
+                                  Creator:Zoi Diamantakou | tidytuesday | 2023, 
+                                  week 49",width=100))
+
+##plot
+#add emplt columns between the groups
+empty_bar <- 3
+to_add <- data.frame( matrix(NA, empty_bar*nlevels(dt$Year_group), 
+                             ncol(dt)) )
+colnames(to_add) <- colnames(dt)
+to_add$Year_group <- rep(levels(dt$Year_group), each=empty_bar)
+dt <- rbind(dt, to_add)
+dt <- dt %>% arrange(Year_group)
+dt$id <- seq(1, nrow(dt))
+
+label_data <- dt
+number_of_bar <- nrow(label_data)
+angle <- 90 - 360 * (label_data$id-0.5) /number_of_bar     # I substract 0.5 because the letter must have the angle of the center of the bars. Not extreme right(1) or extreme left (0)
+label_data$hjust <- ifelse( angle < -90, 1, 0)
+label_data$angle <- ifelse(angle < -90, angle+180, angle)
+
+base_data <- dt %>% 
+  group_by(Year_group) %>% 
+  summarize(start=min(id), end=max(id) - empty_bar) %>% 
+  rowwise() %>% 
+  mutate(title=mean(c(start, end)))
+
+grid_data <- base_data
+grid_data$end <- grid_data$end[ c( nrow(grid_data), 1:nrow(grid_data)-1)] + 1
+grid_data$start <- grid_data$start - 1
+grid_data <- grid_data[-1,]
+
+p <- 
+  ggplot(dt, aes(x=as.factor(id), y=n, fill=Year_group)) +       # Note that id is a factor. If x is numeric, there is some space between the first bar
+  
+  geom_bar(aes(x=as.factor(id), y=n, fill=Year_group), stat="identity", alpha=0.5) +
+  
+  # Add a val=100/75/50/25 lines. I do it at the beginning to make sur barplots are OVER it.
+  geom_segment(data=grid_data, aes(x = end, y = 80, xend = start, yend = 80), colour = "grey", alpha=1, size=0.3 , inherit.aes = FALSE ) +
+  geom_segment(data=grid_data, aes(x = end, y = 60, xend = start, yend = 60), colour = "grey", alpha=1, size=0.3 , inherit.aes = FALSE ) +
+  geom_segment(data=grid_data, aes(x = end, y = 40, xend = start, yend = 40), colour = "grey", alpha=1, size=0.3 , inherit.aes = FALSE ) +
+  geom_segment(data=grid_data, aes(x = end, y = 20, xend = start, yend = 20), colour = "grey", alpha=1, size=0.3 , inherit.aes = FALSE ) +
+  
+  ylim(-50,120) +
+  theme_minimal() +
+  theme(
+    legend.position = "none",
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    panel.grid = element_blank(),
+    plot.margin = unit(rep(-1,4), "cm") 
+  ) +
+  coord_polar()+ 
+  scale_fill_manual(labels=c("2020's","2010's","2000's",
+                             "90's","80's","70's","60's","50's"),
+    values=c("#d31e25",
+                    "#d7a32e",
+                    "#d1c02b",
+                    "#369e4b",
+                    "#5db5b7",
+                    "#31407b",
+             "#8a3f64",
+             "#4f2e39"))+
+  geom_text(data=label_data, aes(x=id, y=n+10, 
+                                 label=n, 
+), color="black", 
+fontface="bold",alpha=0.6, size=2.5, 
+angle= label_data$angle, inherit.aes = FALSE ) +
+  
+  # Add base line information
+  geom_segment(data=base_data, aes(x = start, y = -5, xend = end, yend = -5), 
+               colour = "black", alpha=0.5, size=2 , inherit.aes = FALSE )  +
+  geom_text(data=base_data, aes(x = title, y = -18,label=Year_group), 
+            colour = "black", alpha=0.8, size=4, 
+            fontface="italic", inherit.aes = FALSE)
+
+## theme
+
+#4. SAVE THE PLOT
+ggsave("TT2023Week49.svg", width = 12, height = 8, 
+       dpi = 300, bg = "white") 
+
