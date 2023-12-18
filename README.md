@@ -171,11 +171,20 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/b
 
 ### Week 50 |Holiday movies
 
-The data this week comes from the Internet Movie Database..The graph was prepared with ggplot. 
+The data this week comes from the Internet Movie Database.The graph was prepared with ggplot. 
 
 Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/6da4d041fa6465cb4babbfcef87baacf722c6526/Code/2023/Week%2050#L1-L70)
 
 ![TT2023Week40](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/35362cd9-188c-4cde-8aea-283164e6ee93)
+
+### Week 51 |Holiday Episodes
+
+The data this week comes from the Internet Movie Database.The graph was prepared with ggplot while the final editing was completed in Figma. 
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/f9b056a141896d82d1989c40e32df7c31e016440/Code/2023/Week%2051#L1-L113)
+
+![Frame 1](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/9bf4cd48-5ab3-48c4-8e83-59d38c974614)
+
 
 
 
