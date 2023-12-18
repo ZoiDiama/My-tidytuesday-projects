@@ -183,7 +183,7 @@ The data this week comes from the Internet Movie Database.The graph was prepared
 
 Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/f9b056a141896d82d1989c40e32df7c31e016440/Code/2023/Week%2051#L1-L113)
 
-![Frame 1](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/9bf4cd48-5ab3-48c4-8e83-59d38c974614)
+![TT2023Week51 2](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/d5753874-dfef-417a-8121-721547df9c17)
 
 ### Week 52 |R structure package
 
