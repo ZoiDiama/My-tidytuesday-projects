@@ -169,6 +169,16 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/b
 
 ![TT2023Week49 (1)](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/b39a69d7-9956-4b1d-b73a-79975f7742c0)
 
+### Week 50 |Holiday movies
+
+The data this week comes from the Internet Movie Database..The graph was prepared with ggplot. 
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/6da4d041fa6465cb4babbfcef87baacf722c6526/Code/2023/Week%2050#L1-L70)
+
+![TT2023Week40](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/35362cd9-188c-4cde-8aea-283164e6ee93)
+
+
+
 
 
 
