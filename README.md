@@ -185,6 +185,14 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/f
 
 ![Frame 1](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/9bf4cd48-5ab3-48c4-8e83-59d38c974614)
 
+### Week 52 |R structure package
+
+The data this week comes from {pkgstats} R package .The graph was prepared with ggplot. 
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/9b5737a31939ec63b1dce6bab338afc334b51264/Code/2023/Week%2052#L1-L105)
+
+![TT2023Week52](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/c6373430-32e8-4e76-bf50-64a394adf0db)
+
 
 
 
