@@ -179,7 +179,7 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/6
 
 ### Week 51 |Holiday Episodes
 
-The data this week comes from the Internet Movie Database.The graph was prepared with ggplot while the final editing was completed in Figma. 
+The data this week comes from the Internet Movie Database.The graph was prepared with ggplot while the final editing was completed in Figma. Inspired by https://www.behance.net/gallery/13486555/Infographic-Data-Visualisation-Collection. 
 
 Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/f9b056a141896d82d1989c40e32df7c31e016440/Code/2023/Week%2051#L1-L113)
 
