@@ -175,7 +175,7 @@ The data this week comes from the Internet Movie Database.The graph was prepared
 
 Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/6da4d041fa6465cb4babbfcef87baacf722c6526/Code/2023/Week%2050#L1-L70)
 
-![TT2023Week40](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/35362cd9-188c-4cde-8aea-283164e6ee93)
+![TT2023Week50](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/6b6f7ec6-f51a-4d11-93c4-6935b3a0dfb7)
 
 ### Week 51 |Holiday Episodes
 
