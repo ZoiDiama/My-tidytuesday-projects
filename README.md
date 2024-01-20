@@ -1,7 +1,8 @@
 # My-tidytuesday-projects
 Check out my TidyTuesday projects on GitHub! 🌟 Join the data community at : R4DS Online Learning Community (2023). Tidy Tuesday: A weekly social data project. https://github.com/rfordatascience/tidytuesday.
 
-### 2023
+<details open>
+  <summary>2023</summary>
 
 ### Week 28 | Global Surface Temperatures
 This week's data is sourced from NASA GISS Surface Temperature Analysis (GISTEMP v4). It consists of global and hemispheric monthly means and zonal annual means, combining land, air, and sea-surface temperature anomalies (Land-Ocean Temperature Index, L-OTI). To visualize this data, I chose a heatmap, providing an intuitive and visually appealing representation of temperature patterns. 
@@ -193,8 +194,31 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/9
 
 ![TT2023Week52](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/c6373430-32e8-4e76-bf50-64a394adf0db)
 
+</details>
+
+<details open>
+  <summary>2024</summary>
+
+### Week 52 |Canadian Hockey Player Birth Months
+
+The data this week comes from Statistics Canada .The graph was prepared with ggplot. Instead of the birth month I focused on the height of Canadian and international players. 
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/9b5737a31939ec63b1dce6bab338afc334b51264/Code/2023/Week%2052#L1-L105)
+
+![TT2023Week52](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/c6373430-32e8-4e76-bf50-64a394adf0db)
 
 
+
+
+
+
+
+
+
+
+
+  
+</details>
 
 
 
