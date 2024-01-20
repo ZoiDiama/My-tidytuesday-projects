@@ -203,9 +203,10 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/9
 
 The data this week comes from Statistics Canada .The graph was prepared with ggplot. Instead of the birth month I focused on the height of Canadian and international players. 
 
-Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/9b5737a31939ec63b1dce6bab338afc334b51264/Code/2023/Week%2052#L1-L105)
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/aa0cd9959aba935d81078f7819e115eda1b68644/Code%202024/Week%202#L1-L112)
 
-![TT2023Week52](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/c6373430-32e8-4e76-bf50-64a394adf0db)
+![TT2024Week2](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/3e34abdf-e0ba-4670-8f95-2953f567202e)
+
 
 
 
