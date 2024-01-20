@@ -1,0 +1,113 @@
+#2024: week 2: Canadian Hockey Player
+#load libraries 
+library(tidyverse)
+library(showtext)
+library(ggtext)
+library(tidytuesdayR)
+library(glue)
+library(Cairo)
+library(forcats)
+library(ggrepel)
+library(lubridate)
+library(ggridges)
+
+
+
+#1.DATA LOADING
+tuesdata <- tidytuesdayR::tt_load(2024, week = 2)
+canada_births_1991_2022 <- tuesdata$canada_births_1991_2022
+nhl_player_births <- tuesdata$nhl_player_births
+nhl_rosters <- tuesdata$nhl_rosters
+nhl_teams <- tuesdata$nhl_teams
+#2.DATA WRANGLING
+#preparing the dataset
+dt<-nhl_rosters %>% 
+  select(position_type,birth_country,height_in_centimeters,weight_in_kilograms,birth_date) %>%
+  mutate(Nationality=case_when(birth_country=="CAN"~"Canadians",
+                               TRUE~"International players")) %>%
+  mutate(
+    birth_date = lubridate::ymd(birth_date),
+    birth_year = lubridate::year(birth_date),
+    birth_month = lubridate::month(birth_date))
+
+
+
+#Data for the plot
+
+#3. PLOT VIZUALIZATION 
+## Load Google fonts (https://fonts.google.com/)
+font_add_google("Racing Sans One", family = "title")                           
+font_add_google("Lato", family = "subtitle")
+font_add_google("Caveat", family = "x")
+showtext::showtext_auto()
+showtext::showtext_opts(dpi = 300) 
+
+##Title,subtitle & caption 
+tt <- str_glue(stringr::str_wrap("The battle of heights in NHL"),width=100)
+st <- str_glue(stringr::str_wrap("Canadians vs. international players
+                                 by position type",
+                                 width=100))
+ct  <- str_glue(stringr::str_wrap("Data Source:  Statistics Canada | 
+                                  Creator:Zoi Diamantakou | tidytuesday | 2024, 
+                                  week 2",width=100))
+
+##plot
+p<-
+  ggplot(dt, aes(x = height_in_centimeters, 
+                  y = position_type))+
+  geom_density_ridges(aes(fill = position_type),
+                      scale = 0.8,
+                      quantile_lines = TRUE, 
+                      quantiles = 0.5) +
+  scale_y_discrete(labels=c("Defencemen","Forwards","Goalies")) +
+  scale_fill_manual(labels=c("Defencemen","Forwards","Goalies"),
+    values = c("#66736E", "#F2C763", "#94759D")) +
+  facet_wrap(~Nationality)+
+  labs(x = "Height in centimeters", 
+       y = NULL,
+       title=tt,
+       subtitle = st,
+       caption = ct,
+       fill="Position type"
+  ) 
+  
+p+theme_minimal()+
+  theme(plot.margin           = margin(t = 2, r = 15, b = 10, l = 25),
+        plot.title            = element_text(
+          family= 'title',face= "bold",size= 35,hjust = 0.5,
+          colour="#19201D",
+          margin= margin(t = 16, b = 5)),
+        plot.subtitle = element_text(
+          family= 'subtitle', hjust = 0.5,
+          lineheight= 0.9,size  = 18,colour="black",
+          margin= margin(t = 5, b = 10)),
+        plot.caption = element_text(colour="black"),
+        plot.caption.position = "plot",
+        #axis
+        axis.title.x = element_text(family="x"),
+        axis.text.x = element_text(size=12,vjust =20),
+        axis.text.y = element_blank(),
+        #legend
+        legend.position = "bottom",
+        legend.text = element_text(color = "grey40", size = 10),
+        legend.box.margin = margin(t = 30),
+        legend.background = element_rect(color = "grey40",
+                                         size = .3,
+                                         fill = "grey95"),
+        legend.key.height = unit(.25, "lines"),
+        legend.key.width = unit(2.5, "lines"),
+        #panel
+        panel.spacing = unit(1.5, "cm"),
+        strip.text.x = element_text(size = 20,face="bold",
+                                    hjust=0,family= 'x',),
+        panel.background = element_blank(),
+        panel.grid = element_blank(),
+        axis.ticks= element_blank(), 
+        #background
+        plot.background = element_rect(fill = "#ced8d4", color = NA))
+              
+
+#4. SAVE THE PLOT
+ggsave("TT2024Week2.png", width = 12, height = 8, 
+       type = "Cairo",dpi = 300, bg = "white") 
+
