@@ -207,6 +207,18 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/a
 
 ![TT2024Week2](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/3e34abdf-e0ba-4670-8f95-2953f567202e)
 
+### Week 3 | US Polling Places 2012-2020
+
+The data this week comes from The Center for Public Integrity.The graph was prepared with ggplot and final edits were made with Figma. 
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/d8a5766568746806823ed1b87035e3ffac8989c7/Code%202024/Week%203#L1-L125)
+
+![TT2024Week3_figma](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/f46600d3-404e-4311-ba10-0a70cb816225)
+
+
+
+
+
   
 </details>
 
