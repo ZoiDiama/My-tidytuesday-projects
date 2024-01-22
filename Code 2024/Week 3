@@ -1,0 +1,126 @@
+#US Polling Places 2012-2020
+#load libraries 
+library(tidyverse)
+library(showtext)
+library(ggtext)
+library(tidytuesdayR)
+library(glue)
+library(Cairo)
+library(lubridate)
+library(usmap)
+library(geofacet)
+
+#1.DATA LOADING
+tuesdata <- tidytuesdayR::tt_load(2024, week = 3)
+polling_places <- tuesdata$polling_places
+glimpse(polling_places)
+
+#2.DATA WRANGLING
+dt<-polling_places %>% 
+  #filter(year(election_date) %in% c("2012","2020")) %>% 
+  mutate(
+    election_year = lubridate::year(election_date),
+    election_month = lubridate::month(election_date)) %>% 
+  count(state, election_year) %>% 
+  group_by(state) %>% 
+  mutate(perct_change= (last(n) - first(n))/first(n)*100) %>%
+  summarize(value = round(max(perct_change, na.rm = TRUE),1)) %>% 
+  filter(value != 0 & !is.na(value)) %>%
+  mutate(code=state) %>% 
+  mutate(change_group = case_when(
+      value < -50 ~ "<-50",
+      value >-50 & value <=-10 ~ "-50- -10",
+      value > -10 & value <=10 ~ "-10-10",
+      value >10 & value <=50 ~ "10-50",
+      value >50~ ">50"),
+    # Convert to factor
+    change_group = factor(
+      change_group,
+      level = c("<-50","-50- -10", "-10-10",
+                "10-50",">50"))) %>% 
+  ungroup()
+
+
+
+my_us_grid <- us_state_grid1%>% 
+  inner_join(dt) %>% 
+  select(row,col,code,name)
+
+
+  
+
+
+#3. PLOT VIZUALIZATION 
+## Load Google fonts (https://fonts.google.com/)
+font_add_google("Racing Sans One", family = "title")                           
+font_add_google("Lato", family = "subtitle")
+font_add_google("Caveat", family = "x")
+showtext::showtext_auto()
+showtext::showtext_opts(dpi = 300) 
+
+##Title,subtitle & caption 
+tt <- str_glue(stringr::str_wrap("Percentage Change in US Polling Places: 2012-2020",width=100))
+st <- str_glue(stringr::str_wrap("The graph illustrates the percentage change in US polling places from 2012 to 2020, focusing on countries with available data. In cases where specific countries did not have data for certain years, the earliest and latest available data points were selected for the calculation.",
+                                 width=100))
+ct  <- str_glue(stringr::str_wrap("Data Source: The Center for Public Integrity | 
+                                  Creator:Zoi Diamantakou | tidytuesday | 2024, 
+                                  week 3",width=100))
+
+##plot
+p <- dt%>% 
+  ggplot()+
+  geom_bar(mapping=aes(x=1, fill=change_group))  +
+  facet_geo(~ state, grid = my_us_grid) +
+  scale_fill_manual(values = c("#C35E34","#E7A877",
+                               "#F0ECD8",
+                               "#A7C2A4","#448B81"))+ 
+  labs(title=tt,
+       subtitle=st,
+       caption = ct,
+       x="",
+       y="",
+       fill="Percentage change:2012-2022")
+  
+  p+theme_classic()+
+  theme(plot.margin           = margin(t = 50, r = 50, b = 20, l = 50),
+        plot.caption.position = "plot",
+        legend.position       = 'bottom',
+        plot.title            = element_text(
+          family= 'title',face= "bold",size= 32,
+          colour="#3C2E3F",hjust = 0.5,
+          margin= margin(t = 10, b = 5)),
+        plot.subtitle = element_text(
+          family= 'subtitle', 
+          lineheight= 1,
+          hjust = 0.5,
+          size  = 16,
+          colour="#3C2E3F",
+          margin= margin(t = 5, b = 10)),
+        plot.caption = element_text(size=10,colour="#3C2E3F",hjust = 0.5),
+        axis.text.y=element_blank(), 
+        plot.background = element_rect(fill = "#F8F8F8", color = NA),
+        legend.title = element_text(size=10,
+                                    color = "#3C2E3F",
+                                    vjust=0.5),
+        legend.text = element_text(color = "grey40", size = 10),
+        legend.box.margin = margin(t = 30),
+        legend.background = element_rect(color = "grey40",
+                                         size = .3,
+                                         fill = "grey95"),
+        legend.key.height = unit(.25, "lines"),
+        legend.key.width = unit(2.5, "lines"),
+        axis.title=element_blank(),
+        axis.text=element_blank(),
+        axis.ticks = element_blank(),
+        strip.text.x = element_blank(),
+        axis.line = element_blank()) +
+    guides(fill = guide_legend(nrow = 1))+
+  geom_text(aes(x=1, y=0.5, label=state), color='black', size=10) 
+
+
+
+
+#4. SAVE THE PLOT
+ggsave("TT2024Week3.svg", width = 12, height = 8, 
+       dpi = 300, bg = "white") 
+
