@@ -1,23 +1,6 @@
 # My-tidytuesday-projects
 Check out my TidyTuesday projects on GitHub! 🌟 Join the data community at : R4DS Online Learning Community (2023). Tidy Tuesday: A weekly social data project. https://github.com/rfordatascience/tidytuesday.
 
-
-<details open>
-  <summary>2024</summary>
-
-### Week 2 | Canadian Hockey Players
-
-The data this week comes from Statistics Canada .The graph was prepared with ggplot. Instead of considering birth month, my focus shifted to analyzing the height variations between Canadian and international players in the NHL.
-
-Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/aa0cd9959aba935d81078f7819e115eda1b68644/Code%202024/Week%202#L1-L112)
-
-![TT2024Week2](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/3e34abdf-e0ba-4670-8f95-2953f567202e)
-
-  
-</details>
-
-
-
 <details close>
   <summary>2023</summary>
 
@@ -213,7 +196,19 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/9
 
 </details>
 
+<details open>
+  <summary>2024</summary>
 
+### Week 2 | Canadian Hockey Players
+
+The data this week comes from Statistics Canada .The graph was prepared with ggplot. Instead of considering birth month, my focus shifted to analyzing the height variations between Canadian and international players in the NHL.
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/aa0cd9959aba935d81078f7819e115eda1b68644/Code%202024/Week%202#L1-L112)
+
+![TT2024Week2](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/3e34abdf-e0ba-4670-8f95-2953f567202e)
+
+  
+</details>
 
 
 
