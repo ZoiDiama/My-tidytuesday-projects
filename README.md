@@ -221,7 +221,8 @@ The data this week comes from The UK Office for National Statistics..The graph w
 
 Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/64db00486dd77f856422b0809e53fbfbd246e4a2/Code%202024/Week%204#L1-L103)
 
-![TT2024Week4](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/f42d2115-4c07-41b0-82a1-cb8c162bbdfa)
+![TT2024Week4](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/fb1bf40f-ceb3-4936-a10e-cb11d387325d)
+
 
 
 
