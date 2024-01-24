@@ -215,6 +215,15 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/d
 
 ![TT2024Week3_figma](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/f46600d3-404e-4311-ba10-0a70cb816225)
 
+### Week 4 | Educational attainment of young people in English towns
+
+The data this week comes from The UK Office for National Statistics..The graph was prepared with ggplot. 
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/d8a5766568746806823ed1b87035e3ffac8989c7/Code%202024/Week%203#L1-L125)
+
+![TT2024Week4](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/f42d2115-4c07-41b0-82a1-cb8c162bbdfa)
+
+
 
 
 
