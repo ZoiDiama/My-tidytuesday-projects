@@ -1,4 +1,4 @@
-#Educational attainment of young people in English towns
+Educational attainment of young people in English towns
 #load libraries 
 library(tidyverse)
 library(showtext)
@@ -28,8 +28,10 @@ dt<-english_education %>%
     size_flag=="Other Small BUAs" ~ "Other",
     size_flag=="Not BUA" ~ "Other",
     size_flag=="City" ~ "City(excluding London)",
-    
     TRUE~size_flag)) %>% 
+  mutate(col_group=case_when(
+    education_score > 0 ~ "Positve",
+    TRUE~"negative")) %>% 
   mutate(group = factor(
       group,
       level = c("Small Towns","Medium Towns", "Large Towns",
@@ -51,21 +53,25 @@ ct  <- str_glue(stringr::str_wrap("Data Source:  The UK Office for National Stat
 
 ##plot
 p <- dt%>% 
-  ggplot(aes(y=education_score,x=group))+
+  ggplot(aes(y=education_score,x=group,colour=col_group))+
            geom_jitter(size = 3,
                        alpha = 0.7,
                        shape = 16,
-                       width = 0.2,
-                       colour="#595959")+
+                       width = 0.2
+                       )+
   geom_vline(
     xintercept = seq(1.5, length(unique(dt$group)), by = 1),
     color = "#595959",
     size = 0.8)+
+  geom_hline(yintercept =0,
+             color = "#595959",
+             size = 0.8)+
   labs(title=tt,
        subtitle=st,
        caption = ct,
        y="Educational attainment score",
        x="")+
+  scale_color_manual(values=c("#e36e67", "#91bfdb"))+
   scale_x_discrete(position = "top")
 
 p+theme_minimal()+
@@ -101,4 +107,5 @@ ggsave("TT2024Week4.png", width = 12, height = 8,
        dpi = 300, bg = "white") 
 ggsave("TT2024Week4.svg", width = 12, height = 8, 
        dpi = 300, bg = "white") 
+
 
