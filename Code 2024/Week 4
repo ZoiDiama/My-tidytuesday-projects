@@ -1,0 +1,104 @@
+#Educational attainment of young people in English towns
+#load libraries 
+library(tidyverse)
+library(showtext)
+library(ggtext)
+library(tidytuesdayR)
+library(glue)
+
+
+## Load Google fonts (https://fonts.google.com/)
+font_add_google("Kalam", family = "title")                           
+font_add_google("Tillana", family = "subtitle")
+font_add_google("Caveat", family = "x")
+showtext::showtext_auto()
+showtext::showtext_opts(dpi = 300) 
+
+#1.DATA LOADING
+tuesdata <- tidytuesdayR::tt_load(2024, week = 4)
+english_education <- tuesdata$english_education
+
+
+#2.DATA WRANGLING
+dt<-english_education %>% 
+  select(town11nm,size_flag,education_score) %>% 
+  mutate(group = case_when(
+    size_flag=="Inner London BUA" ~ "London",
+    size_flag=="Outer london BUA" ~ "London",
+    size_flag=="Other Small BUAs" ~ "Other",
+    size_flag=="Not BUA" ~ "Other",
+    size_flag=="City" ~ "City(excluding London)",
+    
+    TRUE~size_flag)) %>% 
+  mutate(group = factor(
+      group,
+      level = c("Small Towns","Medium Towns", "Large Towns",
+                "City(excluding London)","London","Other")))
+
+mean <- dt %>% 
+  group_by( group ) %>% 
+  summarise( mean_val = mean(education_score))
+
+#3. PLOT VIZUALIZATION 
+
+##Title,subtitle & caption 
+tt <- str_glue(stringr::str_wrap("Smaller towns have the highest average educational attainment",width=100))
+st <- str_glue(stringr::str_wrap("Educational attainment score, by town size, England",
+                                 width=80))
+ct  <- str_glue(stringr::str_wrap("Data Source:  The UK Office for National Statistics | 
+                                  Creator:Zoi Diamantakou | tidytuesday | 2024, 
+                                  week 4",width=120))
+
+##plot
+p <- dt%>% 
+  ggplot(aes(y=education_score,x=group))+
+           geom_jitter(size = 3,
+                       alpha = 0.7,
+                       shape = 16,
+                       width = 0.2,
+                       colour="#595959")+
+  geom_vline(
+    xintercept = seq(1.5, length(unique(dt$group)), by = 1),
+    color = "#595959",
+    size = 0.8)+
+  labs(title=tt,
+       subtitle=st,
+       caption = ct,
+       y="Educational attainment score",
+       x="")+
+  scale_x_discrete(position = "top")
+
+p+theme_minimal()+
+  theme(plot.margin           = margin(t = 20, r = 30, b = 20, l = 25),
+        plot.title.position = "plot",
+      plot.title            = element_text(
+        family= 'title',face= "bold",size= 26,
+        colour="#353535",
+        margin= margin(t = 16, b = 5)),
+      plot.subtitle = element_text(
+        family= 'subtitle', hjust = 0,
+        lineheight= 0.9,size  = 18,colour="#353535",
+        margin= margin(t = 5, b = 10)),
+      plot.caption = element_text(colour="#595959"),
+      plot.caption.position = "plot",
+      #axis
+      axis.title.y = element_text(family="x",size=12),
+      axis.text.x = element_text(family="x",size=20,colour="#353535"),
+      axis.text.y =  element_text(family="x",size=12,colour="#353535"),
+      #legend
+      legend.position = "none",
+      #background
+      plot.background = element_rect(fill = "#e8e8e8", color = NA),
+      panel.grid.major.y = element_line(color = "#595959",
+                                        size = 0.5,
+                                        linetype = 2),
+      panel.grid.major= element_blank(),
+      panel.grid.minor= element_blank(),
+      ) 
+
+#4. SAVE THE PLOT
+ggsave("TT2024Week4.png", width = 12, height = 8, 
+       dpi = 300, bg = "white") 
+ggsave("TT2024Week4.svg", width = 12, height = 8, 
+       dpi = 300, bg = "white") 
+
