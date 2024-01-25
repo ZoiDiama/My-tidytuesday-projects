@@ -1,5 +1,5 @@
 # My-tidytuesday-projects
-Check out my TidyTuesday projects on GitHub! 🌟 Join the data community at : R4DS Online Learning Community (2023). Tidy Tuesday: A weekly social data project. https://github.com/rfordatascience/tidytuesday.
+take a look at my TidyTuesday projects on GitHub.🌟 They offer an overview of my work in various data-related fields. Additionally, I encourage you to join the R4DS Online Learning Community (2023), where you can connect with a supportive community of data enthusiasts A weekly social data project : https://github.com/rfordatascience/tidytuesday.
 
 <details close>
   <summary>2023</summary>
