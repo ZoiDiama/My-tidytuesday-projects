@@ -217,14 +217,19 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/d
 
 ### Week 4 | Educational attainment of young people in English towns
 
-The data this week comes from The UK Office for National Statistics..The graph was prepared with ggplot  and final edits were made with Figma.
+The data this week comes from The UK Office for National Statistics.The graph was prepared with ggplot  and final edits were made with Figma.
 
 Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/64db00486dd77f856422b0809e53fbfbd246e4a2/Code%202024/Week%204#L1-L103)
 
 ![TT2024_week4_Figma](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/db7b8751-7329-471d-823b-d87af7aec162)
 
+### Week 5 | Groundhog predictions
 
+The data this week comes from The UK Office for  groundhog-day.com.The graph was prepared with ggplot  and final edits were made with Figma.
 
+Check the code [here]([https://github.com/ZoiDiama/My-tidytuesday-projects/blob/64db00486dd77f856422b0809e53fbfbd246e4a2/Code%202024/Week%204#L1-L103](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/697090fee3ba300a8e0ef1af60a320f2590d8ccc/Code%202024/Week%205#L1-L131))
+
+![TT2024Week5_figma](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/56ddac16-fc8c-4d7f-9119-cf87cc614fed)
 
 
 
