@@ -1,0 +1,131 @@
+#Groundhog predictions
+#2024: week 5
+#load libraries 
+library(tidyverse)
+library(showtext)
+library(ggtext)
+library(tidytuesdayR)
+library(glue)
+library(Cairo)
+library(forcats)
+library(ggrepel)
+library(lubridate)
+library(ggridges)
+
+library(waffle)
+library(treemapify)
+library(ggh4x)
+
+#1.DATA LOADING
+tuesdata <- tidytuesdayR::tt_load(2024, week = 5)
+groundhogs <- tuesdata$groundhogs
+predictions <- tuesdata$predictions
+
+#2.DATA WRANGLING
+dt<-predictions %>% 
+  select(year,shadow) %>% 
+  mutate(description=case_when(
+    shadow==TRUE~"Longer_winter",
+    shadow==FALSE~"Early_spring",
+    TRUE~"No_records"
+  )) %>% 
+  group_by(year,description) %>% 
+  summarise(n=n()) %>% 
+  filter(year>=2000)
+
+#for geom point
+dt_point<-dt %>% 
+  pivot_wider(names_from = description, values_from = n) %>% 
+  select(year,Early_spring,Longer_winter) %>% 
+  mutate(final_prediction=
+           case_when(
+             Early_spring<Longer_winter~"Longer winter",
+             Early_spring>Longer_winter~"Early spring",
+             Early_spring==Longer_winter~"Equal"
+           ))
+
+
+#3. PLOT VIZUALIZATION 
+## Load Google fonts (https://fonts.google.com/)
+font_add_google("Racing Sans One", family = "title")                           
+font_add_google("Lato", family = "subtitle")
+font_add_google("Caveat", family = "x")
+showtext::showtext_auto()
+showtext::showtext_opts(dpi = 300) 
+
+##Title,subtitle & caption 
+tt <- str_glue(stringr::str_wrap("Title"),width=100)
+st <- str_glue(stringr::str_wrap("Subtitle",
+                                 width=100))
+ct  <- str_glue(stringr::str_wrap("Data Source:   groundhog-day.com | 
+                                  Creator:Zoi Diamantakou | tidytuesday | 2024, 
+                                  week 5",width=100))
+
+##plot
+p<-
+  ggplot(data = dt,aes(fill = description, values = n)) +
+  geom_waffle(na.rm = TRUE,
+              color = "white", 
+              size = .25, 
+              n_rows = 10, 
+              flip = TRUE) +
+  facet_wrap(
+    ~year, 
+    ncol = 5, 
+    strip.position = "bottom"
+  ) +
+  
+  scale_fill_manual(values = c("#C7706C",'#B1D9D5',"grey"))+
+  coord_equal() +
+  labs(
+    x = "", y = "",
+    title = tt,
+    subtitle = ,
+    caption = ct,
+    fill="Prediction"
+  ) +
+  theme_minimal(
+    base_family = "Roboto Condensed"
+  ) +
+  theme(
+  plot.margin           = margin(t = 5, r = 5, b = 5, l = 5),
+  #plots,subtitles,etc
+  plot.title  = element_blank(),
+  plot.subtitle = element_text(
+    family= 'subtitle', 
+    color="#88398A",
+    lineheight= 0.9,
+    size  = 12,
+    margin= margin(t = 5, b = 10)),
+  plot.caption =element_text(colour="black"),
+  #axis
+  axis.title.x = element_blank(),
+  axis.text.x = element_blank(),
+  axis.text.y = element_blank(),
+  axis.ticks.y = element_blank(),
+  #legend
+  legend.position = "right",
+  legend.text = element_text(color = "grey40", size = 10),
+  legend.box.margin = margin(t = 30),
+  legend.background = element_rect(color = "grey40",
+                                   size = .3,
+                                   fill = "white"),
+  legend.key.height = unit(.25, "lines"),
+  legend.key.width = unit(2.5, "lines"),
+  #panel
+  panel.spacing = unit(1, "cm"),
+  strip.text.x = element_text(size = 12,face="bold",
+                              hjust=0,family= 'x',),
+  panel.background = element_blank(),
+  panel.grid = element_blank(),
+  axis.ticks= element_blank(), 
+  #background
+  plot.background = element_rect(fill="white",color = NA))+
+  guides(fill = guide_legend(reverse = TRUE))
+
+
+
+ggsave("TT2024Week5.png", width = 12, height = 8, 
+       type = "Cairo",dpi = 300, bg = "white") 
+ggsave("TT2024Week5.svg", width = 12, height = 8, 
+       dpi = 300, bg = "white") 
