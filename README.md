@@ -229,7 +229,7 @@ The data this week comes from The UK Office for  groundhog-day.com.The graph was
 
 Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/ef098be27a5f5c4acf24f23f826bbb86e62c429f/Code%202024/Week%205#L1-L131)
 
-![TT2024Week5_figma](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/56ddac16-fc8c-4d7f-9119-cf87cc614fed)
+![TT2024Week5_figma](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/b01a4e95-09ba-4e46-9ff7-55c2f93ecb03)
 
 
 
