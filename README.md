@@ -225,15 +225,19 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/6
 
 ### Week 5 | Groundhog predictions
 
-The data this week comes from The UK Office for  groundhog-day.com.The graph was prepared with ggplot  and final edits were made with Figma.
+The data this week comes from groundhog-day.com.The graph was prepared with ggplot and final edits were made with Figma.
 
 Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/ef098be27a5f5c4acf24f23f826bbb86e62c429f/Code%202024/Week%205#L1-L131)
 
 ![TT2024Week5_figma](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/b01a4e95-09ba-4e46-9ff7-55c2f93ecb03)
 
+### Week 6 | A few world heritage sites
 
+This week we analyse a small subset of UNESCO World Heritage Sites and we are inspired by the "1 dataset, 100 visualizations" project made by Ferdio.The graph was prepared with ggplot  and final edits were made with Figma.
 
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/86d5c3e78cde7efd6646e7a29cd185675f073cb8/Code%202024/Week%206#L1-L106)
 
+![TT2024Week6_figma](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/15b0710c-a43a-40ed-b665-35adb7ea463e)
   
 </details>
 
