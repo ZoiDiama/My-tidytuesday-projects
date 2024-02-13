@@ -1,0 +1,107 @@
+#A few world heritage sites
+#2024: week 6 
+#load libraries 
+library(tidyverse)
+library(showtext)
+library(ggtext)
+library(tidytuesdayR)
+library(glue)
+library(Cairo)
+library(forcats)
+library(ggrepel)
+library(lubridate)
+library(ggridges)
+library(ggalt)
+library(stringr)
+library(waffle)
+
+
+
+#1.DATA LOADING
+tuesdata <- tidytuesdayR::tt_load(2024, week = 6)
+heritage <- tuesdata$heritage
+
+#2.DATA WRANGLING
+dt<-heritage %>% 
+  pivot_longer(!country,names_to = "year", values_to = "count") %>% 
+  mutate(Col = str_c(country, year))
+
+#3. PLOT VIZUALIZATION 
+## Load Google fonts (https://fonts.google.com/)
+font_add_google("Racing Sans One", family = "title")                           
+font_add_google("Lato", family = "subtitle")
+font_add_google("Lato", family = "x")
+showtext::showtext_auto()
+showtext::showtext_opts(dpi = 300) 
+
+##Title,subtitle & caption 
+tt <- str_glue("UNESCO World Heritage Sites")
+st <- str_glue(stringr::str_wrap("This week, we're exploring a subset of UNESCO World Heritage Sites and 
+attempting to recreate plots from the 1 dataset, 100 visualizations project by Ferdio. 
+In this project, they used a single dataset to explore different methods of visualizing how the number of UNESCO sites in three countries—Denmark, Norway, and Sweden—varied from 2004 to 2022. 
+For this exercise, I have chosen to recreate the lollipop chart.",
+                                 width=120))
+ct  <- str_glue(stringr::str_wrap("Data Source:UNESCO World Heritage Sites. | 
+                                  Creator:Zoi Diamantakou | tidytuesday | 2024, 
+                                  week 6",width=100))
+
+##plot
+p<-ggplot(dt,aes(x = year, y = count,col=Col)) + 
+  geom_lollipop(point.size = 8,
+                size=2)+
+  facet_wrap(~country,
+             strip.position = "bottom")+
+  scale_colour_manual(values=c("#8F94A4",
+                    "#283250",
+                    "#F9C5BE",
+                    "#EE5440",
+                    "#B9D6FA",
+                    "#3274DA"))+
+  ylim(0,18)+
+  labs(x="",
+       y="",
+       title = tt,
+       subtitle =st ,
+       caption = ct,
+       col="")+
+  theme_minimal()+
+  theme(plot.margin           = margin(t = 1, r = 1, 
+                                       b = 1, l = 1,"cm"),
+        plot.title            = element_text(
+          family= 'title',face= "bold",size= 28,hjust = 0,
+          colour="#19201D",
+          margin= margin(t = 16,r=5, b = 5)),
+        plot.subtitle = element_text(
+          family= 'subtitle', hjust = 0,
+          lineheight= 0.9,size  = 14,colour="black",
+          margin= margin(t = 5, b = 10)),
+        plot.caption = element_text(colour="black",
+                                    margin= margin(t = 0.5, b = 0.5,"cm")),
+        plot.caption.position = "plot",
+        #axis
+        axis.title.x = element_blank(),
+        axis.text.x = element_text(size=12,
+                                   vjust =15,
+                                   colour = "#B0BDC3"),
+        axis.text.y = element_blank(),
+        #legend
+        legend.position = "none",
+        #panel
+        panel.spacing = unit(1.5, "cm"),
+        strip.text.x = element_text(size = 16,
+                                    hjust=0.5,family= 'x',
+                                    vjust =-1),
+        panel.background = element_blank(),
+        panel.grid = element_blank(),
+        axis.ticks= element_blank(), 
+        #background
+        plot.background = element_rect(fill = "white", color = NA))
+ p+ geom_text(aes(label = count),size = 6,vjust = -1)+
+   geom_hline(yintercept = 0,colour = "#E7ECED")
+
+#4. SAVE THE PLOT
+ggsave("TT2024Week6.png", width = 12, height = 8, 
+       type = "Cairo",dpi = 300, bg = "white") 
+ggsave("TT2024Week6.svg", width = 12, height = 8, 
+       dpi = 300, bg = "white") 
+
