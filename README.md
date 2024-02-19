@@ -241,6 +241,19 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/8
   
 </details>
 
+### Week 7 | Valentine's Day Consumer Data
+
+This week we analyse Valentine's Day survey data by Valentine's Day Data Center .The graph was prepared with ggplot and final edits were made with Figma.
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/3bd5adfb5a71c7e8fc2dc3425116f6b2944ea5ba/Code%202024/Week%207#L1-L118)
+
+![TT2024Week7figma](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/d3013920-47fa-4c8a-b184-ee20a67a9289)
+  
+</details>
+
+
+
+
 
 
 
