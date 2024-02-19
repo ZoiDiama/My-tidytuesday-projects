@@ -247,7 +247,7 @@ This week we analyse Valentine's Day survey data by Valentine's Day Data Center 
 
 Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/3bd5adfb5a71c7e8fc2dc3425116f6b2944ea5ba/Code%202024/Week%207#L1-L118)
 
-![TT2024Week7figma](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/d3013920-47fa-4c8a-b184-ee20a67a9289)
+![TT2024Week7 2](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/dc933def-eee2-42cf-a0f6-5284e336c791)
   
 </details>
 
