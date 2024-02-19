@@ -1,0 +1,118 @@
+Valentine's Day Consumer Data
+#2024: week 7 : 
+#load libraries 
+library(tidyverse)
+library(showtext)
+library(ggtext)
+library(tidytuesdayR)
+library(glue)
+library(Cairo)
+library(forcats)
+library(ggrepel)
+library(lubridate)
+library(ggridges)
+library(ggstream)
+
+
+
+#1.DATA LOADING
+tuesdata <- tidytuesdayR::tt_load(2024, week = 7)
+historical_spending <- tuesdata$historical_spending
+gifts_age <- tuesdata$gifts_age
+gifts_gender <- tuesdata$gifts_gender
+
+#2.DATA WRANGLING
+dt<-gifts_gender %>% 
+  pivot_longer(cols=Candy:GiftCards,names_to="Gifts",
+               values_to = "Value") %>% 
+  select(Gender,Gifts,Value) %>% 
+  group_by(Gender) %>% 
+  mutate(Percent = round(Value/sum(Value)*100, 0)) %>% 
+  arrange(desc(Percent),.by_group = TRUE) 
+
+level_order <- c("Flowers", "Candy", "GreetingCards", 
+                 "EveningOut", "Jewelry","Clothing","GiftCards")
+dt$Gifts <- factor(dt$Gifts, levels=level_order)
+
+#3. PLOT VIZUALIZATION 
+## Load Google fonts (https://fonts.google.com/)
+font_add_google("Yeseva one", family = "title")                           
+font_add_google("Lato", family = "subtitle")  
+font_add_google("Homemade Apple", family = "x")
+font_add_google("Roboto", family = "l")
+
+showtext::showtext_auto()
+showtext::showtext_opts(dpi = 300) 
+
+##Title,subtitle & caption 
+tt <- str_wrap("Happy Valentine's Day:men are buying more flowers, 
+                                 \nwhile women are buying more candies.",50)
+st <- str_glue(stringr::str_wrap("The chart below illustrates the annual survey conducted by the 
+National Retail Federation in the United States, capturing consumers' Valentine's Day 
+celebration plans from 2010 to 2022. It presents the proportion of total average spending 
+on different gifts based on gender.",
+                                 width=100))
+ct  <- str_glue(stringr::str_wrap("Data Source:  Valentine's Day Data Center  | 
+                                  Creator:Zoi Diamantakou | tidytuesday | 2024, 
+                                  week 6",width=100))
+
+##plot
+p<-
+ggplot(dt, aes(y = Percent, x = Gender, 
+               fill = Gifts)) +
+  geom_flow(aes(alluvium = Gifts), 
+            alpha= 0.9, 
+            color = "white",
+            curve_type = "cubic", 
+            width = 0.3) +
+  geom_col(width = 0.3, color = "white") +
+  scale_fill_manual(values =c("#B45359",
+                              "#c3757a",
+                              "#d2979b",
+                              "#FCD3D3",
+                              "#FCD3D3",
+                              "#FCD3D3",
+                              "#FCD3D3"))+
+  scale_x_discrete(position = "top")+
+  scale_y_continuous(NULL, expand = c(0,0))+
+  labs(x="",
+       y="",
+       title = tt,
+       subtitle =st ,
+       caption = ct,
+       col="")
+
+  #cowplot::theme_minimal_hgrid()
+
+ p+theme_minimal()+
+  theme(plot.margin           = margin(t = 10, r = 25, b = 10, l = 25),
+        plot.title            = element_text(
+          family= 'title',face= "bold",size= 28,hjust = 0,
+          colour="#bf0536",lineheight= 0.9,
+          margin= margin(t = 16, b = 5)),
+        plot.subtitle = element_text(
+          family= 'subtitle', hjust = 0,
+          lineheight= 0.9,size  = 18,colour="black",
+          margin= margin(t = 5, b = 10)),
+        plot.caption = element_text(colour="black"),
+        plot.caption.position = "plot",
+        #axis
+        axis.title.x = element_text(family="x"),
+        axis.text.x = element_text(size=14,family = "x",colour="black"),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        #legend
+        legend.position = "none",
+        #background
+        panel.grid.major = element_blank(), 
+        panel.grid.minor= element_blank(),
+        plot.background = element_rect(fill = "#F3F3F3", color = NA))+
+  geom_text(aes(label = paste(round(Percent,0), "%" )), 
+            size = 5, family="l",position = position_stack(vjust = 0.5))
+
+
+#4. SAVE THE PLOT
+ggsave("TT2024Week7.png", width = 12, height = 8, 
+       type = "Cairo",dpi = 300, bg = "white") 
+ggsave("TT2024Week7.svg", width = 12, height = 8, 
+       dpi = 300, bg = "white") 
