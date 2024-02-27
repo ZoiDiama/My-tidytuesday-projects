@@ -248,6 +248,16 @@ This week we analyse Valentine's Day survey data by Valentine's Day Data Center 
 Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/3bd5adfb5a71c7e8fc2dc3425116f6b2944ea5ba/Code%202024/Week%207#L1-L118)
 
 ![TT2024Week7 2](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/dc933def-eee2-42cf-a0f6-5284e336c791)
+
+### Week 8 |R Consortium ISC Grants
+
+This week we analyse R Consortium ISC Grants data.The graph was prepared with ggplot and final edits were made with Figma.
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/5beb4b3fa38b9d99f2f42c8ab63d893b6c22f335/Code%202024/Week%208#L1)
+
+![Group 73](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/7ea8d5a3-f6e9-4e9c-b1f7-8601d22a97aa)
+
+
   
 </details>
 
