@@ -1,0 +1,98 @@
+#R Consortium ISC Grants
+#2024: week 8 
+#load libraries 
+library(tidyverse)
+library(showtext)
+library(ggtext)
+library(tidytuesdayR)
+library(glue)
+library(Cairo)
+library(forcats)
+library(ggrepel)
+library(lubridate)
+library(ggridges)
+
+
+
+#1.DATA LOADING
+tuesdata <- tidytuesdayR::tt_load(2024, week = 8)
+isc_grants <- tuesdata$isc_grants
+
+#2.DATA WRANGLING
+dt<-isc_grants %>%
+  select(year,group,funded) %>% 
+  mutate(group=as.factor(group),
+         year=as.factor(year)) %>% 
+  group_by(year,group) %>% 
+  summarise(n=n(),sum=sum(funded),mean=mean(funded),median=median(funded))
+
+
+#3. PLOT VIZUALIZATION 
+## Load Google fonts (https://fonts.google.com/)
+font_add_google("Fira Code", family = "title")                           
+font_add_google("Source Code Pro", family = "subtitle")
+font_add_google("Caveat", family = "x")
+showtext::showtext_auto()
+showtext::showtext_opts(dpi = 300) 
+
+##Title,subtitle & caption 
+tt <- str_wrap("R Consortium ISC Grants are open, when should you apply?",width=40)
+st <- str_glue(stringr::str_wrap("The plot explores the average amount of past grant recipients of the ISG program, 
+revealing that fall grants tend to receive 
+                                 higher funding on average compared to spring grants. ",
+                                 width=70))
+ct  <- str_glue(stringr::str_wrap("Data Source:  R Consortium Infrastructure Steering Committee (ISC) Grant Program | 
+                                  Creator:Zoi Diamantakou | tidytuesday | 2024, 
+                                  week 8",width=100))
+
+##plot
+p<-ggplot(dt,aes(x=year,y=0,size=mean,colour=group))+
+  geom_point(alpha =0.5)+
+  scale_size_continuous(range = c(10, 40))+
+  labs(x="",
+       y="",
+       title = tt,
+       subtitle =st ,
+       caption = ct,
+       col="")+
+  geom_hline(
+    yintercept = 0,
+    color = "#595959",
+    size = 0.8)+
+  geom_vline(
+    xintercept = seq(1.5, length(unique(dt$year)), by = 1),
+    color = "#fbefeb",
+    size = 0.8)+
+  ylim(-0.5,0.5)+
+  #scale_x_discrete(position = "top")+
+  scale_color_manual(values=c("#6393A6","#733B36"))
+
+p+theme_minimal()+
+  theme(plot.margin           = margin(t = 2, r = 15, b = 10, l = 25),
+        plot.title            = element_text(
+          family= 'title',face= "bold",size= 30,hjust = 0,
+          colour="#19201D",
+          margin= margin(t = 16, b = 5)),
+        plot.subtitle = element_text(
+          family= 'subtitle', hjust = 0,
+          lineheight= 0.9,size  = 18,colour="black"),
+          #margin= margin(t = 5, b = 10)),
+        plot.caption = element_text(colour="black"),
+        plot.caption.position = "plot",
+        #axis
+        axis.title.x = element_text(family="x"),
+        axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        #legend
+        legend.position = "none",
+        #background
+        panel.grid.major = element_blank(), 
+        panel.grid.minor= element_blank(),
+        plot.background = element_rect(fill = "#fbefeb", color = NA))
+
+#4. SAVE THE PLOT
+ggsave("TT2024Week8.png", width = 12, height = 8, 
+       type = "Cairo",dpi = 300, bg = "white") 
+ggsave("TT2024Week8.svg", width = 12, height = 8, 
+       dpi = 300, bg = "white") 
+
