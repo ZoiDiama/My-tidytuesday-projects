@@ -249,13 +249,22 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/3
 
 ![TT2024Week7 2](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/dc933def-eee2-42cf-a0f6-5284e336c791)
 
-### Week 8 |R Consortium ISC Grants
+### Week 8 | R Consortium ISC Grants
 
 This week we analyse R Consortium ISC Grants data.The graph was prepared with ggplot and final edits were made with Figma.
 
 Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/5beb4b3fa38b9d99f2f42c8ab63d893b6c22f335/Code%202024/Week%208#L1)
 
 ![Group 75](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/9b94e522-3a19-4162-94fa-6637d31eee09)
+
+### Week 9 | Leap Day
+
+This week we analyse t data from the February 29 article on Wikipedia..The graph was prepared with ggplot.
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/d937c79cf26a4108c5e1fcfb797fb22d46a5de8b/Code%202024/Week%209#L1-L125)
+
+![TT2024Week7](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/8b77e788-f67f-40ca-86e7-6fa77dccd78f)
+
 
 
 
