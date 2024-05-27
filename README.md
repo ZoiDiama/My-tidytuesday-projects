@@ -259,11 +259,17 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/5
 
 ### Week 9 | Leap Day
 
-This week we analyse t data from the February 29 article on Wikipedia..The graph was prepared with ggplot.
+This week we analyse the data from the February 29 article on Wikipedia..The graph was prepared with ggplot.
 
 Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/d937c79cf26a4108c5e1fcfb797fb22d46a5de8b/Code%202024/Week%209#L1-L125)
 
 ![TT2024Week7](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/8b77e788-f67f-40ca-86e7-6fa77dccd78f)
+
+### Week 10 | Trash Wheel Collection Data
+
+![TT2024Week10 1](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/8f266ebe-3213-4778-9f92-0a514ff867ce)
+
+
 
 
 
