@@ -1,0 +1,122 @@
+#The Great American Coffee Taste Test
+#2024: week 20 
+#load libraries 
+library(tidyverse)
+library(showtext)
+library(ggtext)
+library(tidytuesdayR)
+library(glue)
+library(Cairo)
+library(forcats)
+library(ggrepel)
+library(lubridate)
+library(ggridges)
+
+
+
+#1.DATA LOADING
+coffee_survey <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-05-14/coffee_survey.csv')
+write.csv(coffee_survey , "File Name.csv", row.names=FALSE)
+
+#2.DATA WRANGLING
+dt<-coffee_survey %>% 
+  select(age,favorite) %>% 
+  na.omit(dt) %>% 
+  mutate(group = case_when(
+    favorite=="Mocha" ~ "Other",
+    favorite=="Blended drink (e.g. Frappuccino)"~"Other",
+    favorite=="Cold brew"~"Other",
+    favorite=="Iced coffee"~"Other",
+        TRUE~favorite)) %>% 
+  mutate(age = factor(
+    age,
+    level = c("<18 years old","18-24 years old",
+              "25-34 years old","35-44 years old",
+              "45-54 years old","55-64 years old",
+              ">65 years old"))) %>%  
+  mutate(group = factor(
+    group,
+    level = c("Pourover","Latte",
+              "Regular drip coffee","Cappuccino",
+              "Espresso","Cortado","Americano","Other"))) %>%  
+  group_by(age,group) %>% 
+  summarise(n=n()) %>% 
+  mutate(Percent = round(n/sum(n)*100, 0))
+
+
+
+#3. PLOT VIZUALIZATION 
+## Load Google fonts (https://fonts.google.com/)
+font_add_google("Roboto", family = "title")                           
+font_add_google("Lato", family = "subtitle")
+font_add_google("Lato", family = "x")
+showtext::showtext_auto()
+showtext::showtext_opts(dpi = 300) 
+
+##Title,subtitle & caption 
+tt <- str_wrap("The Great American Coffee divide: drip for seniors, 
+                                 lattes for youth, pourovers for 
+                                 middle-agers",width=55)
+st <- str_glue(stringr::str_wrap("% of respondents answering the question 
+                                 'What is your favorite coffee drink?' (n=3,969)",
+                                 width=80))
+ct  <- str_glue(stringr::str_wrap("Data Source:  Great American Coffee Taste Test | 
+                                  Creator:Zoi Diamantakou | tidytuesday | 2024, 
+                                  week 20",width=120))
+
+##plot
+cols<-c("#8dd3c7","#ffffb3","#bebada","#fb8072",
+        "#80b1d3","#fdb462","#b3de69","grey")
+
+p<-
+  ggplot(dt, aes(fill=group, y=age, x=Percent,label=Percent)) + 
+  geom_bar(position="stack", stat="identity",width = 0.4)+
+  scale_y_discrete(limits=rev)+
+  labs(x="",
+       y="",
+       title = tt,
+       subtitle =st ,
+       caption = ct,
+       col="")+
+  scale_fill_manual(values = cols)
+
+p+theme_minimal()+
+  theme(plot.margin           = margin(t = 2, r = 15, b = 10, l = 25),
+        plot.title            = element_text(
+          family= 'title',face= "bold",size= 28,hjust = 0,
+          colour="#19201D",
+          margin= margin(t = 16, b = 5)),
+        plot.subtitle = element_text(
+          family= 'subtitle', hjust = 0,
+          lineheight= 0.9,size  = 22,colour="black",
+          margin= margin(t = 5, b = 10)),
+        plot.caption = element_text(colour="black"),
+        plot.caption.position = "plot",
+        #axis
+        axis.title.x = element_text(family="x",size=14),
+        axis.text.x = element_blank(),
+        axis.text.y = element_text(size=16,family="x",face="bold"),
+        #legend
+        legend.position = "top",
+        legend.justification='left',
+        legend.title=element_blank(),
+        legend.text = element_text(color = "grey40", size = 16),
+        #legend.box.margin = margin(t = 30),
+        #legend.background = element_rect(color = "grey40",
+                                         #size = .3,
+                                         #fill = "grey95"),
+        legend.key.height = unit(.25, "lines"),
+        #legend.key.width = unit(2.5, "lines"),
+        #background
+        panel.grid.major = element_blank(), 
+        panel.grid.minor= element_blank(),
+        plot.background = element_rect(fill = "white", color = NA))+
+  geom_text(size = 5, position = position_stack(vjust = 0.5))
+
+
+#4. SAVE THE PLOT
+ggsave("TT2024Week20.png", width = 12, height = 12, 
+       type = "Cairo",dpi = 300, bg = "white") 
+ggsave("TT2024Week20.svg", width = 12, height = 12, 
+       dpi = 300, bg = "white") 
+
