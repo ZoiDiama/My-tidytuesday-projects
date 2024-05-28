@@ -267,12 +267,22 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/d
 
 ### Week 10 | Trash Wheel Collection Data
 
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/3f0266042d104c20fabcf24a6c7169be5d9c9a45/Code%202024/Week%2010#L1-L139)
+
 ![TT2024Week10 1](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/8f266ebe-3213-4778-9f92-0a514ff867ce)
 
 
+### Week 20 | The Great American Coffee Taste Test
 
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/4e3a9dde83fdf102f7e855d8844681f7740e924b/Code%202024/Week%2020#L1-L121)
 
+![TT2024Week20_figma](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/096576c8-e92b-43ad-ac1a-c7f3100d5662)
 
+### Week 21 | Carbon Majors Emissions Data
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/b63fbd144ad42467cc1ca117154806f1c6e917bc/Code%202024/Week%2021#L1-L122)
+
+![TT2024Week21](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/5c1047d9-02ab-42a3-9332-4f9d6f8f9896)
 
   
 </details>
