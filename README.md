@@ -1,5 +1,5 @@
 # My-tidytuesday-projects
-Take a look at my TidyTuesday projects on GitHub.🌟 They offer an overview of my work in various data-related fields. Join the data community at : R4DS Online Learning Community (2023). Tidy Tuesday: https://github.com/rfordatascience/tidytuesday.
+Take a look at my TidyTuesday projects on GitHub. They provide an overview of my work in various data-related areas. You can also join the R4DS Online Learning Community to participate in TidyTuesday: https://github.com/rfordatascience/tidytuesday.
 
 <details close>
   <summary>2023</summary>
@@ -283,6 +283,14 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/4
 Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/b63fbd144ad42467cc1ca117154806f1c6e917bc/Code%202024/Week%2021#L1-L122)
 
 ![TT2024Week21](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/5c1047d9-02ab-42a3-9332-4f9d6f8f9896)
+
+### Week 38 | Shakespeare Dialogue
+
+The graph was prepared in R and the final desing was made with Figma. 
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/2e3f3a081a264386db85afcae7f0d68e459c25c0/Code%202024/Week%2038#L1-L138)
+
+![TT2024Week38](https://github.com/user-attachments/assets/e8724fb9-5517-4307-9b78-6d3919c8abb2)
 
   
 </details>
