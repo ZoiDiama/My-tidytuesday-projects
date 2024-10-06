@@ -1,0 +1,140 @@
+#Shakespeare Dialogue
+#2024: week 38
+#load libraries 
+library(tidyverse)
+library(tidytuesdayR)
+library(forcats)
+library(stringr)
+library(htmltools)
+library(rvest) 
+
+
+#1.DATA LOADING
+tuesdata <- tidytuesdayR::tt_load(2024, week = 38)
+
+hamlet <- tuesdata$hamlet
+macbeth <- tuesdata$macbeth
+romeo_juliet <- tuesdata$romeo_juliet
+
+#2.DATA WRANGLING
+
+hamlet$total <- str_count(hamlet$dialogue, '\\s+')+1
+
+dt_hamlet <- hamlet %>% 
+  group_by(character) %>% 
+  summarise(total_words = sum(total)) %>% 
+  mutate(play = "hamlet") %>% 
+  arrange(desc(total_words)) %>%  # Sort by total_words in descending order
+  mutate(character_group = case_when(
+    row_number() <= 10 ~ character,  # Keep character names for the top 10
+    TRUE ~ "Other"  # Replace the rest with "Other"
+  )) %>% 
+  group_by(character_group) %>% 
+  summarise(total_words = sum(total_words)) %>% 
+  mutate(play="hamlet")
+
+macbeth$total <- str_count(macbeth$dialogue, '\\s+')+1
+dt_macbeth <- macbeth %>% 
+  group_by(character) %>% 
+  summarise(total_words = sum(total)) %>% 
+  mutate(play = "hamlet") %>% 
+  arrange(desc(total_words)) %>%  # Sort by total_words in descending order
+  mutate(character_group = case_when(
+    row_number() <= 10 ~ character,  # Keep character names for the top 10
+    TRUE ~ "Other"  # Replace the rest with "Other"
+  )) %>% 
+  group_by(character_group) %>% 
+  summarise(total_words = sum(total_words)) %>% 
+  mutate(play="macbeth")
+
+romeo_juliet$total <- str_count(romeo_juliet$dialogue, '\\s+')+1
+dt_romeo_juliet<- romeo_juliet %>% 
+  group_by(character) %>% 
+  summarise(total_words = sum(total)) %>% 
+  mutate(play = "hamlet") %>% 
+  arrange(desc(total_words)) %>%  # Sort by total_words in descending order
+  mutate(character_group = case_when(
+    row_number() <= 10 ~ character,  # Keep character names for the top 10
+    TRUE ~ "Other"  # Replace the rest with "Other"
+  )) %>% 
+  group_by(character_group) %>% 
+  summarise(total_words = sum(total_words)) %>% 
+  mutate(play="romeo_juliet")
+
+dt_combined <- rbind(dt_hamlet, dt_macbeth, dt_romeo_juliet)
+
+dt_total<-dt_combined %>% 
+  group_by(play) %>% 
+  summarise(total=sum(total_words))
+
+head(dt_combined)
+
+#3. PLOT VIZUALIZATION 
+##plot
+play_colors <- c("hamlet" = "#C96868",  
+                 "macbeth" = "#FADFA1",  
+                 "romeo_juliet" = "#7EACB5")
+
+
+
+vor <- data.frame(
+  h1 = "Shakespeare Plays",  # Top level hierarchy (all characters)
+  h2 = dt_combined$play,     # Second level hierarchy (play)
+  h3 = dt_combined$character_group,  # Third level hierarchy (character group)
+  color = play_colors[dt_combined$play],  # Color palette for treemap
+  weight = dt_combined$total_words,   # Weight (based on total words count)
+  codes = paste(dt_combined$character_group, "-", dt_combined$total_words)  # Tooltip: Name and word count without "Words:"
+)
+
+# Convert the data frame to a voronoi treemap input
+vt <- vt_export_json(vt_input_from_df(vor))
+
+# Export as JSON for D3 visualization
+
+
+v<-vt_d3(vt,label = TRUE, color_border = "white", 
+      size_border = "2px", 
+      legend = FALSE)
+
+# Save the visualization as an HTML file
+save_html(v, file = "voronoi_treemap.html")
+
+ggsave("v.svg", width = 12, height = 8, 
+       dpi = 300, bg = "white") 
+
+# Function to customize the SVG output for text wrapping using tspan
+customize_text <- function(html_file) {
+  # Read the HTML content
+  html_content <- readLines(html_file)
+  
+  # Modify the SVG text elements for wrapping
+  html_content <- gsub(
+    '<text',
+    '<text style="text-anchor: middle; font-size: 12px; text-align: center;"',
+    html_content,
+    fixed = TRUE
+  )
+  
+  # Create a regex pattern to split the code into two lines
+  regex_pattern <- '(<text[^>]*>)(.*?)( - \\d+)(</text>)'
+  
+  # Replace text contents to use tspan for wrapping
+  html_content <- gsub(
+    regex_pattern,
+    '\\1<tspan text-anchor="middle" x="0" dy="0">\\2</tspan><tspan text-anchor="middle" x="0" dy="1.2em">\\3</tspan>\\4',
+    html_content,
+    perl = TRUE
+  )
+  
+  # Write the modified content back to the HTML file
+  writeLines(html_content, con = html_file)
+}
+
+# Apply the text wrapping customization
+customize_text("voronoi_treemap.html")
+
+# Open the saved HTML file in the default web browser
+browseURL("voronoi_treemap.html")
+browseURL("voronoi_treemap.svg")
+
+
