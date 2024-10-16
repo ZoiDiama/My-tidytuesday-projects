@@ -271,6 +271,15 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/3
 
 ![TT2024Week10 1](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/8f266ebe-3213-4778-9f92-0a514ff867ce)
 
+### Week 17 | Objects Launched into Space
+
+The graph was prepared in R and the final desing was made with Figma. 
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/184db5c457c1acbecae3d535969d114b2953d04b/Code%202024/Week%2017#L1-L114)
+
+![TT2024Week17 1 (1)](https://github.com/user-attachments/assets/7472f043-b27e-4df1-acae-ea52e11bfc00)
+
+
 
 ### Week 20 | The Great American Coffee Taste Test
 
@@ -302,7 +311,7 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/4
 
 ### Week 40 | Chess Game Dataset (Lichess)
 
-The graph was prepared in R. 
+The graph was prepared in R and the final desing was made with Figma. 
 
 Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/3b42a9e6d9962d5c98c37605f2aa6887f3b912be/Code%202024/Week%2040#L1-L130)
 
