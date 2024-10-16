@@ -1,0 +1,115 @@
+#Template
+#2024: week ?? 
+#load libraries 
+library(tidyverse)
+library(showtext)
+library(ggtext)
+library(tidytuesdayR)
+library(glue)
+library(Cairo)
+library(forcats)
+library(ggrepel)
+library(lubridate)
+library(ggridges)
+library(ggstream)
+
+
+#1.DATA LOADING
+tuesdata <- tidytuesdayR::tt_load('2024-04-23')
+outer_space_objects <- tuesdata$outer_space_objects
+#2.DATA WRANGLING
+dt_top<-outer_space_objects %>% 
+  group_by(Entity) %>% 
+  summarise(sum=sum(num_objects)) %>% 
+  arrange(-sum)
+
+dt_top_m<-outer_space_objects %>% 
+  group_by(Year) %>% 
+  summarise(sum=sum(num_objects)) %>% 
+  arrange(-sum)
+
+dt<-outer_space_objects %>% 
+  mutate(group = case_when(
+    Entity=="United States" ~ 'United States',
+    Entity=="Russia"~"Russia",
+    Entity=="China"~"China",
+    Entity=="United Kingdom"~"United Kingdom",
+    Entity=="Japan"~"Japan",
+    TRUE ~ 'World')) %>% 
+  group_by(group) %>% 
+  summarise(sum=sum(num_objects))
+
+
+#3. PLOT VIZUALIZATION 
+## Load Google fonts (https://fonts.google.com/)
+font_add_google("Roboto", family = "title")                           
+font_add_google("Open Sans", family = "subtitle")
+font_add_google("Lato", family = "x")
+showtext::showtext_auto()
+showtext::showtext_opts(dpi = 300) 
+
+##Title,subtitle & caption 
+tt <- str_glue(stringr::str_wrap("Space launches: 1957-2023"),width=100)
+st <- str_glue(stringr::str_wrap("The plots shows the annual number of objects launched into space from 1957 to 2023. 
+These objects are satellites, probes, landers, crewed spacecraft, 
+                                 and space station components launched into Earth’s orbit or beyond.",
+                                 width=75))
+ct  <- str_glue(stringr::str_wrap("Data Source:Our World in Data | 
+                                  Creator:Zoi Diamantakou | tidytuesday | 2024, 
+                                  week 17",width=100))
+
+##plot
+p<-
+  ggplot(dt, aes(x=Year, y=sum, fill=group)) +
+  geom_stream(extra_span = 0.2,lwd = 1) +
+  scale_x_continuous(breaks = seq(1957,2023,5))+
+  scale_fill_manual(values = c("white","#71BED9","#D98C71","#F2AB6D","#D9501E",
+                               "#592525"))+
+  labs(title="",
+       subtitle="",
+       caption = ct,
+       x="",
+       y="",
+       fill="")
+    
+p+theme_minimal()+
+  theme(plot.margin           = margin(t = 10, r = 15, b = 10, l = 25),
+        plot.title            = element_text(
+          family= 'title',face= "bold",size= 35,hjust = 0.5,
+          colour="white",
+          margin= margin(t = 16, b = 5)),
+        plot.subtitle = element_text(
+          family= 'subtitle', hjust = 0.5,
+          lineheight= 0.9,size  = 18,colour="white",
+          margin= margin(t = 5, b = 10)),
+        plot.caption = element_text(colour="white"),
+        plot.caption.position = "plot",
+        #axis
+        axis.title.x = element_blank(),
+        axis.text.x = element_text(family="x",size=14,color="white"),
+        axis.text.y = element_blank(),
+       
+        #legend
+        legend.position = "bottom",
+        legend.text = element_text(color = "white", size = 10),
+        legend.box.margin = margin(t = 30),
+        legend.background = element_rect(color = "white",
+                                         size = .3,
+                                         fill = "#0E1826"),
+        legend.key.height = unit(.25, "lines"),
+        legend.key.width = unit(2.5, "lines"),
+          #background
+        panel.background = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor= element_blank(),
+        panel.grid.major.x = element_line(color = "white",
+                                          size = 0.1,linetype = 1),
+        plot.background = element_rect(fill = "#0E1826", color = NA))
+
+
+#4. SAVE THE PLOT
+ggsave("TT2024Week17.png", width = 12, height = 8, 
+       type = "Cairo",dpi = 300, bg = "white") 
+ggsave("TT2024Week17.svg", width = 12, height = 8, 
+       dpi = 300, bg = "white") 
+
