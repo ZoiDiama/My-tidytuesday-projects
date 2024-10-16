@@ -1,0 +1,132 @@
+#Chess Game Dataset (Lichess)
+#2024: week 40 
+#load libraries 
+library(tidyverse)
+library(showtext)
+library(ggtext)
+library(tidytuesdayR)
+library(glue)
+library(Cairo)
+library(forcats)
+library(ggrepel)
+library(lubridate)
+library(ggridges)
+
+
+
+
+#1.DATA LOADING
+tuesdata <- tidytuesdayR::tt_load(2024, week = 40)
+chess <- tuesdata$chess
+
+#2.DATA WRANGLING
+dt<-chess %>% 
+  select(winner,opening_eco) %>% 
+  group_by(winner,opening_eco) %>% 
+  summarise(n=n()) 
+
+#most popular opening_eco moves
+top_50_opening_eco <- chess%>%
+  select(opening_eco,winner) %>% 
+  group_by(opening_eco) %>% 
+  summarise(n=n()) %>% 
+  arrange(desc(n)) %>% 
+  slice_head(n = 50) %>% 
+  pull(opening_eco) 
+
+#the dataset for the plot
+dt_top_50 <- dt %>% 
+  filter(winner%in%c("black","white")) %>% 
+  mutate(winner = factor(paste0(winner, " wins"), levels = c("black wins", "white wins"))) %>% 
+  filter(opening_eco %in% top_50_opening_eco) %>% 
+  arrange(winner, desc(n)) %>%         
+  group_by(winner) %>%                           
+  mutate(rank = row_number()) %>%             
+  ungroup()
+
+
+#3. PLOT VIZUALIZATION 
+## Load Google fonts (https://fonts.google.com/)
+font_add_google("Arvo", family = "title")                           
+font_add_google("Open Sans", family = "subtitle")
+font_add_google("Lato", family = "x")
+showtext::showtext_auto()
+showtext::showtext_opts(dpi = 300) 
+
+##Title,subtitle & caption 
+tt <- str_glue(stringr::str_wrap("Top 50 opening moves in chess for White and 
+                                 Black",width=40))
+st <- str_glue(stringr::str_wrap("The graph shows the top 50 opening moves in chess, 
+                                  ranked by the number of wins for both Black 
+                                 and White, based on standardized ECO codes.",
+                                 width=70))
+ct  <- str_glue(stringr::str_wrap("Data Source: Lichess.org via Kaggle/Mitchell J. | 
+                                  Creator:Zoi Diamantakou | tidytuesday | 2024, 
+                                  week 40",width=120))
+
+##plot
+cols<-c("black wins"="#252940","white wins"="#A66F6F")
+p<-
+  ggplot(data = dt_top_50,
+         aes(x = winner,
+             y = rank,
+             color=winner,
+             group = opening_eco)) +
+  geom_line(size = 0.8,
+            alpha = 0.5,
+            colour="black") +
+  geom_point(size = 7) +
+  scale_color_manual(values = cols)+
+  scale_y_reverse(breaks = 1:50) +
+  scale_x_discrete(position = "top")+
+  labs(x="",
+       y="Rank",
+       title = tt,
+       subtitle =st ,
+       caption = ct,
+       col="")+
+  # Add geom_text for 'black' winner, ensuring we are using proper x and no numeric adjustments
+  geom_text(data = dt_top_50 %>% filter(winner == "black wins"),
+            aes(x = winner, label = opening_eco),
+            size = 5, hjust = 1, colour = "black",
+            position = position_nudge(x = -0.1))+# Nudge left without numeric adjustment+
+  geom_text(data = dt_top_50 %>% filter(winner == "white wins"),
+            aes(x = winner, label = opening_eco),
+            size = 5, hjust = 0,  colour = "black",
+            position = position_nudge(x = 0.1)) +  
+  theme_minimal()
+
+p+theme_minimal()+
+  theme(plot.margin           = margin(t = 2, r = 15, b = 10, l = 25),
+        plot.title            = element_text(
+          family= 'title',face= "bold",size= 30,hjust = 0,
+          colour="#19201D",
+          margin= margin(t = 16, b = 5)),
+        plot.subtitle = element_text(
+          family= 'subtitle', hjust = 0,
+          lineheight= 0.9,size  = 20,colour="black",
+          margin= margin(t = 5, b = 10)),
+        plot.caption = element_text(colour="black"),
+        plot.caption.position = "plot",
+        #axis
+        axis.title.x = element_text(size=14,family="x"),
+        axis.title.y = element_text(size=14,family="x",vjust = 1.5),
+        axis.text.x = element_text(size=12,family="x"),
+        axis.text.y =element_text(size=12,family="x"),
+        #legend
+        legend.position = "none",
+        #background
+        panel.grid.major = element_blank(), 
+        panel.grid.minor= element_blank(),
+        panel.grid.major.y = element_line(color = "black",
+                                          linewidth = 0.1,
+                                          linetype = 2),
+        plot.background = element_rect(fill = "#F2E0D5", color = NA))
+
+
+#4. SAVE THE PLOT
+ggsave("TT2024Week40.png", width = 10, height = 14, 
+       type = "Cairo",dpi = 300, bg = "white") 
+ggsave("TT2024Week40.svg", width = 10, height = 14, 
+       dpi = 300, bg = "white") 
+
