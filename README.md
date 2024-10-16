@@ -292,7 +292,7 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/2
 
 ![TT2024Week38](https://github.com/user-attachments/assets/e8724fb9-5517-4307-9b78-6d3919c8abb2)
 
-### Week 39 | 
+### Week 39 | International Mathematical Olympiad (IMO) Data
 The graph was prepared in R and the final desing was made with Adobe Illustrator. 
 
 Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/4b9cd1d82ff4edb40bda0e71898c9627caab4406/Code%202024/Week%2039#L1-L86)
