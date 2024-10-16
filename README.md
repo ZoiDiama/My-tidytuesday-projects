@@ -306,7 +306,7 @@ The graph was prepared in R.
 
 Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/3b42a9e6d9962d5c98c37605f2aa6887f3b912be/Code%202024/Week%2040#L1-L130)
 
-![TT2024Week40](https://github.com/user-attachments/assets/2b1da388-7da7-49fb-a78a-e4f7c6215167)
+![TT2024Week40 1](https://github.com/user-attachments/assets/104e538e-3500-4fdb-98f5-99762b803efa)
   
 </details>
 
