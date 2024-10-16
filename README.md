@@ -292,6 +292,22 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/2
 
 ![TT2024Week38](https://github.com/user-attachments/assets/e8724fb9-5517-4307-9b78-6d3919c8abb2)
 
+### Week 39 | 
+The graph was prepared in R and the final desing was made with Adobe Illustrator. 
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/4b9cd1d82ff4edb40bda0e71898c9627caab4406/Code%202024/Week%2039#L1-L86)
+
+![AI_draft-01](https://github.com/user-attachments/assets/cf30dea1-613f-4509-9c95-b5b69700cefa)
+
+
+### Week 40 | Chess Game Dataset (Lichess)
+
+The graph was prepared in R. 
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/3b42a9e6d9962d5c98c37605f2aa6887f3b912be/Code%202024/Week%2040#L1-L130)
+
+![TT2024Week40](https://github.com/user-attachments/assets/ccfed19c-a6aa-4209-a275-20f295269bf5)
+
   
 </details>
 
