@@ -1,0 +1,106 @@
+#Fiscal Sponsors
+#2024: week 11
+#load libraries 
+library(tidyverse)
+library(showtext)
+library(ggtext)
+library(tidytuesdayR)
+library(glue)
+library(Cairo)
+library(forcats)
+library(ggrepel)
+library(lubridate)
+library(treemapify)
+library(ggplot2)
+
+
+
+#1.DATA LOADING
+tuesdata <- tidytuesdayR::tt_load(2024, week = 11)
+
+fiscal_sponsor_directory <- tuesdata$fiscal_sponsor_directory
+
+
+#2.DATA WRANGLING
+dt<-fiscal_sponsor_directory %>% 
+  select(name,n_sponsored) %>% 
+  filter(!is.na(n_sponsored)) %>% 
+  filter(n_sponsored>0) %>% 
+  mutate(group=case_when(
+    n_sponsored<=5~"1 to 5 projects",
+    n_sponsored>=6&n_sponsored<=10~"6-10 projects",
+    n_sponsored>=11&n_sponsored<=25~"11-25 projects",
+    n_sponsored>=26&n_sponsored<=100~"26-100 projects",
+    n_sponsored>=101~"101 projects and above")) %>% 
+  group_by(group) %>% 
+  summarise(n=n()) %>% 
+  mutate(Percent = round(n/sum(n)*100, 1))
+  
+
+
+dt$group <- factor(dt$group, levels = c("1 to 5 projects","26-100 projects",
+                                        "11-25 projects",
+                                        "6-10 projects","101 projects and above"))  # Specify the desired order
+
+
+
+#3. PLOT VIZUALIZATION 
+## Load Google fonts (https://fonts.google.com/)
+font_add_google("Montserrat", family = "title")                           
+font_add_google("Open Sans", family = "subtitle")
+font_add_google("Caveat", family = "x")
+showtext::showtext_auto()
+showtext::showtext_opts(dpi = 300) 
+
+##Title,subtitle & caption 
+tt <- str_glue(stringr::str_wrap("Fiscal Sponsor Directory"),width=100)
+st <- str_glue(stringr::str_wrap("Breakdown of directory sponsors by number of projects served (Updated May 2024)",
+                                 width=80))
+ct  <- str_glue(stringr::str_wrap("Data Source: Fiscal Sponsor Directory| 
+                                  Creator:Zoi Diamantakou | tidytuesday | 2024, 
+                                  week 11",width=100))
+
+##plot
+cols=c("#7ABC9C","#4BA7E6","#F7EE4E",
+       "#575859","#D73D82")
+p<-
+  ggplot(dt, aes(area = n, fill = group,
+                 label = paste(group, sprintf("%.1f%%", Percent), sep = "\n"))) +
+  geom_treemap()+
+  geom_treemap_text(colour = "black",
+                    place = "centre",
+                    size = 14)+
+  scale_fill_manual(values=cols)+
+  labs(x="",
+       y="",
+       title = tt,
+       subtitle =st ,
+       caption = ct,
+       col="")+
+  theme_minimal()+
+  theme(plot.margin           = margin(t = 50, r = 200, b = 50, l = 100),
+        plot.title            = element_text(
+          family= 'title',face= "bold",size= 30,hjust = 0,
+          colour="#19201D",
+          margin= margin(t = 16, b = 5)),
+        plot.subtitle = element_text(
+          family= 'subtitle', hjust = 0,
+          lineheight= 0.9,size  = 18,colour="black",
+          margin= margin(t = 5, b = 10)),
+        plot.caption = element_text(colour="black",size=12,family="x"),
+        plot.caption.position = "plot",
+        #axis
+        axis.title.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        #legend
+        legend.position = "none",
+        #background
+        plot.background = element_rect(fill = "#F8FAF9", color = NA))
+  
+#4. SAVE THE PLOT
+ggsave("TT2024Week11.png", width = 12, height = 8, 
+       type = "Cairo",dpi = 300, bg = "white") 
+ggsave("TT2024Week11.svg", width = 12, height = 8, 
+       dpi = 300, bg = "white") 
+
