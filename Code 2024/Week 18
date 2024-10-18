@@ -1,0 +1,121 @@
+#Worldwide Bureaucracy Indicators
+#2024: week 18
+#load libraries 
+library(tidyverse)
+library(showtext)
+library(ggtext)
+library(tidytuesdayR)
+library(glue)
+library(Cairo)
+library(forcats)
+library(ggrepel)
+library(lubridate)
+library(ggridges)
+
+
+
+#1.DATA LOADING
+tuesdata <- tidytuesdayR::tt_load(2024, week = 18)
+wwbi_data <- tuesdata$wwbi_data
+wwbi_series <- tuesdata$wwbi_series
+wwbi_country <- tuesdata$wwbi_country
+
+#2.DATA WRANGLING
+#BI.PWK.PRVS.FE.ZS -Females, as a share of private paid employees
+# BI.PWK.PUBS.FE.ZS - Females, as a share of public paid employees
+dt_country<-wwbi_country %>% 
+  select(country_code,short_name,region,income_group)
+
+dt<-wwbi_data %>% 
+  filter(indicator_code%in%c("BI.PWK.PRVS.FE.ZS","BI.PWK.PUBS.FE.ZS")) %>% 
+  mutate(indicator_label=case_when(
+    indicator_code=="BI.PWK.PRVS.FE.ZS"~"Private",
+    indicator_code=="BI.PWK.PUBS.FE.ZS"~"Public")) %>% 
+  left_join(dt_country,by="country_code")
+
+dt_plot<-dt %>% 
+  filter(!is.na(value)) %>% 
+  group_by(region,short_name,indicator_label) %>% 
+  summarise(value=round(mean(value),2)*100) %>% 
+  pivot_wider(names_from = indicator_label,values_from=value)
+
+#3. PLOT VIZUALIZATION 
+## Load Google fonts (https://fonts.google.com/)
+font_add_google("Roboto", family = "title")                           
+font_add_google("Lato", family = "subtitle")
+font_add_google("Lato", family = "x")
+showtext::showtext_auto()
+showtext::showtext_opts(dpi = 300) 
+
+##Title,subtitle & caption 
+tt <- str_glue(stringr::str_wrap("More women are in public sector jobs than private"),width=90)
+st <- str_glue(stringr::str_wrap("Proportion of women as a share of
+                                  private paid employees in each sector",
+                                 width=90))
+ct  <- str_glue(stringr::str_wrap("Data Source:World Bank| 
+                                  Creator:Zoi Diamantakou | tidytuesday | 2024, 
+                                  week 18",width=100))
+
+##plot
+cols<-c("#E9999C","#C35CA3","#A85DA9",
+        "#BB99E2","#8278CF","#5F8CA9",
+        "#5F8C8C")
+p<- 
+  ggplot(dt_plot, aes(x=Private, y=Public,color=region,label=short_name)) + 
+  geom_point(size=5, alpha = 0.7)+
+  labs(x="Private sector(%)",
+       y="Public sector(%)",
+       title = tt,
+       subtitle =st ,
+       caption = ct,
+       col="")+
+  scale_x_continuous(limits = c(0, 70), breaks = seq(0, 100, 10))+
+  scale_y_continuous(limits = c(0, 80), breaks = seq(0, 100, 10)) +
+  geom_hline(yintercept=50,color="grey40", linetype="dashed")+
+  geom_vline(xintercept =50,color="grey40", linetype="dashed")+
+  geom_text(aes(label = short_name),color="grey40",nudge_x = 1.5, nudge_y = 0,size = 3, check_overlap = FALSE)+
+  scale_colour_manual(values=cols)
+ 
+
+ 
+
+
+p+theme_minimal()+
+  theme(plot.margin           = margin(t = 20, r = 15, b = 10, l = 25),
+        plot.title            = element_text(
+          family= 'title',face= "bold",size= 30,hjust = 0,
+          colour="#2E6D99",
+          margin= margin(t = 16, b = 5)),
+        plot.subtitle = element_text(
+          family= 'subtitle', hjust = 0,
+          lineheight= 0.9,size  = 18,colour="#6B6260",
+          margin= margin(t = 5, b = 10)),
+        plot.caption = element_text(colour="#6B6260"),
+        plot.caption.position = "plot",
+        #axis
+        axis.title.x = element_text(size=14,family="x",color="#6B6260"),
+        axis.title.y = element_text(size=14,family="x",color="#6B6260"),
+        axis.text.x = element_text(size=12,family="x",color="#6B6260"),
+        axis.text.y = element_text(size=12,family="x",color="#6B6260"),
+        #legend
+        legend.position = c(1, 1.05),  # Places the legend in the top-right corner
+        legend.justification = c("right", "top"),
+        legend.text = element_text(color = "grey40", size = 10),
+        legend.box.margin = margin(t = 30),
+        #background
+        panel.background = element_blank(),
+        panel.grid.major = element_line(color="#dcd5c6",
+                                        linewidth = 0.3,
+                                        linetype = 1),
+        panel.grid.minor= element_line(color="#dcd5c6",
+                                       linewidth = 0.3,
+                                       linetype = 1),
+        plot.background = element_rect(fill = "#F5EDDC", color = NA),
+        axis.line = element_line(color = "#7a766e")  # Add this to make axis lines visible
+  )
+
+
+#4. SAVE THE PLOT
+ggsave("TT2024Week18.svg", width = 12, height = 8, 
+       dpi = 300, bg = "white") 
+
