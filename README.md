@@ -279,6 +279,16 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/1
 
 ![TT2024Week17 1 (1)](https://github.com/user-attachments/assets/7472f043-b27e-4df1-acae-ea52e11bfc00)
 
+### Week 18 | Worldwide Bureaucracy Indicators
+
+The graph was prepared in R and the final desing was made with Figma. 
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/a268923887c2e0dbb4c74e436270bacab9cd7dcf/Code%202024/Week%2018#L1-L120)
+
+![TT_week_18](https://github.com/user-attachments/assets/d5b029d8-c347-4e80-8e45-c7c17520fdab)
+
+
+
 
 
 ### Week 20 | The Great American Coffee Taste Test
