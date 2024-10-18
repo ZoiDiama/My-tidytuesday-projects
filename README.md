@@ -271,6 +271,13 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/3
 
 ![TT2024Week10 1](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/8f266ebe-3213-4778-9f92-0a514ff867ce)
 
+### Week 11 | Fiscal Sponsors
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/a3c5c45bf840b70d0211d0598a9ca383fee054b7/Code%202024/Week%2011#L1-L105)
+
+![TT2024Week11 1 (2)](https://github.com/user-attachments/assets/05300f56-6308-49b6-9649-0d8c974da782)
+
+
 ### Week 17 | Objects Launched into Space
 
 The graph was prepared in R and the final desing was made with Figma. 
