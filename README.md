@@ -310,6 +310,13 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/b
 
 ![TT2024Week21](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/5c1047d9-02ab-42a3-9332-4f9d6f8f9896)
 
+### Week 23 | Cheese
+
+The graph was prepared in R and the final desing was made with Figma. 
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/6bf695c266dc37f3208916cc440ac46a88c36e23/Code%202024/Week%2023#L1)
+
+
 ### Week 38 | Shakespeare Dialogue
 
 The graph was prepared in R and the final desing was made with Figma. 
