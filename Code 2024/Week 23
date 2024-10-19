@@ -1,0 +1,190 @@
+#Cheese
+#2024: week 23 
+#load libraries 
+library(tidyverse)
+library(showtext)
+library(ggtext)
+library(tidytuesdayR)
+library(glue)
+library(Cairo)
+library(forcats)
+library(ggrepel)
+library(lubridate)
+library(ggridges)
+library(waffle)
+
+
+#1.DATA LOADING
+tuesdata <- tidytuesdayR::tt_load(2024, week = 23)
+cheeses <- tuesdata$cheeses
+#2.DATA WRANGLING
+#top 10 countries
+top_10_countries <- cheeses %>%
+select(country) %>% 
+  mutate(country=case_when(
+    country=="England"~"United Kingdom",
+    TRUE~country)) %>% 
+group_by(country) %>% 
+summarise(n = n()) %>% 
+arrange(desc(n)) %>% 
+slice(-8) %>%  # Excludes the 9th row
+slice_head(n = 10) %>%  # Adjusts to only take the top 10 after exclusion
+pull(country)
+
+#most popular cheese
+dt_c<-cheeses %>% 
+  filter(country %in% top_10_countries) %>%
+  select(country,color) %>% 
+  filter(!is.na(color)) %>% 
+  group_by(color) %>% 
+  summarise(n=n()) %>% 
+  arrange(desc(n))
+
+#unique colors of cheese
+unique_colours <- cheeses %>%
+  filter(country %in% top_10_countries) %>%
+  select(color) %>% 
+  filter(!is.na(color)) %>%  # Exclude NA values
+  distinct() %>%  # Get unique colour values
+  pull(color)  # Pull the colours into a vector
+
+#data for the plot
+dt<-cheeses %>% 
+  filter(country %in% top_10_countries) %>%
+  select(country,color) %>% 
+  filter(!is.na(color)) %>% 
+  mutate(color2=case_when(
+    color=="blue-grey"~"Other",
+    color=="green"~"Other",
+    color=="pink and white"~"Other",
+    color=="red"~"Other",
+    color=="golden orange"~"Other",
+    color=="pale white"~"Other",
+    color=="brown"~"Other",
+    color=="brownish yellow"~"Other",
+    TRUE ~ color  # Keeps the original color for all others
+  )) %>% 
+  group_by(country,color2) %>% 
+  summarise(n=n()) %>% 
+  mutate(total_n = sum(n, na.rm = TRUE)) %>%  # Calculate total count per country
+  ungroup() %>%
+  mutate(country = fct_reorder(country, total_n, .desc = TRUE)) %>%   # Reorder factor levels based on total_n in descending order
+  mutate(color2=factor(dt$color2, levels = c("white",
+                                          "pale yellow",
+                                          "ivory","cream",
+                                          "yellow","straw",
+                                          "golden yellow",
+                                          "orange","blue",
+                                          "Other"))) %>% 
+  arrange(-n)
+
+
+neworder <- c("United States","France","Italy","Canada","Astralia",
+              "United Kingdom","Ireland","Germany","Netherlands","Spain")
+
+  
+#3. PLOT VIZUALIZATION 
+## Load Google fonts (https://fonts.google.com/)
+font_add_google("Montserrat", family = "title")                           
+font_add_google("Open Sans", family = "subtitle")
+font_add_google("Lato", family = "x")
+showtext::showtext_auto()
+showtext::showtext_opts(dpi = 300) 
+
+##Title,subtitle & caption 
+tt <- str_glue(stringr::str_wrap("Title"),width=100)
+st <- str_glue(stringr::str_wrap("Subtitle",
+                                 width=100))
+ct  <- str_glue(stringr::str_wrap("Data Source: cheese.com, | 
+                                  Creator:Zoi Diamantakou | tidytuesday | 2024, 
+                                  week 23",width=100))
+
+##plot
+cols <- c(
+  "white" = "#E5E5E5",             # Light grey-white
+  "pale yellow" = "#F7E2A2",       # Light beige-yellow
+  "ivory" = "#F0E68C",             # Khaki
+  "cream" = "#FAEBD7",             # Antique white
+  "yellow" = "#FFD700",            # Classic gold
+  "straw" = "#D2B48C",             # Tan
+  "golden yellow" = "#E1AD01",     # Mustard yellow
+  "orange" = "#FF7F50",            # Coral
+  "blue" = "#5F9EA0",              # Cadet blue
+  "Other" = "grey"              # Sienna brown
+)
+
+
+
+p<-
+  ggplot(data = dt,aes(fill = color2, values = n)) +
+  geom_waffle(na.rm = TRUE,
+              color = "white", 
+              size = .5, 
+              n_rows = 15,
+              height = 1, width = 1,
+              radius = unit(2, "pt"),
+              flip = TRUE) +
+  facet_wrap(~country,nrow = 2,strip.position = "top",
+             labeller = as_labeller(
+               c("United States"= "United\nStates", 
+                 "France"="France",
+                 "Italy"="Italy",
+                 "Canada"="Canada",
+                 "Australia"="Australia",
+                 "United Kingdom"="United\nKingdom",
+                 "Ireland"="Ireland",
+                 "Germany"="Germany",
+                 "Netherlands"="Netherlands",
+                 "Spain"="Spain"
+                 ))) +
+  coord_equal()+
+  labs(title=tt,
+       subtitle=st,
+       caption = ct,
+       x="",
+       y="",
+       fill="Cheese color")+
+  scale_fill_manual(values = cols) 
+  
+
+p+
+  theme(plot.margin = margin(t = 20, r = 50, b = 20, l = 150),
+        plot.title = element_text(
+          family= 'title',face= "bold",size= 35,hjust = 0,
+          colour="#19201D",
+          margin= margin(t = 16, b = 5)),
+        plot.subtitle = element_text(
+          family= 'subtitle', hjust = 0,
+          lineheight= 0.9,size  = 18,colour="black",
+          margin= margin(t = 5, b = 10)),
+        plot.caption = element_text(colour="black"),
+        plot.caption.position = "plot",
+        #axis
+        axis.title.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        #legend
+        legend.position = "right",
+        legend.text = element_text(color = "grey40", size = 10),
+        legend.box.margin = margin(t = 30),
+        legend.background = element_blank(),
+        #panel
+        panel.spacing = unit(0.1, "lines"),
+        strip.text.x = element_text(size = 12,
+                                    hjust=0.5,family= 'x',),
+        panel.grid = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.grid.major.y = element_blank(),
+        panel.background = element_rect(fill = "#AAABBF"),
+        strip.background=element_rect(colour="pink",
+                                      fill="#AAABBF"),
+        #background
+        axis.ticks= element_blank(), 
+        plot.background = element_rect(fill = "white", color = NA))
+
+
+#4. SAVE THE PLOT
+ggsave("TT2024Week23.svg", width = 12, height = 8, 
+       dpi = 300, bg = "white") 
+
+
