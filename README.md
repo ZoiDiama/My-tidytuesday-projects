@@ -316,7 +316,13 @@ The graph was prepared in R and the final desing was made with Figma.
 
 Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/6bf695c266dc37f3208916cc440ac46a88c36e23/Code%202024/Week%2023#L1)
 
-![TT_week_21 (4)](https://github.com/user-attachments/assets/ee441017-cfe4-45ed-8938-f78571e2ed2c)
+![TT_week_21 (5)](https://github.com/user-attachments/assets/e7e56354-0688-46be-abc5-75d24bdf56d9)
+
+### Week 25 | US Federal Holidays
+
+The graph was prepared in R and the final desing was made with Figma. R code inspired by R Coder in https://r-coder.com/calendar-plot-r/
+
+![TT2024Week25](https://github.com/user-attachments/assets/162abb7a-ba89-42ef-8e86-da93ac7730cc)
 
 ### Week 38 | Shakespeare Dialogue
 
