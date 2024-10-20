@@ -295,9 +295,6 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/a
 ![TT_week_18](https://github.com/user-attachments/assets/d5b029d8-c347-4e80-8e45-c7c17520fdab)
 
 
-
-
-
 ### Week 20 | The Great American Coffee Taste Test
 
 Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/4e3a9dde83fdf102f7e855d8844681f7740e924b/Code%202024/Week%2020#L1-L121)
@@ -316,7 +313,7 @@ The graph was prepared in R and the final desing was made with Figma.
 
 Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/10c1df73bad064ae65d907baddf811b8052eaa6c/Code%202024/Week%2022#L1-L89)
 
-![week22 (1)](https://github.com/user-attachments/assets/961ddf08-8083-4352-b395-67805d8cb3c1)
+![week22 (1)](https://github.com/user-attachments/assets/5ac02908-283b-4e14-8266-4ccd869ac63b)
 
 ### Week 23 | Cheese
 
