@@ -1,0 +1,90 @@
+#Lisa's Vegetable Garden Data
+#2024: week 22
+#load libraries 
+library(tidyverse)
+library(showtext)
+library(ggtext)
+library(tidytuesdayR)
+library(glue)
+library(Cairo)
+library(forcats)
+library(ggrepel)
+library(lubridate)
+library(ggridges)
+library(packcircles)
+
+## Load Google fonts (https://fonts.google.com/)
+font_add_google("Roboto", family = "title")                           
+font_add_google("Lato", family = "subtitle")
+font_add_google("Lato", family = "x")
+showtext::showtext_auto()
+showtext::showtext_opts(dpi = 300) 
+
+#1.DATA LOADING
+tuesdata <- tidytuesdayR::tt_load(2024, week = 22)
+harvest_2020 <- tuesdata$harvest_2020
+harvest_2021 <- tuesdata$harvest_2021
+planting_2020 <- tuesdata$planting_2020
+planting_2021 <- tuesdata$planting_2021
+spending_2020 <- tuesdata$spending_2020
+spending_2021 <- tuesdata$spending_2021
+
+
+#2.DATA WRANGLING
+unique_veg_21<-planting_2021 %>%
+  select(vegetable) %>% 
+  filter(!is.na(vegetable)) %>%  # Exclude NA values
+  distinct() %>%  # Get unique colour values
+  pull(vegetable)  # Pull the colours into a vector
+
+# Define the categories as vectors
+leafy_greens <- c("spinach", "kale", "swiss chard", "lettuce", "cabbage")
+root_vegetables <- c("beets", "radish", "carrots", "rutabaga", "potatoes")
+fruiting_vegetables <- c("tomatoes", "tomatillos", "peppers", "zucchini", "squash", 
+                         "pumpkin", "cucumbers", "watermelon", "corn")
+legumes <- c("peas", "beans", "edamame")
+herbs <- c("dill", "basil", "cilantro")
+
+#create dt for the plot
+dt<-planting_2021 %>%
+  select(vegetable) %>% 
+  mutate(group = case_when(
+    vegetable %in% leafy_greens ~ "Leafy Greens",
+    vegetable %in% root_vegetables ~ "Root Vegetables",
+    vegetable %in% fruiting_vegetables ~ "Fruiting Vegetables",
+    vegetable %in% legumes ~ "Legumes",
+    vegetable %in% herbs ~ "Herbs",
+    TRUE ~ "Other" # In case there's a vegetable that doesn't fit in any category
+  )) %>% 
+  group_by(group,vegetable) %>% 
+  summarise(n=n())
+
+#for the plot
+packing <- circleProgressiveLayout(dt$n, sizetype='area')
+dt <- cbind(dt, packing)
+dat.gg <- circleLayoutVertices(packing, npoints=50)
+
+
+#3. PLOT VIZUALIZATION 
+##plot
+p<-
+  ggplot() + 
+  geom_polygon(data = dat.gg, aes(x, y, 
+                                  group = id, 
+                                  fill=as.factor(id)), # Make the bubbles
+                                  colour = "black", alpha = 0.6) +
+  geom_text(data = dt, aes(x = x, y = y, size = n, label = vegetable),size=3) +
+  geom_text(data = dt, aes(x = x, y = y, size = n, label = group), size=3,
+            nudge_y = 0.5)+
+  geom_text(data = dt, aes(x = x, y = y, size = n, label = n), size=3,
+            nudge_y = 0.8)+
+  scale_size_continuous(range = c(1,4)) +
+  scale_color_viridis(discrete=TRUE) +
+  theme_void() + 
+  theme(legend.position="none") +
+  coord_equal()
+
+#4. SAVE THE PLOT
+ggsave("TT2024Week22.svg", width = 8, height = 6, 
+       dpi = 300, bg = "white") 
+
