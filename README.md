@@ -310,6 +310,14 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/b
 
 ![TT2024Week21](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/5c1047d9-02ab-42a3-9332-4f9d6f8f9896)
 
+### Week 22 | Lisa's Vegetable Garden Data
+
+The graph was prepared in R and the final desing was made with Figma. 
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/10c1df73bad064ae65d907baddf811b8052eaa6c/Code%202024/Week%2022#L1-L89)
+
+![week22 (1)](https://github.com/user-attachments/assets/961ddf08-8083-4352-b395-67805d8cb3c1)
+
 ### Week 23 | Cheese
 
 The graph was prepared in R and the final desing was made with Figma. 
