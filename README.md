@@ -329,8 +329,7 @@ The graph was prepared in R and the final desing was made with Figma.
 
 Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/aa94d605dc46bf26437b1c8395bd5df0f1b54477/Code%202024/Week%2024#L1-L113)
 
-![TT2024Week24](https://github.com/user-attachments/assets/eb64a623-ea5a-41eb-94cf-d3c925f08ea8)
-
+![week 24](https://github.com/user-attachments/assets/c670d6ba-2e64-4bd2-88a3-87f7b6ac9cf6)
 
 ### Week 25 | US Federal Holidays
 
