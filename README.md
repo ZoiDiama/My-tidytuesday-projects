@@ -337,6 +337,15 @@ The graph was prepared in R and the final desing was made with Figma. R code ins
 
 ![TT2024Week25](https://github.com/user-attachments/assets/162abb7a-ba89-42ef-8e86-da93ac7730cc)
 
+### Week 26 | tidyRainbow Datasets
+
+The graph was prepared in R and the final desing was made with Figma. 
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/595a22cec50665f5d0eaf01a3eaf14423e241eb8/Code%202024/Week%2026#L1-L136)
+
+![TT2024Week26](https://github.com/user-attachments/assets/fdb8bdc3-ee96-4ef9-9bb2-6135922b9128)
+
+
 ### Week 38 | Shakespeare Dialogue
 
 The graph was prepared in R and the final desing was made with Figma. 
