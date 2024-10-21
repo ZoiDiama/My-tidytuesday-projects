@@ -1,0 +1,138 @@
+#tidyRainbow Datasets
+
+#2024: week 26
+#load libraries 
+library(tidyverse)
+library(showtext)
+library(ggtext)
+library(tidytuesdayR)
+library(glue)
+library(Cairo)
+library(forcats)
+library(ggrepel)
+library(lubridate)
+library(ggridges)
+
+
+
+#1.DATA LOADING
+tuesdata <- tidytuesdayR::tt_load(2024, week = 26)
+
+lgbtq_movies <- tuesdata$lgbtq_movies
+
+#2.DATA WRANGLING
+ top_10_lag <-lgbtq_movies %>% 
+  group_by(original_language) %>% 
+  summarise(n=n()) %>% 
+  arrange(desc(n)) %>% 
+  slice_head(n = 10) %>%         
+  pull(original_language) 
+
+
+ dt <- lgbtq_movies %>% 
+   select(original_language, release_date) %>% 
+   mutate(release_date = as.Date(release_date)) %>%
+   mutate(year = year(release_date)) %>% 
+   filter(!is.na(year)) %>% 
+   group_by(year, original_language) %>% 
+   summarise(n = n()) %>% 
+   mutate(group = case_when(
+     original_language == "en" ~ "English",
+     original_language == "es" ~ "Spanish",
+     original_language == "fr" ~ "French",
+     original_language == "de" ~ "German",
+     original_language == "pt" ~ "Portuguese",
+     original_language == "ja" ~ "Japanese",
+     #original_language == "it" ~ "Italian",
+     #original_language == "ko" ~ "Korean",
+     #original_language == "zh" ~ "Chinese",
+     TRUE ~ "Other")) %>% 
+   mutate(group = factor(group,
+                         levels = c("English",
+                                    "Spanish",
+                                    "French",
+                                    "German",
+                                    "Portuguese",
+                                    "Japanese",
+                                    "Other")))
+ 
+
+ 
+#3. PLOT VIZUALIZATION 
+## Load Google fonts (https://fonts.google.com/)
+font_add_google("Roboto", family = "title")                           
+font_add_google("Lato", family = "subtitle")
+font_add_google("Lato", family = "x")
+showtext::showtext_auto()
+showtext::showtext_opts(dpi = 300) 
+
+##Title,subtitle & caption 
+tt <- str_glue(stringr::str_wrap("LGBTQ movies most common languages"),width=80)
+st <- str_glue(stringr::str_wrap("The graph shows the frequency of original languages in LGBTQ movies from 1900 to 2022",width=100))
+ct  <- str_glue(stringr::str_wrap("Data Source: tidyRainbow,  | 
+                                  Creator:Zoi Diamantakou | tidytuesday | 2024, 
+                                  week 26",width=100))
+
+##plot
+
+p<-
+  ggplot(
+  dt, aes(x = year, y=n,fill=group)  ) + 
+  geom_bar(position="stack", stat="identity")+
+  scale_x_continuous(breaks =seq(1900,2022,10))+
+  scale_y_continuous(breaks =seq(0,600,100),limits=c(0,600))+
+  labs(
+    x = "",
+    y = "Number of movies",
+    fill = " ",
+    title=tt,
+    subtitle=st,
+    caption = ct)+
+  scale_fill_manual(values=c("#FF0018",
+                             "#FFA52C",
+                             "#FFFF41",
+                             "#008018",
+                             "#0000F9",
+                             "#86007D",
+                             "grey"))
+
+p+theme_minimal()+
+  theme(plot.margin           = margin(t = 10, r = 25, b = 10, l = 25),
+        plot.title            = element_text(
+          family= 'title',face= "bold",size= 35,hjust = 0,
+          colour="#19201D",
+          margin= margin(t = 16, b = 5)),
+        plot.subtitle = element_text(
+          family= 'subtitle', hjust = 0,
+          lineheight= 0.9,size  = 18,colour="black",
+          margin= margin(t = 5, b = 10)),
+        plot.caption = element_text(colour="black"),
+        plot.caption.position = "plot",
+        #axis
+        axis.text.x = element_text(size=12),
+        axis.text.y = element_text(size=12),
+        #legend
+        legend.position = "bottom",
+        legend.text = element_text(color = "grey40", size = 10),
+        legend.box.margin = margin(t = 30),
+        legend.background = element_rect(color = "grey40",
+                                         size = .3,
+                                         fill = "grey95"),
+        legend.key.height = unit(.25, "lines"),
+        legend.key.width = unit(2.5, "lines"),
+        #background
+        panel.grid.major = element_blank(), 
+        panel.grid.minor= element_blank(),
+        panel.grid.major.y = element_line(color = "black",
+                                          linewidth = 0.1,
+                                          linetype = 1),
+        plot.background = element_rect(fill = "white", color = NA))
+
+
+#4. SAVE THE PLOT
+ggsave("TT2024Week26.svg", width = 12, height = 8, 
+       dpi = 300, bg = "white") 
+ggsave("TT2024Week26.png", width = 12, height = 8, 
+       dpi = 300, bg = "white") 
+
+
