@@ -323,6 +323,15 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/6
 
 ![TT_week_21 (5)](https://github.com/user-attachments/assets/e7e56354-0688-46be-abc5-75d24bdf56d9)
 
+### Week 24 | Campus Pride Index
+
+The graph was prepared in R and the final desing was made with Figma. 
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/aa94d605dc46bf26437b1c8395bd5df0f1b54477/Code%202024/Week%2024#L1-L113)
+
+![TT2024Week24](https://github.com/user-attachments/assets/eb64a623-ea5a-41eb-94cf-d3c925f08ea8)
+
+
 ### Week 25 | US Federal Holidays
 
 The graph was prepared in R and the final desing was made with Figma. R code inspired by R Coder in https://r-coder.com/calendar-plot-r/
