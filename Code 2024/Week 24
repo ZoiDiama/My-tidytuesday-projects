@@ -1,0 +1,114 @@
+#Campus Pride Index
+#2024: week 24 
+#load libraries 
+library(tidyverse)
+library(showtext)
+library(ggtext)
+library(tidytuesdayR)
+library(glue)
+library(Cairo)
+library(forcats)
+library(ggrepel)
+library(lubridate)
+library(ggridges)
+
+#1.DATA LOADING
+tuesdata <- tidytuesdayR::tt_load(2024, week = 24)
+
+pride_index <- tuesdata$pride_index
+pride_index_tags <- tuesdata$pride_index_tags
+#2.DATA WRANGLING
+dt <- pride_index_tags %>% 
+  select(campus_name, public, private) %>% 
+  pivot_longer(cols = public:private,
+               names_to = "uni_type", values_to = "values") %>% 
+  filter(!is.na(values)) %>% 
+  right_join(pride_index, by = "campus_name") %>% 
+  mutate(uni_type = case_when(
+    is.na(uni_type) ~ "Unknown",  # Correct syntax for handling NA values
+    TRUE ~ uni_type
+  ))
+
+
+highest_lowest <- dt %>%
+  group_by(community_type) %>%
+  summarise(
+    highest = campus_name[which.max(rating)],
+    highest_rating = max(rating),
+    lowest = campus_name[which.min(rating)],
+    lowest_rating = min(rating),
+    .groups = 'drop'
+  )
+  
+
+#3. PLOT VIZUALIZATION 
+## Load Google fonts (https://fonts.google.com/)
+font_add_google("Roboto", family = "title")                           
+font_add_google("Lato", family = "subtitle")
+font_add_google("Lato", family = "x")
+showtext::showtext_auto()
+showtext::showtext_opts(dpi = 300) 
+
+##Title,subtitle & caption 
+tt <- str_glue(stringr::str_wrap("Title"),width=100)
+st <- str_glue(stringr::str_wrap("Subtitle",
+                                 width=100))
+ct  <- str_glue(stringr::str_wrap("Data Source:Campus Pride Index. | 
+                                  Creator:Zoi Diamantakou | tidytuesday | 2024, 
+                                  week 24",width=100))
+
+##plot
+p <- 
+  ggplot(dt, aes(y = community_type, x = rating, size = students, color = uni_type)) +
+  geom_jitter(
+    alpha = 0.7,
+    shape = 16,
+    width = 0.2,  # Jitter width for horizontal dispersion
+    height = 0.3  # Vertical jitter to reduce overlap
+  ) +
+  geom_hline(yintercept = 1:length(unique(dt$community_type)),
+             color = "#595959",
+             size = 0.5) +
+  scale_x_continuous(breaks = 1:5, limits = c(0.5, 5.5),position = "top") + # Set x-axis to have breaks from 1 to 5
+  scale_y_discrete(limits = unique(dt$community_type),
+                   expand = c(0, 1)) + # Aligns y-axis correctly with community types
+  scale_size_continuous(range = c(5, 15)) + # Adjusts the range of bubble sizes
+  scale_color_manual(values = c("public" = "#1f78b4", "private" = "#b2df8a", "Unknown" = "grey")) + # Add color for "Unknown"
+  labs(
+    x = "Rating",
+    y = "Community type",
+    size = "Students",
+    color = "University type",
+    title=tt,
+    subtitle=st,
+    caption = ct
+  ) +
+  theme_minimal()+
+  theme(plot.margin           = margin(t = 10, r = 25, b = 10, l = 25),
+        plot.title            = element_text(
+          family= 'title',face= "bold",size= 35,hjust = 0.5,
+          colour="#19201D",
+          margin= margin(t = 16, b = 5)),
+        plot.subtitle = element_text(
+          family= 'subtitle', hjust = 0.5,
+          lineheight= 0.9,size  = 18,colour="black",
+          margin= margin(t = 5, b = 10)),
+        plot.caption = element_text(colour="black"),
+        plot.caption.position = "plot",
+        #axis
+        axis.title.x = element_blank(),
+        axis.text.x = element_text(size=12),
+        axis.text.y = element_text(size=12),
+        #legend
+        legend.position = "right",
+        #panel
+        #background
+        plot.background = element_rect(fill = "white", color = NA))
+
+  
+
+
+#4. SAVE THE PLOT
+ggsave("TT2024Week24.svg", width = 16, height = 12, 
+       dpi = 300, bg = "white") 
+
