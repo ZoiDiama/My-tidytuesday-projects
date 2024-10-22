@@ -1,0 +1,100 @@
+#Template
+#2024: week ?? 
+#load libraries 
+library(tidyverse)
+library(showtext)
+library(ggtext)
+library(tidytuesdayR)
+library(glue)
+library(Cairo)
+library(forcats)
+library(ggrepel)
+library(lubridate)
+library(ggridges)
+
+## Load Google fonts (https://fonts.google.com/)
+font_add_google("Roboto", family = "title")                           
+font_add_google("Lato", family = "subtitle")
+font_add_google("Lato", family = "x")
+showtext::showtext_auto()
+showtext::showtext_opts(dpi = 300) 
+
+#1.DATA LOADING
+tuesdata <- tidytuesdayR::tt_load(2024, week = 27)
+
+tt_datasets <- tuesdata$tt_datasets
+tt_summary <- tuesdata$tt_summary
+tt_urls <- tuesdata$tt_urls
+tt_variables <- tuesdata$tt_variables
+
+#2.DATA WRANGLING
+
+summary(tt_datasets)
+
+# Create categories based on quantiles or custom thresholds
+tt_datasets$observation_category <- cut(tt_datasets$observations,
+                                        breaks = c(0, 1000, 10000, 1000000, Inf), 
+                                        labels = c("Low: 0-1,000", "Medium:1,001-10,000", 
+                                                   "High: 10,001-1,000,000", 
+                                                   "Very high: > 1,000,000"))
+
+
+
+#3. PLOT VIZUALIZATION 
+##Title,subtitle & caption 
+tt <- str_glue(stringr::str_wrap("TidyTuesday datasets size over time"),width=100)
+st <- str_glue(stringr::str_wrap("The graph illustrates how the size of 
+                                  TidyTuesday datasets has changed 
+                                  from 2018 to 2024. The size is measured by the 
+                                  number of observations, or rows, 
+                                 in the datasets released each week.",
+                                 width=100))
+ct  <- str_glue(stringr::str_wrap("Data Source: ttmeta R package | 
+                                  Creator:Zoi Diamantakou | tidytuesday | 2024, 
+                                  week 27",width=100))
+
+##plot
+p<-
+ggplot(tt_datasets, aes(x = factor(week), 
+                        y = factor(year, levels = rev(unique(year))), 
+                        fill = observation_category)) +
+  geom_tile(color = "white", size = 0.5) +  
+  scale_fill_viridis_d(option = "viridis", 
+                       direction = -1, na.value = "white")+# Empty tiles appear white
+  labs(title = tt,
+       x = "The week number for each dataset per year", 
+       y = " ",
+       fill="Dataset size: number of observations.",subtitle=st,caption = ct) +
+  coord_equal() +
+  theme_minimal()+
+  theme(plot.margin= margin(t = 15, r = 20, b = 10, l = 20),
+        plot.title            = element_text(
+          family= 'title',face= "bold",size= 35,hjust = 0,
+          colour="#19201D",
+          margin= margin(t = 16, b = 5)),
+        plot.subtitle = element_text(
+          family= 'subtitle', hjust = 0,
+          lineheight= 0.9,size  = 18,colour="black",
+          margin= margin(t = 5, b = 10)),
+        plot.caption = element_text(colour="black"),
+        plot.caption.position = "plot",
+        #axis
+        axis.title.x = element_text(size=12,family="x",hjust=0),
+        axis.title.y = element_text(size=12,family="x",vjust=0),
+        axis.text.x = element_text(size=12,family="x",
+                                   angle = 0, hjust = 1), 
+        axis.text.y = element_text(size=12,family="x",
+                                   angle = 0, hjust = 1),
+        #legend
+        legend.text = element_text(color = "black", size = 12),
+        legend.position = "top",
+        legend.justification = c(0, 1),  
+        #background
+        panel.grid = element_blank(),
+        plot.background = element_rect(fill = "white", color = NA))
+
+
+#4. SAVE THE PLOT
+ggsave("TT2024Week27.png", width = 16, height = 8, 
+       type = "Cairo",dpi = 300, bg = "white") 
+
