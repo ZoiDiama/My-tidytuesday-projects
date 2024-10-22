@@ -339,11 +339,20 @@ The graph was prepared in R and the final desing was made with Figma. R code ins
 
 ### Week 26 | tidyRainbow Datasets
 
-The graph was prepared in R and the final desing was made with Figma. 
+The graph was prepared in R. 
 
 Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/595a22cec50665f5d0eaf01a3eaf14423e241eb8/Code%202024/Week%2026#L1-L136)
 
 ![TT2024Week26](https://github.com/user-attachments/assets/fdb8bdc3-ee96-4ef9-9bb2-6135922b9128)
+
+### Week 27 | TidyTuesday Datasets
+
+The graph was prepared in R. 
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/8a59cab2c8736ff4635e3a9c3bed19ddbe63cfd8/Code%202024/Week%2027#L1)
+
+![TT2024Week27](https://github.com/user-attachments/assets/ddd1b541-951d-47dd-9066-f0a100337610)
+
 
 
 ### Week 38 | Shakespeare Dialogue
