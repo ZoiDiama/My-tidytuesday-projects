@@ -381,7 +381,7 @@ The graph was prepared in R.
 
 Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/a47d41ade715d330f0535ab138a9fa6c91b4fe17/Code%202024/Week%2031#L1-L111)
 
-![TT2024Week_31](https://github.com/user-attachments/assets/1d2d8d26-b52d-472e-a176-b6deb0a2972c)
+![TT2024Week_X 1 (1)](https://github.com/user-attachments/assets/0b84742f-6985-453e-af28-11342ba73764)
 
 ### Week 38 | Shakespeare Dialogue
 
