@@ -1,0 +1,117 @@
+#TidyTuesday Datasets
+#2024: week 29 
+#load libraries 
+library(tidyverse)
+library(showtext)
+library(ggtext)
+library(tidytuesdayR)
+library(glue)
+library(Cairo)
+library(forcats)
+library(ggrepel)
+library(lubridate)
+library(ggridges)
+library(forcats)
+
+
+
+## Load Google fonts (https://fonts.google.com/)
+font_add_google("Roboto", family = "title")                           
+font_add_google("Lato", family = "subtitle")
+font_add_google("Lato", family = "x")
+showtext::showtext_auto()
+showtext::showtext_opts(dpi = 300) 
+
+#1.DATA LOADING
+tuesdata <- tidytuesdayR::tt_load(2024, week = 29)
+ewf_appearances <- tuesdata$ewf_appearances
+ewf_matches <- tuesdata$ewf_matches
+ewf_standings <- tuesdata$ewf_standings
+
+#2.DATA WRANGLING
+dumbbell_data <- ewf_standings %>%
+  group_by(team_name) %>%
+  summarize(
+    sum_goals_for = sum(goals_for, na.rm = TRUE),
+    sum_goals_against = sum(goals_against, na.rm = TRUE),
+    total_wins = sum(wins, na.rm = TRUE),  # Calculate total wins
+    .groups = 'drop'
+  ) %>%
+  mutate(goal_difference = sum_goals_for - sum_goals_against) %>%
+  arrange(desc(goal_difference)) %>%   # Order by largest goal difference
+  mutate(team_name = fct_reorder(team_name, total_wins)) %>% 
+  mutate(group_col=case_when(
+    goal_difference>0~"positive",
+    goal_difference<0~"negative"))
+
+#3. PLOT VIZUALIZATION 
+##Title,subtitle & caption 
+tt <- str_glue(stringr::str_wrap("Title"),width=100)
+st <- str_glue(stringr::str_wrap("Sub",
+                                 width=100))
+ct  <- str_glue(stringr::str_wrap("Data Source: The English Women's Football (EWF) Database | 
+                                  Creator:Zoi Diamantakou | tidytuesday | 2024, 
+                                  week 29",width=100))
+
+##plot
+p<-
+  ggplot(dumbbell_data, aes(y = fct_reorder(team_name, 
+                                            desc(total_wins)))) +
+  geom_segment(aes(x = sum_goals_against, xend = sum_goals_for, 
+                   y = team_name, yend = team_name, color = group_col), 
+               size = 3,alpha=0.5) +
+  geom_point(aes(x = sum_goals_against), color = "#D94A4A", size = 5) +
+  geom_point(aes(x = sum_goals_for), color = "#5B98A6", size = 5) +
+  scale_x_continuous(breaks=seq(0,600,50),position="top")+
+    labs(title = tt,
+       subtitle=st,
+       caption=ct,
+       x = "Total goals",
+       y = "") +
+  theme_minimal()+
+  scale_color_manual(values = c("positive" = "#5B98A6", "negative" = "#D94A4A")) +  # Color mapping
+  theme_minimal()
+
+p+  theme(plot.margin= margin(t = 50, r = 80, b = 50, l = 80),
+          plot.title            = element_text(
+            family= 'title',face= "bold",size= 35,hjust = 0,
+            colour="#19201D",
+            margin= margin(t = 16, b = 5)),
+          plot.subtitle = element_text(
+            family= 'subtitle', hjust = 0,
+            lineheight= 0.9,size  = 18,colour="black",
+            margin= margin(t = 5, b = 10)),
+          plot.caption = element_text(colour="black"),
+          plot.caption.position = "plot",
+          #axis
+          axis.title.x = element_text(size=12,family="x",
+                                      hjust=0),
+          axis.title.y = element_text(size=12,family="x",vjust=0),
+          axis.text.x = element_text(size=12,family="x",
+                                     hjust =0.5), 
+          axis.text.y = element_text(size=12,family="x",
+                                     angle = 0, vjust =0.5),
+          #legend
+          legend.text = element_text(color = "black", size = 12),
+          legend.position = "none",
+          legend.justification = c(0, 1),  
+          #background
+          panel.grid = element_blank(),
+          panel.grid.major.y = element_line(color = "grey",
+                                            linewidth = 0.1,
+                                            linetype = 1),
+          panel.grid.major.x = element_line(color = "grey",
+                                            linewidth = 0.1,
+                                            linetype = 1),
+          
+          plot.background = element_rect(fill = "white", color = NA))
+
+
+#4. SAVE THE PLOT
+ggsave("TT2024Week29.png", width = 14, height = 16, 
+       type = "Cairo",dpi = 300, bg = "white") 
+ggsave("TT2024Week29.svg", width = 14, height = 16, 
+       dpi = 300, bg = "white") 
+
+
+
