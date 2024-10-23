@@ -367,6 +367,15 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/0
 
 ![TT2024Week29 1 (1)](https://github.com/user-attachments/assets/c92ee14b-b922-4053-acaf-e511eb1672c0)
 
+### Week 30 | American Idol
+
+The graph was prepared in R. 
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/a52f9a85ba62a03fd181332e401e49c8e6933c23/Code%202024/Week%2030#L1-L114)
+
+![TT2024Week30 3](https://github.com/user-attachments/assets/1f42bd6a-827d-4086-a975-c8a4fef92df5)
+
+
 
 
 
