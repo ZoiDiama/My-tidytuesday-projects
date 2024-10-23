@@ -359,6 +359,15 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/8
 
 ![TT2024Week27](https://github.com/user-attachments/assets/ddd1b541-951d-47dd-9066-f0a100337610)
 
+### Week 29 | English Women's Football
+
+The graph was prepared in R and the final desing was made with Figma. 
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/097f7714eb82b8ebafc2bdeb2272d903042ac5a2/Code%202024/Week%2029#L1-L114)
+
+![TT2024Week29 1 (1)](https://github.com/user-attachments/assets/c92ee14b-b922-4053-acaf-e511eb1672c0)
+
+
 
 
 ### Week 38 | Shakespeare Dialogue
