@@ -375,9 +375,13 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/a
 
 ![TT2024Week30 3](https://github.com/user-attachments/assets/1f42bd6a-827d-4086-a975-c8a4fef92df5)
 
+### Week 31 | Summer Movies
 
+The graph was prepared in R. 
 
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/a47d41ade715d330f0535ab138a9fa6c91b4fe17/Code%202024/Week%2031#L1-L111)
 
+![TT2024Week_31](https://github.com/user-attachments/assets/1d2d8d26-b52d-472e-a176-b6deb0a2972c)
 
 ### Week 38 | Shakespeare Dialogue
 
