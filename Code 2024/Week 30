@@ -1,0 +1,114 @@
+#American Idol data
+#2024: week 30 
+#load libraries 
+library(tidyverse)
+library(showtext)
+library(sysfonts)
+
+library(ggtext)
+library(tidytuesdayR)
+library(glue)
+library(Cairo)
+library(forcats)
+library(ggrepel)
+library(lubridate)
+library(ggridges)
+
+## Load Google fonts (https://fonts.google.com/)
+font_add_google("Pacifico", family = "title")                           
+font_add_google("Lato", family = "subtitle")
+font_add_google("Lato", family = "x")
+showtext::showtext_auto()
+showtext::showtext_opts(dpi = 300) 
+
+#1.DATA LOADING
+tuesdata <- tidytuesdayR::tt_load(2024, week = 30)
+
+auditions <- tuesdata$auditions
+eliminations <- tuesdata$eliminations
+finalists <- tuesdata$finalists
+ratings <- tuesdata$ratings
+seasons <- tuesdata$seasons
+songs <- tuesdata$songs
+
+#2.DATA WRANGLING
+dt<-ratings %>% 
+  select(season,show_number,airdate,viewers_in_millions) %>% 
+  mutate(airdate = as.Date(airdate, format="%B %d, %Y")) %>% 
+  mutate(group=case_when(
+    show_number>=1 & show_number<=10~"1-10",
+    show_number>=11 & show_number<=20~"11-20",
+    show_number>=21 & show_number<=30~"21-30",
+    show_number>=31 & show_number<=40~"31-40",
+    show_number>=41 ~">40")) %>% 
+    mutate(group = factor(group,level = c("1-10","11-20", "21-30","31-40",">40")))
+              
+
+
+#3. PLOT VIZUALIZATION 
+##Title,subtitle & caption 
+tt <- str_glue(stringr::str_wrap("American Idol lost its popularity over time"),width=100)
+st <- str_glue(stringr::str_wrap("Number of viewers per episode and season (in millions)",
+                                 width=100))
+ct  <- str_glue(stringr::str_wrap("Data Source:https://github.com/kkakey/American_Idol/tree/main | 
+                                  Creator:Zoi Diamantakou | tidytuesday | 2024, 
+                                  week 30",width=120))
+
+##plot
+p<-
+  ggplot(dt, aes(x=show_number, y=viewers_in_millions)) +
+  geom_bar(stat = "identity",fill="#40cbfa") +
+  facet_wrap(~season,scale="free")+
+  labs(
+    x = "Episode number",
+    y = "Viewers (in millions)",
+    title=tt,
+    subtitle=st,
+    caption = ct)+
+  #scale_fill_brewer(palette = "YlGnBu")+
+  scale_x_continuous(limits = c(1, 45), breaks = seq(0, 45, by = 10),
+                     labels=c('', '10', '20','30','40')) +  
+  scale_y_continuous(limits=c(0,50),breaks = seq(0, 50, by = 20))
+
+p + theme_minimal() +
+  theme(
+    plot.margin = margin(t = 20, r = 25, b = 20, l = 25),
+    plot.title = element_text(
+      family = 'title', face = "bold", size = 35, hjust = 0.5,
+      colour = "white", margin = margin(t = 16, b = 5)
+    ),
+    plot.subtitle = element_text(
+      family = 'subtitle', hjust = 0.5, lineheight = 0.9,
+      size = 18, colour = "white", margin = margin(t = 5, b = 10)
+    ),
+    plot.caption = element_text(colour = "white"),
+    plot.caption.position = "plot",
+    # Axis
+    axis.title.x = element_text(family = "x", colour = "white", hjust = 0),
+    axis.title.y = element_text(family = "x", colour = "white", hjust = 0.5),
+    axis.text.x = element_text(size = 12, colour = "white", hjust = 0.5),
+    axis.text.y = element_text(size = 12, colour = "white"),
+    # Panel
+    panel.spacing = unit(1.5, "cm"),
+    strip.text.x = element_text(
+      size = 20, face = "bold", hjust = 0, family = 'x', colour = "white"
+    ),
+    panel.background = element_blank(),
+    panel.grid = element_blank(),
+    # Set Y-axis grid lines
+    panel.grid.major.y = element_line(colour = "#dedddd", linewidth = 0.1), 
+    # X-axis line
+    axis.line.x = element_line(color = "#dedddd", linewidth =0.5, linetype = 1),
+    axis.ticks = element_blank(),
+    axis.ticks.x = element_line(color = "#dedddd",linewidth = 0.5),
+        # Background
+    plot.background = element_rect(fill = "#00196d", color = NA)
+  ) 
+
+
+
+#4. SAVE THE PLOT
+ggsave("TT2024Week30.png", width = 12, height = 9, 
+       type = "Cairo",dpi = 300, bg = "white") 
+ggsave("TT2024Week30.svg", width = 12, height = 9, 
+       dpi = 300, bg = "white") 
