@@ -1,0 +1,112 @@
+#Summer movies
+#2024: week 31 
+
+
+#load basic libraries 
+library(tidytuesdayR)# Access data for the #TidyTuesday project.
+library(tidyverse) # Collection of tools for data manipulation and visualization.
+library(showtext) #Easily use custom fonts in plots.Allows the use of google fonts
+library(glue)#Simple string formatting and interpolation.
+library(Cairo) #High-quality graphics rendering for plots.
+
+#additional libraries
+library(ggtext) #Allows rich text formatting (Markdown/HTML) in ggplot.
+library(forcats) #Tools for handling categorical variables (factors).
+library(ggrepel) #Avoids overlapping labels in ggplot2.
+library(lubridate)#Simplifies working with dates and times.
+library(ggridges) #Create ridge/joy plots for visualizing distributions.
+library(waffle)
+
+
+## Load Google fonts (https://fonts.google.com/)
+font_add_google("Gluten", family = "title")                           
+font_add_google("Lato", family = "subtitle")
+font_add_google("Lato", family = "x")
+showtext::showtext_auto()
+showtext::showtext_opts(dpi = 300) 
+
+#1.DATA LOADING
+tuesdata <- tidytuesdayR::tt_load(2024, week = 31)
+
+summer_movie_genres <- tuesdata$summer_movie_genres
+summer_movies <- tuesdata$summer_movies
+
+#2.DATA WRANGLING
+
+dt_g<-summer_movie_genres %>% group_by(genres) %>% summarise(n=n()) %>% arrange(-n)
+dt_m<-summer_movies%>% select(tconst)%>% distinct() %>% nrow()
+summer_movie_genres%>% select(genres)%>% distinct() %>% nrow()
+
+
+dt<-summer_movie_genres %>% 
+  mutate(col=case_when(
+    genres=="Drama"~"Drama",
+    genres=="Comedy"~"Comedy",
+    genres=="Romance"~"Romance",
+    TRUE~"Other")) %>% 
+  mutate(col=factor(col,
+                    levels=c("Drama","Comedy","Romance","Other"))) %>% 
+  mutate(n=1)
+
+#3. PLOT VIZUALIZATION 
+##Title,subtitle & caption 
+tt <- str_glue(stringr::str_wrap("Summer Movies Genres 1920-2024",
+                                 width=100))
+st <- str_glue(stringr::str_wrap("Over 104 years, 905 summer movies across 26 genres—Drama, Comedy, and Romance are the most common",
+                                 width=100))
+ct  <- "Data source: IMDB |Creator:Zoi Diamantakou |tidytuesday |2024, week 31
+Note: One movie might have more than one genre."
+
+##plot
+p<-
+  ggplot(dt,aes(fill = col, values = n)) +
+  geom_waffle(colour = 'white', 
+              tile_shape = 'circle',
+              n_rows = 10,
+              size=0.25,
+              radius = unit(0.7, units = "mm"),
+              na.rm = TRUE,
+              flip = FALSE)+
+  scale_fill_manual(values = c("#061057","#F15B28","#8A1309","#D3D6CB")) +
+  scale_x_discrete(expand=c(0,0)) +
+  scale_y_discrete(expand=c(0,0))+
+  labs(title=tt,
+       subtitle = st,
+       caption = ct,
+       x="",
+       y="",
+       fill="Genres")
+
+
+
+p+theme_minimal()+
+  theme(plot.margin= margin(t = 50, r = 50, b = 50, l = 50),
+        plot.title= element_text(family= 'title',face= "bold",size= 25,hjust = 0,
+                                 colour="black"),
+        plot.subtitle = element_text(family= 'subtitle', hjust = 0,colour="black",
+                                     lineheight= 0.9,size  = 16),
+        plot.caption = element_text(colour="black",size=11, hjust = 0,family='x'),
+        plot.caption.position = "plot",
+        #axis
+        axis.title.x = element_text(family="x",size=12),
+        axis.title.y = element_text(family="x",size=12),
+        axis.text.x = element_text(family="x",size=12,vjust =0.5),
+        axis.text.y = element_text(family="x",size=12,vjust =0), #or element_blank()
+        axis.line = element_blank(),  
+        #legend
+        legend.position = "top",
+        legend.justification='left',
+        legend.text = element_text(family="x",color = "black",size = 14),
+        legend.title = element_text(family="x",color = "black",size = 14),
+        #grid
+        panel.grid = element_blank(),
+        #panel.grid.major.y = element_line(color = "#dedddd", linewidth = 1, linetype = 1),  # Corrected to element_line
+        #panel.grid.major.x = element_blank(),
+        #background
+        plot.background = element_rect(fill = "white", color = NA))
+
+
+#4. SAVE THE PLOT
+#ggsave("TT2024Week_X.png", width = 12, height = 8,type = "Cairo",dpi = 300, bg = "white") 
+ggsave("TT2024Week_31.svg", width = 12, height = 8,dpi = 300, bg = "white") 
+
