@@ -1,0 +1,102 @@
+#World's Fairs
+#2024: week 33 
+
+
+#load key libraries 
+library(tidytuesdayR)# Access data for the #TidyTuesday project.
+library(tidyverse) # Collection of tools for data manipulation and visualization.
+library(showtext) #Easily use custom fonts in plots.Allows the use of google fonts
+library(glue)#Simple string formatting and interpolation.
+library(Cairo) #High-quality graphics rendering for plots.
+
+#additional libraries
+library(ggtext) #Allows rich text formatting (Markdown/HTML) in ggplot.
+library(forcats) #Tools for handling categorical variables (factors).
+library(ggrepel) #Avoids overlapping labels in ggplot2.
+library(lubridate)#Simplifies working with dates and times.
+library(ggridges) #Create ridge/joy plots for visualizing distributions.
+
+
+## Load Google fonts (https://fonts.google.com/)
+font_add_google("Lato", family = "title")                           
+font_add_google("Lato", family = "subtitle")
+font_add_google("Lato", family = "x")
+showtext::showtext_auto()
+showtext::showtext_opts(dpi = 300) 
+
+#1.DATA LOADING
+tuesdata <- tidytuesdayR::tt_load(2024, week = 33)
+worlds_fairs <- tuesdata$worlds_fairs
+
+#2.DATA WRANGLING
+dt<-
+  worlds_fairs %>% 
+  select(start_year,country,city,category,visitors,cost,attending_countries) %>% 
+  group_by(country) %>% 
+  summarise(n=n()) %>% 
+  distinct() %>% 
+  pull(country)
+
+#3. PLOT VIZUALIZATION 
+##Title,subtitle & caption 
+tt <- str_glue(stringr::str_wrap("World's fair accross time",
+                                 width=100))
+st <- str_glue(stringr::str_wrap("Visitors attendance at World and Specialized Expos ",
+                                 width=100))
+ct  <- str_glue(stringr::str_wrap("Data source:Wikipedia | 
+                                  Creator:Zoi Diamantakou | 
+                                  tidytuesday | 
+                                  2024,week 33",width=100))
+
+##plot
+p<-
+  ggplot(worlds_fairs, aes(x = start_year, y = 1,colour=category,
+                           size = visitors)) +
+  geom_point(alpha = 0.7) +  # Use 'size = visitors' to set point sizes
+  geom_segment(aes(xend = end_year, yend = 1), color = "gray", size = 0.2) +
+  scale_y_continuous(breaks = NULL) +
+  labs(title=tt,subtitle = st,caption = ct,
+       x="",y="",fill="")+
+  facet_wrap(~category,nrow=2,scale="free")+
+  scale_size_continuous(range = c(1, 20))+
+  scale_x_continuous(limits = c(1850, 2021), breaks = seq(1850,2021, by = 10))+
+  theme_minimal()+
+  theme(plot.margin= margin(t = 20, r = 25, b = 20, l = 25),
+        plot.title= element_text(family= 'title',face= "bold",size= 27,hjust = 0,colour="#19201D"),
+        plot.subtitle = element_text(family= 'subtitle', hjust = 0,
+                                     lineheight= 0.9,size  = 18,colour="black"),
+        plot.caption = element_text(colour="black",size=11, hjust = 0,family='x'),
+        plot.caption.position = "plot",
+        #axis text
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.x = element_text(family="x",size=10,vjust =20),
+        axis.text.y = element_blank(),
+        #legend
+        legend.position = "top",
+        legend.justification='left',
+        legend.text = element_text(family="x",color = "black",size = 14),
+        #legend.title = element_text(family="x",color = "black",size = 14),
+        #panel
+        panel.spacing = unit(1.5, "cm"),
+        strip.text.x = element_text(size = 14,face="italic",hjust=0,family= 'x'),
+        panel.background = element_blank(),
+        #grid
+        panel.grid = element_blank(),
+        panel.grid.major.y = element_line(color = "#dedddd", linewidth = 1, linetype = 1),  # Corrected to element_line
+        panel.grid.major.x = element_line(color = "#dedddd", linewidth = 1, linetype = 1),
+        axis.line.x = element_blank(), 
+        axis.line.y = element_blank(),  
+        axis.ticks= element_blank(), 
+        axis.ticks.x = element_line(color = "#dedddd", linewidth = 1, linetype = 1),
+        #background
+        plot.background = element_rect(fill = "white", color = NA))
+
+
+#4. SAVE THE PLOT
+#ggsave("TT2024Week_X.png", width = 12, height = 8,type = "Cairo",dpi = 300, bg = "white") 
+ggsave("TT2024Week_X.svg", width = 8, height = 8,dpi = 300, bg = "white")
+browseURL("TT2024Week_X.svg")
+
+
+
