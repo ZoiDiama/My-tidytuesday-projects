@@ -397,7 +397,7 @@ The graph was prepared in R and the final desing was made with Figma.
 
 Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/6b5a4aab16044c77c946ca9d6e3face376fca8c2/Code%202024/Week%2033#L1-L99)
 
-![TT2024Week_33](https://github.com/user-attachments/assets/cd268f26-c8f2-43ea-ac0c-a0c3d26946ec)
+![TT2024Week_X 2 (2)](https://github.com/user-attachments/assets/1ed10ba6-f1b4-4df0-8481-3fc303cbd186)
 
 ### Week 38 | Shakespeare Dialogue
 
