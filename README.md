@@ -383,6 +383,14 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/a
 
 ![TT2024Week_X 1 (1)](https://github.com/user-attachments/assets/0b84742f-6985-453e-af28-11342ba73764)
 
+### Week 32 | Olympic Medals
+
+The graph was prepared in R and the final desing was made with Figma. 
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/4dd30f6505e11e8536958c19895670f7029c17b0/Code%202024/Week%2032#L1)
+
+![TT2024Week_32](https://github.com/user-attachments/assets/58885425-6d1e-449c-ae96-651bb62cf2a7)
+
 ### Week 38 | Shakespeare Dialogue
 
 The graph was prepared in R and the final desing was made with Figma. 
