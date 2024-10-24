@@ -1,0 +1,120 @@
+#Olympic Medals
+#2024: week 32 
+
+
+#load basic libraries 
+library(tidytuesdayR)# Access data for the #TidyTuesday project.
+library(tidyverse) # Collection of tools for data manipulation and visualization.
+library(showtext) #Easily use custom fonts in plots.Allows the use of google fonts
+library(glue)#Simple string formatting and interpolation.
+library(Cairo) #High-quality graphics rendering for plots.
+
+#additional libraries
+library(ggtext) #Allows rich text formatting (Markdown/HTML) in ggplot.
+library(forcats) #Tools for handling categorical variables (factors).
+library(ggrepel) #Avoids overlapping labels in ggplot2.
+library(lubridate)#Simplifies working with dates and times.
+library(ggridges) #Create ridge/joy plots for visualizing distributions.
+#for this chart
+library(ggalluvial)
+
+## Load Google fonts (https://fonts.google.com/)
+font_add_google("Oswald", family = "title")                           
+font_add_google("Lato", family = "subtitle")
+font_add_google("Lato", family = "x")
+showtext::showtext_auto()
+showtext::showtext_opts(dpi = 300) 
+
+#1.DATA LOADING
+tuesdata <- tidytuesdayR::tt_load(2024, week = 32)
+olympics <- tuesdata$olympics
+
+#2.DATA WRANGLING
+top_10_countries<-olympics %>% 
+  filter(medal%in%c("Gold","Silver","Bronze")) %>% 
+  group_by(team) %>% 
+  summarise(n=n()) %>% 
+  arrange(-n) %>% 
+  slice_head(n = 10) %>%
+  pull(team)
+
+dt<-olympics %>% 
+  filter(team %in% top_10_countries) %>%
+  select(team,season,sex,medal)%>%
+  filter(medal%in%c("Gold","Silver","Bronze")) %>% 
+  group_by(team,season,sex,medal) %>% 
+  summarise(n=n()) %>% 
+  mutate(team=factor(team,levels=c("United States","Soviet Union","Germany","Great Britain",
+                                   "France","Italy","Sweden","Australia","Canada","Hungary"))) %>% 
+  mutate(medal=factor(medal,levels=c("Gold","Silver","Bronze")))
+
+
+
+#3. PLOT VIZUALIZATION 
+##Title,subtitle & caption 
+tt <- str_glue(stringr::str_wrap("120 Years of Olympic Glory: Top 10 medal-winning countries",
+                                 width=80))
+st <- str_glue(stringr::str_wrap("Medal counts of the top 10 countries by season, sex, 
+                                  and type from Athens 1896 to Rio 2016",
+                                 width=70))
+ct  <- str_glue(stringr::str_wrap("Data source: RGriffin Kaggle dataset | 
+                                  Creator:Zoi Diamantakou | 
+                                  tidytuesday | 
+                                  2024,week 32",width=100))
+
+##plot
+p<-
+  ggplot(data = dt,
+         aes(axis1 = team, axis2 = season,axis3=sex, axis4=medal,y = n)) +
+  geom_alluvium(aes(fill = medal),curve_type = "cubic") +
+  geom_stratum() +
+  geom_text(stat = "stratum",
+            aes(label = stringr::str_wrap(after_stat(stratum), width = 10))) +
+  scale_fill_manual(values=c("#D6AF36","#A7A7AD","#824A02"))+
+  labs(title=tt,subtitle = st,caption = ct,
+       x="",y="",fill="Medals")+
+  theme_void()
+  
+
+
+
+p+theme_minimal()+
+  theme(plot.margin= margin(t = 20, r = 25, b = 20, l = 25),
+        plot.title= element_text(family= 'title',face= "bold",size= 20,hjust = 0,colour="#19201D"),
+        plot.subtitle = element_text(family= 'subtitle', hjust = 0,
+                                     lineheight= 0.9,size  = 16,colour="black"),
+        plot.caption = element_text(colour="black",size=11, hjust = 0.5,family='x'),
+        plot.caption.position = "plot",
+        #axis text
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        #legend
+        legend.position = "top",
+        legend.justification='left',
+        legend.text = element_text(family="x",color = "black",size = 14),
+        legend.title = element_text(family="x",color = "black",size = 14),
+        #panel
+        panel.spacing = unit(1.5, "cm"),
+        strip.text.x = element_text(size = 20,face="bold",hjust=0,family= 'x'),
+        panel.background = element_blank(),
+        #grid
+        panel.grid = element_blank(),
+        #panel.grid.major.y = element_line(color = "#dedddd", linewidth = 1, linetype = 1),  # Corrected to element_line
+        #panel.grid.major.x = element_blank(),
+        #axis.line.x = element_line(color = "black", linewidth = 1, linetype = 1),  
+        #axis.line.y = element_line(color = "black", linewidth = 1, linetype = 1), 
+        axis.ticks= element_blank(), 
+        #axis.ticks.x = element_line(color = "white",linewidth = 1),
+        #background
+        plot.background = element_rect(fill = "white", color = NA))
+
+
+#4. SAVE THE PLOT
+#ggsave("TT2024Week_32.png", width = 12, height = 8,type = "Cairo",dpi = 300, bg = "white") 
+ggsave("TT2024Week_32.svg", width = 8, height = 9,dpi = 300, bg = "white")
+browseURL("TT2024Week_32.svg")
+
+
+
