@@ -1,0 +1,129 @@
+#The Power Rangers Franchise
+#2024: week 35
+
+
+#load key libraries 
+library(tidytuesdayR)# Access data for the #TidyTuesday project.
+library(dplyr)
+library(ggplot2)
+library(tidyverse) # Collection of tools for data manipulation and visualization.
+library(showtext) #Easily use custom fonts in plots.Allows the use of google fonts
+library(glue)#Simple string formatting and interpolation.
+library(Cairo) #High-quality graphics rendering for plots.
+
+#additional libraries
+library(ggtext) #Allows rich text formatting (Markdown/HTML) in ggplot.
+library(forcats) #Tools for handling categorical variables (factors).
+library(ggrepel) #Avoids overlapping labels in ggplot2.
+library(lubridate)#Simplifies working with dates and times.
+library(ggridges) #Create ridge/joy plots for visualizing distributions.
+library(treemapify)
+
+## Load Google fonts (https://fonts.google.com/)
+font_add_google("Bungee Inline", family = "title")                           
+font_add_google("Lato", family = "subtitle")
+font_add_google("Lato", family = "x")
+showtext::showtext_auto()
+showtext::showtext_opts(dpi = 300) 
+
+#1.DATA LOADING
+tuesdata <- tidytuesdayR::tt_load(2024, week = 35)
+power_rangers_episodes <- tuesdata$power_rangers_episodes
+power_rangers_seasons <- tuesdata$power_rangers_seasons
+
+#2.DATA WRANGLING
+dt<-power_rangers_seasons %>% 
+  select(season_title,season_num) %>% 
+  right_join(power_rangers_episodes,by="season_title") %>% 
+  select(season_num,episode_num,IMDB_rating) %>% 
+  mutate(season_num=factor(season_num)) %>% 
+  mutate(IMDB_group=case_when(
+    IMDB_rating< 5~"<5",
+    IMDB_rating>=5&IMDB_rating<6~"5-5.9",
+    IMDB_rating>=6&IMDB_rating<7~"6-6.9",
+    IMDB_rating>=7&IMDB_rating<8~"7-7.9",
+    IMDB_rating>=8&IMDB_rating<9~"8-8.9",
+    IMDB_rating>=9~"9+")) %>% 
+  mutate(IMDB_group=factor(IMDB_group,levels=c(
+    "<5","5-5.9","6-6.9","7-7.9","8-8.9","9+")))
+    
+  
+
+#3. PLOT VIZUALIZATION 
+##Title,subtitle & caption 
+tt <- str_glue(stringr::str_wrap("Power Rangers: IMDb Scores in a dot!",
+                                 width=100))
+st <- str_glue(stringr::str_wrap("Audience IMDB ratings per season and episode",
+                                 width=100))
+ct  <- str_glue(stringr::str_wrap("Data source: Kaggle | 
+                                  Creator:Zoi Diamantakou | 
+                                  tidytuesday | 
+                                  2024, week 35",width=100))
+
+##plot
+p<-
+ ggplot(dt, aes(x = factor(season_num),         # Ensure season_num is treated as a categorical variable
+               y = episode_num, 
+               fill = IMDB_group)) +
+  scale_y_continuous(breaks=seq(0,60,1))+
+  scale_x_discrete(expand = c(0,0.5),limits=rev)+
+  geom_point(size = 5,          # Use geom_point to display IMDB ratings
+             shape = 21,                       # Use shape 21 for filled circles
+             color = "black",                  # Optional: outline color for visibility
+             alpha = 0.7) +                    # Optional: transparency for better visibility
+  labs(title = tt, subtitle = st, caption = ct,
+       x = "Season Number", y = "Episode Number", fill = "IMDB Rating")+ 
+  scale_fill_manual(values = c("#d7191c",
+                               "#fc8d59",
+                               "#fee08b",
+                               "#d9ef8b",
+                               "#91cf60",
+                               "#1a9850"))+
+  theme_minimal()+
+  coord_flip()
+
+
+
+p+
+  theme(plot.margin= margin(t = 10, r = 10, b = 10, l = 10),
+        plot.title= element_text(family= 'title',face= "bold",size= 20,hjust = 0,colour="#19201D"),
+        plot.subtitle = element_text(family= 'subtitle', hjust = 0,
+                                     lineheight= 0.9,size  = 16,colour="black"),
+        plot.caption = element_text(colour="black",size=10, hjust = 0,family='x'),
+        plot.title.position = "plot", 
+        plot.subtitle.position = "plot", 
+        plot.caption.position = "plot",
+        #axis text
+        axis.title.x = element_text(family="x",size=10,face="italic"),
+        axis.title.y = element_text(family="x",size=10,face="italic"),
+        axis.text.x = element_text(family="x",size=10,hjust=0.5),
+        axis.text.y = element_text(family="x",size=10,vjust =0.5), #or element_blank()
+        #legend
+        legend.position = "top",
+        legend.justification='left',
+        legend.text = element_text(family="x",color = "black",size = 12),
+        legend.title = element_text(family="x",color = "black",size = 12),
+        #panel
+        panel.spacing = unit(1.5, "cm"),
+        strip.text.x = element_text(size = 20,face="bold",hjust=0,family= 'x'),
+        panel.background = element_blank(),
+        #grid
+        panel.grid = element_blank(),
+        panel.grid.major.x = element_line(color = "#dedddd", linewidth = 0.2, linetype = 1),  # Corrected to element_line
+        panel.grid.major.y = element_blank(),
+        axis.line.y = element_line(color = "#dedddd",linewidth = 0.8),  
+        axis.line.x =element_blank(),
+        axis.ticks= element_blank(), 
+        axis.ticks.x = element_line(color = "#dedddd",linewidth = 0.8),
+        #background
+        plot.background = element_rect(fill = "white",color = NA))+
+        guides(fill = guide_legend(nrow = 1, byrow = TRUE))
+
+
+#4. SAVE THE PLOT
+#ggsave("TT2024Week_X.png", width = 12, height = 8,type = "Cairo",dpi = 300, bg = "white") 
+ggsave("TT2024Week_37.svg", width = 14, height = 8,dpi = 300, bg = "white")
+browseURL("TT2024Week_37.svg")
+
+
+
