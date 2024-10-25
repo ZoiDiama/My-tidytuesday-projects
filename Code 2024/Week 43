@@ -1,0 +1,356 @@
+#The CIA World Factbook
+#2024: week 43
+
+
+#load key libraries 
+library(tidytuesdayR)# Access data for the #TidyTuesday project.
+library(dplyr)
+library(ggplot2)
+library(tidyverse) # Collection of tools for data manipulation and visualization.
+library(showtext) #Easily use custom fonts in plots.Allows the use of google fonts
+library(glue)#Simple string formatting and interpolation.
+library(Cairo) #High-quality graphics rendering for plots.
+
+#additional libraries
+library(ggtext) #Allows rich text formatting (Markdown/HTML) in ggplot.
+library(forcats) #Tools for handling categorical variables (factors).
+library(ggrepel) #Avoids overlapping labels in ggplot2.
+library(lubridate)#Simplifies working with dates and times.
+library(ggridges) #Create ridge/joy plots for visualizing distributions.
+
+
+## Load Google fonts (https://fonts.google.com/)
+font_add_google("Lato", family = "title")                           
+font_add_google("Lato", family = "subtitle")
+font_add_google("Lato", family = "x")
+showtext::showtext_auto()
+showtext::showtext_opts(dpi = 300) 
+
+#1.DATA LOADING
+tuesdata <- tidytuesdayR::tt_load(2024, week = 43)
+cia_factbook <- tuesdata$cia_factbook
+
+#2.DATA WRANGLING
+regions <- c(
+  "Russia" = "Europe",
+  "Canada" = "North America",
+  "United States" = "North America",
+  "China" = "Asia",
+  "Brazil" = "South America",
+  "Australia" = "Oceania",
+  "India" = "Asia",
+  "Argentina" = "South America",
+  "Kazakhstan" = "Asia",
+  "Algeria" = "Africa",
+  "Congo, Democratic Republic of the" = "Africa",
+  "Greenland" = "North America",
+  "Saudi Arabia" = "Asia",
+  "Mexico" = "North America",
+  "Indonesia" = "Asia",
+  "Sudan" = "Africa",
+  "Libya" = "Africa",
+  "Iran" = "Asia",
+  "Mongolia" = "Asia",
+  "Peru" = "South America",
+  "Chad" = "Africa",
+  "Niger" = "Africa",
+  "Angola" = "Africa",
+  "Mali" = "Africa",
+  "South Africa" = "Africa",
+  "Colombia" = "South America",
+  "Ethiopia" = "Africa",
+  "Bolivia" = "South America",
+  "Mauritania" = "Africa",
+  "Egypt" = "Africa",
+  "Tanzania" = "Africa",
+  "Nigeria" = "Africa",
+  "Venezuela" = "South America",
+  "Namibia" = "Africa",
+  "Mozambique" = "Africa",
+  "Pakistan" = "Asia",
+  "Turkey" = "Asia",
+  "Chile" = "South America",
+  "Zambia" = "Africa",
+  "Burma" = "Asia",
+  "Afghanistan" = "Asia",
+  "South Sudan" = "Africa",
+  "France" = "Europe",
+  "Somalia" = "Africa",
+  "Central African Republic" = "Africa",
+  "Ukraine" = "Europe",
+  "Madagascar" = "Africa",
+  "Botswana" = "Africa",
+  "Kenya" = "Africa",
+  "Yemen" = "Asia",
+  "Thailand" = "Asia",
+  "Spain" = "Europe",
+  "Turkmenistan" = "Asia",
+  "Cameroon" = "Africa",
+  "Papua New Guinea" = "Oceania",
+  "Sweden" = "Europe",
+  "Uzbekistan" = "Asia",
+  "Morocco" = "Africa",
+  "Iraq" = "Asia",
+  "Paraguay" = "South America",
+  "Zimbabwe" = "Africa",
+  "Japan" = "Asia",
+  "Germany" = "Europe",
+  "Congo, Republic of the" = "Africa",
+  "Finland" = "Europe",
+  "Vietnam" = "Asia",
+  "Malaysia" = "Asia",
+  "Norway" = "Europe",
+  "Cote d'Ivoire" = "Africa",
+  "Poland" = "Europe",
+  "Oman" = "Asia",
+  "Italy" = "Europe",
+  "Philippines" = "Asia",
+  "Ecuador" = "South America",
+  "Burkina Faso" = "Africa",
+  "New Zealand" = "Oceania",
+  "Gabon" = "Africa",
+  "Western Sahara" = "Africa",
+  "Guinea" = "Africa",
+  "United Kingdom" = "Europe",
+  "Uganda" = "Africa",
+  "Ghana" = "Africa",
+  "Romania" = "Europe",
+  "Laos" = "Asia",
+  "Guyana" = "South America",
+  "Belarus" = "Europe",
+  "Kyrgyzstan" = "Asia",
+  "Senegal" = "Africa",
+  "Syria" = "Asia",
+  "Cambodia" = "Asia",
+  "Uruguay" = "South America",
+  "Suriname" = "South America",
+  "Tunisia" = "Africa",
+  "Nepal" = "Asia",
+  "Bangladesh" = "Asia",
+  "Tajikistan" = "Asia",
+  "Greece" = "Europe",
+  "Nicaragua" = "North America",
+  "Korea, North" = "Asia",
+  "Malawi" = "Africa",
+  "Eritrea" = "Africa",
+  "Benin" = "Africa",
+  "Honduras" = "North America",
+  "Liberia" = "Africa",
+  "Bulgaria" = "Europe",
+  "Cuba" = "North America",
+  "Guatemala" = "North America",
+  "Iceland" = "Europe",
+  "Korea, South" = "Asia",
+  "Hungary" = "Europe",
+  "Portugal" = "Europe",
+  "Jordan" = "Asia",
+  "Azerbaijan" = "Asia",
+  "Austria" = "Europe",
+  "United Arab Emirates" = "Asia",
+  "Czech Republic" = "Europe",
+  "Serbia" = "Europe",
+  "Panama" = "North America",
+  "Sierra Leone" = "Africa",
+  "Ireland" = "Europe",
+  "Georgia" = "Asia",
+  "Sri Lanka" = "Asia",
+  "Lithuania" = "Europe",
+  "Latvia" = "Europe",
+  "Svalbard" = "Europe",
+  "Togo" = "Africa",
+  "Croatia" = "Europe",
+  "Bosnia and Herzegovina" = "Europe",
+  "Costa Rica" = "North America",
+  "Slovakia" = "Europe",
+  "Dominican Republic" = "North America",
+  "Estonia" = "Europe",
+  "Denmark" = "Europe",
+  "Netherlands" = "Europe",
+  "Switzerland" = "Europe",
+  "Bhutan" = "Asia",
+  "Guinea-Bissau" = "Africa",
+  "Taiwan" = "Asia",
+  "Moldova" = "Europe",
+  "Belgium" = "Europe",
+  "Lesotho" = "Africa",
+  "Armenia" = "Asia",
+  "Solomon Islands" = "Oceania",
+  "Albania" = "Europe",
+  "Equatorial Guinea" = "Africa",
+  "Burundi" = "Africa",
+  "Haiti" = "North America",
+  "Rwanda" = "Africa",
+  "Macedonia" = "Europe",
+  "Djibouti" = "Africa",
+  "Belize" = "North America",
+  "El Salvador" = "North America",
+  "Israel" = "Asia",
+  "Slovenia" = "Europe",
+  "New Caledonia" = "Oceania",
+  "Fiji" = "Oceania",
+  "Kuwait" = "Asia",
+  "Swaziland" = "Africa",
+  "Timor-Leste" = "Asia",
+  "Bahamas, The" = "North America",
+  "Montenegro" = "Europe",
+  "Puerto Rico" = "North America",
+  "Vanuatu" = "Oceania",
+  "Falkland Islands (Islas Malvinas)" = "South America",
+  "Qatar" = "Asia",
+  "Gambia, The" = "Africa",
+  "Jamaica" = "North America",
+  "Kosovo" = "Europe",
+  "Lebanon" = "Asia",
+  "Cyprus" = "Asia",
+  "West Bank" = "Asia",
+  "Brunei" = "Asia",
+  "Trinidad and Tobago" = "North America",
+  "French Polynesia" = "Oceania",
+  "Cabo Verde" = "Africa",
+  "Samoa" = "Oceania",
+  "Luxembourg" = "Europe",
+  "Comoros" = "Africa",
+  "Mauritius" = "Africa",
+  "Virgin Islands" = "North America",
+  "Faroe Islands" = "Europe",
+  "Hong Kong" = "Asia",
+  "Sao Tome and Principe" = "Africa",
+  "Turks and Caicos Islands" = "North America",
+  "Kiribati" = "Oceania",
+  "Bahrain" = "Asia",
+  "Dominica" = "North America",
+  "Tonga" = "Oceania",
+  "Micronesia, Federated States of" = "Oceania",
+  "Singapore" = "Asia",
+  "Saint Lucia" = "North America",
+  "Isle of Man" = "Europe",
+  "Guam" = "Oceania",
+  "Andorra" = "Europe",
+  "Northern Mariana Islands" = "Oceania",
+  "Palau" = "Oceania",
+  "Seychelles" = "Africa",
+  "Curacao" = "North America",
+  "Antigua and Barbuda" = "North America",
+  "Barbados" = "North America",
+  "Saint Vincent and the Grenadines" = "North America",
+  "Gaza Strip" = "Asia",
+  "Grenada" = "North America",
+  "Malta" = "Europe",
+  "Saint Helena, Ascension, and Tristan da Cunha" = "Africa",
+  "Maldives" = "Asia",
+  "Saint Kitts and Nevis" = "North America",
+  "Marshall Islands" = "Oceania",
+  "Liechtenstein" = "Europe",
+  "San Marino" = "Europe",
+  "Tuvalu" = "Oceania",
+  "Nauru" = "Oceania",
+  "Holy See (Vatican City)" = "Europe",
+  "Monaco" = "Europe"
+)
+
+# Create a new "Region" column in the dt dataset using the regions vector
+dt<-cia_factbook %>% 
+  select(country,birth_rate,death_rate,population)
+dt$Region <- regions[dt$country]
+
+dt <- na.omit(dt)
+
+
+
+#3. PLOT VIZUALIZATION 
+##Title,subtitle & caption 
+tt <- str_glue(stringr::str_wrap("Birth rate vs. death rate, 2024",
+                                 width=100))
+st <- str_glue(stringr::str_wrap("Rates are measured per 1,000 people, with circle size indicating population size.",
+                                 width=110))
+ct  <- str_glue(stringr::str_wrap("Data source: CIA Factbook | 
+                                  Creator:Zoi Diamantakou | 
+                                  tidytuesday | 
+                                  2024, week 43",width=100))
+
+##plot
+# Define colors for regions
+#cols <- c("#F28599", "#F2C299", "#F2865E", "#A63E26","#a6264e", "#268ea6")
+cols <- c("#E9999C", "#C35CA3", "#A85DA9", "#BB99E2", "#8278CF", "#5F8CA9")
+
+# Define thresholds for high rates and population
+birth_rate_threshold <- quantile(dt$birth_rate, 0.75, na.rm = TRUE)   # 75th percentile for birth rate
+death_rate_threshold <- quantile(dt$death_rate, 0.75, na.rm = TRUE)   # 75th percentile for death rate
+population_threshold <- quantile(dt$population, 0.75, na.rm = TRUE)     # 75th percentile for population
+
+# Filter for countries with high birth rate, death rate, and population
+high_labels <- dt %>%
+  filter(birth_rate >= birth_rate_threshold | 
+           death_rate >= death_rate_threshold | 
+           population >= population_threshold)
+
+
+# Plot setup
+p <- ggplot(dt, aes(x = death_rate, y = birth_rate, color = Region,
+                    size = population, label = country)) + 
+  geom_point(alpha = 0.5) +
+  scale_size_continuous(
+    range = c(1, 15), 
+    breaks = c(1e6, 5e6, 1e7, 5e7, 1e8),  # Define size breaks manually
+    labels = scales::comma
+  ) +
+  labs(
+    x = "Death rate per 1,000",
+    y = "Birth rate per 1,000",
+    title = tt,            
+    subtitle = st,         
+    caption = ct,          
+    color="Region",
+    size="Population"
+  ) +
+  scale_x_continuous(limits = c(0, 20), breaks = seq(0, 20, 5)) +
+  scale_y_continuous(limits = c(0, 50), breaks = seq(0, 50, 5)) +
+  scale_color_brewer(palette = "Dark2")+
+  #scale_colour_manual(values = cols) +
+  geom_text(data = high_labels, aes(label = country),  # Only use high_labels dataset
+            nudge_x = 0,
+            nudge_y = 1.2,
+            size = 3,
+            check_overlap = TRUE) +
+  theme_minimal() +
+  theme(
+    plot.margin = margin(t = 10, r = 10, b = 10, l = 10),
+    plot.title = element_text(family = 'title', face = "bold", size = 27, 
+                              hjust = 0, color = "#19201D"),
+    plot.subtitle = element_text(family = 'subtitle', hjust = 0,
+                                 lineheight = 0.9, size = 16, color = "black"),
+    plot.caption = element_text(color = "black", size = 10, hjust = 0, family = 'x'),
+    # Axis text
+    axis.title.x = element_text(family = "x", size = 12, face = "italic"),
+    axis.title.y = element_text(family = "x", size = 12, face = "italic"),
+    axis.text.x = element_text(family = "x", size = 12, vjust = 0.5),
+    axis.text.y = element_text(family = "x", size = 12, vjust = 0.5),
+    # Legend
+    legend.position = c(20/20, 50/50),  # Change this to position the legend
+    legend.justification = c(1, 1), 
+    legend.text = element_text(family = "x", color = "black", size = 12),
+    legend.title = element_text(family = "x", color = "black", size = 12),
+    legend.key.size = unit(0.5, "lines"), 
+    legend.spacing.y = unit(0.1, "lines"), 
+    legend.background = element_rect(color = "#F2F2F2",
+                                     size = .3,
+                                     fill = "#F2F2F2"),
+    # Grid
+    panel.background = element_blank(),
+    panel.grid.major = element_line(color = "#dcd5c6", linewidth = 0.3, linetype = 1),
+    panel.grid.minor = element_line(color = "#dcd5c6", linewidth = 0.3, linetype = 1),
+    plot.background = element_rect(fill = "#F2F2F2", color = NA),
+    axis.line = element_line(color = "#dcd5c6")  
+  ) +
+  guides(color = guide_legend(ncol = 1, byrow = TRUE))
+
+
+
+
+#4. SAVE THE PLOT
+ggsave("TT2024Week_43.png", width = 10, height = 6,type = "Cairo",dpi = 300, bg = "white") 
+ggsave("TT2024Week_43.svg", width = 12, height = 6,dpi = 300, bg = "white")
+browseURL("TT2024Week_43.svg")
+
+
+
