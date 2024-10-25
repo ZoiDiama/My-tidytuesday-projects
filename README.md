@@ -405,6 +405,8 @@ The graph was prepared in R and the final desing was made with Figma.
 
 Check the code[here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/a96f5bd493cea56cad33739e1710ac2ba18820d6/Code%202024/Week%2035#L1)
 
+![TT2024Week_35](https://github.com/user-attachments/assets/92375c72-fcf2-4aa2-8e82-327f2b19c416)
+
 ### Week 36 | Stack Overflow Annual Developer Survey 2024
 
 The graph was prepared in R. 
