@@ -1,0 +1,141 @@
+#English Monarchs and Marriages
+#2024: week 34
+
+
+#load key libraries 
+library(tidytuesdayR)# Access data for the #TidyTuesday project.
+library(dplyr)
+library(ggplot2)
+library(tidyverse) # Collection of tools for data manipulation and visualization.
+library(showtext) #Easily use custom fonts in plots.Allows the use of google fonts
+library(glue)#Simple string formatting and interpolation.
+library(Cairo) #High-quality graphics rendering for plots.
+
+#additional libraries
+library(ggtext) #Allows rich text formatting (Markdown/HTML) in ggplot.
+library(forcats) #Tools for handling categorical variables (factors).
+library(ggrepel) #Avoids overlapping labels in ggplot2.
+library(lubridate)#Simplifies working with dates and times.
+library(ggridges) #Create ridge/joy plots for visualizing distributions.
+
+
+## Load Google fonts (https://fonts.google.com/)
+font_add_google("Lato", family = "title")                           
+font_add_google("Lato", family = "subtitle")
+font_add_google("Lato", family = "x")
+showtext::showtext_auto()
+showtext::showtext_opts(dpi = 300) 
+
+#1.DATA LOADING
+tuesdata <- tidytuesdayR::tt_load(2024, week = 34)
+
+english_monarchs_marriages_df <- tuesdata$english_monarchs_marriages_df
+
+#2.DATA WRANGLING
+year_levels <- c(856, 858, 868, 964, 991, 1002, 1045, 1044, 1053, 1100, 
+                 1121, 1125, 1152, 1160, 1191, 1189, 1200, 1236, 1254, 
+                 1299, 1308, 1328, 1382, 1396, 1380, 1403, 1420, 1445, 
+                 1464, 1472, 1486, 1509, 1533, 1536, 1540, 1543, 1554, 
+                 1589, 1625, 1662, 1660, 1673, 1677, 1683, 1682, 1705, 
+                 1761, 1785, 1795, 1818, 1840, 1863, 1893, 1937, 1923, 1947)
+
+dt<-english_monarchs_marriages_df %>% 
+  mutate(across(everything(), ~ na_if(.x, "–"))) %>%     
+  mutate(across(everything(), ~ na_if(.x, "?"))) %>% 
+  mutate(across(everything(), ~ gsub("\\(\\?\\)", "", .x))) %>% # Remove "(?)" %>% 
+  drop_na() %>% 
+  mutate(year_of_marriage=as.numeric(year_of_marriage),
+         consort_age=as.numeric(consort_age),
+         king_age=as.numeric(king_age)) %>% 
+  mutate(year_of_marriage = factor(year_of_marriage, levels = year_levels)) %>% 
+  mutate(dif=king_age-consort_age) %>% 
+  mutate(col_diff=case_when(
+    dif<0~"King was younger",
+    dif==0~"No age difference",
+    dif>0&dif<=10~"1-10 years",
+    dif>10&dif<=20~"11-20 years",
+    dif>20&dif<=30~"21-30 years",
+    dif>30~"30 + years")) %>% 
+  mutate(col_diff=factor(col_diff,levels=c(
+    "King was younger","No age difference","1-10 years",
+    "11-20 years","21-30 years","30 + years")))
+
+#3. PLOT VIZUALIZATION 
+##Title,subtitle & caption 
+tt <- str_glue(stringr::str_wrap("Title",
+                                 width=100))
+st <- str_glue(stringr::str_wrap("Subtitle ",
+                                 width=100))
+ct  <- str_glue(stringr::str_wrap("Data source:IanVisits Logo | 
+                                  Creator:Zoi Diamantakou | 
+                                  tidytuesday | 
+                                  2024, week 34",width=100))
+
+##plot
+cols <- c("#400A0A","#821414", "#BF4F45", "#8C471F", "#F29441", "#D9A05B")
+
+
+p<-
+  ggplot(data=dt,aes(y=year_of_marriage,x=king_age)) +
+  geom_segment(aes(y=year_of_marriage,yend=year_of_marriage,
+                   x=consort_age,xend=king_age,color=col_diff),size=2.5)+
+  scale_x_continuous(limits = c(0, 65), breaks = seq(0, 60, 1))+
+  scale_y_discrete(limits=c("","","","","","","","","856", "858", "868", "964", "991", "1002", "1045", "1044", "1053", "1100", 
+                            "1121", "1125", "1152", "1160", "1191", "1189", "1200", "1236", "1254", 
+                            "1299", "1308", "1328", "1382", "1396", "1380", "1403", "1420", "1445", 
+                            "1464", "1472", "1486", "1509", "1533", "1536", "1540", "1543", "1554", 
+                            "1589", "1625", "1662", "1660", "1673", "1677", "1683", "1682", "1705", 
+                            "1761", "1785", "1795", "1818", "1840", "1863", "1893", "1937", "1923", "1947"))+
+  geom_point(aes(x = consort_age), color = "#04bfb0", size = 3) +
+  geom_point(aes(x = king_age), color = "#BF0413", size = 3)+
+  scale_color_manual(values=cols)+
+  coord_polar()+
+  labs(title="T",subtitle = "S",caption =ct,
+       x="",y="",
+       color="Age difference")+
+  theme_minimal()
+
+p+
+  theme(plot.margin= margin(t = 20, r = 25, b = 20, l = 25),
+        plot.title= element_text(family= 'title',face= "bold",size= 20,hjust = 0,colour="#19201D"),
+        plot.subtitle = element_text(family= 'subtitle', hjust = 0,
+                                     lineheight= 0.9,size  = 16,colour="black"),
+        plot.caption = element_text(colour="black",size=10, hjust = 0.5,family='x'),
+        plot.title.position = "plot", 
+        plot.subtitle.position = "plot", 
+        plot.caption.position = "plot",
+        #axis text
+        axis.title.x = element_text(family="x",size=12,face="italic"),
+        axis.title.y = element_text(family="x",size=12,face="italic"),
+        axis.text.x = element_text(family="x",size=12,vjust =0.5),
+        axis.text.y = element_text(family="x",size=12,vjust =0.5), #or element_blank()
+        #legend
+        legend.position = "right",
+        legend.justification='center',
+        legend.text = element_text(family="x",color = "black",size = 14),
+        legend.title = element_text(family="x",color = "black",size = 14),
+        #panel
+        panel.spacing = unit(1.5, "cm"),
+        strip.text.x = element_text(size = 20,face="bold",hjust=0,family= 'x'),
+        panel.background = element_blank(),
+        #grid
+        panel.grid = element_blank(),
+        panel.grid.major.y = element_line(color = "white", linewidth = 0.5, linetype = 1),  
+        panel.grid.major.x = element_line(color = "white", linewidth = 0.5, linetype = 1),
+        axis.line.x = element_blank(),,  
+        axis.line.y =element_blank(),
+        axis.ticks= element_blank(), 
+        axis.ticks.x =element_blank(),,
+        #background
+        plot.background = element_rect(fill = "#D9D1C7", color = NA))+
+  guides(color = guide_legend(ncol = 1, byrow = TRUE))
+
+
+
+#4. SAVE THE PLOT
+#ggsave("TT2024Week_X.png", width = 12, height = 8,type = "Cairo",dpi = 300, bg = "white") 
+ggsave("TT2024Week_34.svg", width = 12, height = 14,dpi = 300, bg = "white")
+browseURL("TT2024Week_34.svg")
+
+
+
