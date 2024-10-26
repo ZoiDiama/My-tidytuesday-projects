@@ -399,6 +399,13 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/6
 
 ![TT2024Week_X 2 (2)](https://github.com/user-attachments/assets/1ed10ba6-f1b4-4df0-8481-3fc303cbd186)
 
+### Week 34 | English Monarchs and Marriages
+
+The graph was prepared in R and the final desing was made with Figma. 
+
+Check the code[here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/2bf94a1792686da56304532f99218a44787afdef/Code%202024/Week%2034#L1-L138)
+
+
 ### Week 35 | The Power Rangers Franchise
 
 The graph was prepared in R and the final desing was made with Figma. 
