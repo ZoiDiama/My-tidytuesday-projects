@@ -448,6 +448,14 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/3
 
 ![TT2024Week40 1](https://github.com/user-attachments/assets/104e538e-3500-4fdb-98f5-99762b803efa)
 
+### Week 41 | National Park Species
+
+The graph was prepared in R.
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/7c9f06ace9684ca1740b9d0635c9624898230c9f/Code%202024/Week%2041#L1-L130)
+
+![TT2024Week_41](https://github.com/user-attachments/assets/216d65d6-e3bf-4cfa-a5a6-3dc8b97bbf3a)
+
 ### Week 43 | The CIA World Factbook
 
 The graph was prepared in R. 
