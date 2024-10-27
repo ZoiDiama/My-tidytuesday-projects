@@ -405,6 +405,7 @@ The graph was prepared in R and the final desing was made with Figma.
 
 Check the code[here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/2bf94a1792686da56304532f99218a44787afdef/Code%202024/Week%2034#L1-L138)
 
+![TT2024Week34](https://github.com/user-attachments/assets/f533fbe3-e097-4fb0-9f2f-50502b46f71c)
 
 ### Week 35 | The Power Rangers Franchise
 
