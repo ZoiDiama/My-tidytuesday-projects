@@ -456,6 +456,14 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/7
 
 ![TT2024Week_41](https://github.com/user-attachments/assets/216d65d6-e3bf-4cfa-a5a6-3dc8b97bbf3a)
 
+### Week 42 | Southern Resident Killer Whale Encounters
+
+The graph was prepared in R.
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/61818796a0bb99468d96e452befa590dfe9e33cb/Code%202024/Week%2042#L1)
+
+![TT2024Week_42](https://github.com/user-attachments/assets/6586b56c-26ac-46d1-9c97-c66f464f995e)
+
 ### Week 43 | The CIA World Factbook
 
 The graph was prepared in R. 
