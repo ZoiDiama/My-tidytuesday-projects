@@ -1,0 +1,133 @@
+#National Park Species
+#2024: week 41
+
+
+#load key libraries 
+library(tidytuesdayR)# Access data for the #TidyTuesday project.
+library(dplyr)
+library(ggplot2)
+library(tidyverse) # Collection of tools for data manipulation and visualization.
+library(showtext) #Easily use custom fonts in plots.Allows the use of google fonts
+library(glue)#Simple string formatting and interpolation.
+library(Cairo) #High-quality graphics rendering for plots.
+
+#additional libraries
+library(ggtext) #Allows rich text formatting (Markdown/HTML) in ggplot.
+library(forcats) #Tools for handling categorical variables (factors).
+library(ggrepel) #Avoids overlapping labels in ggplot2.
+library(lubridate)#Simplifies working with dates and times.
+library(ggridges) #Create ridge/joy plots for visualizing distributions.
+library(treemapify)
+
+## Load Google fonts (https://fonts.google.com/)
+font_add_google("Lato", family = "title")                           
+font_add_google("Lato", family = "subtitle")
+font_add_google("Lato", family = "x")
+showtext::showtext_auto()
+showtext::showtext_opts(dpi = 300) 
+
+#1.DATA LOADING
+tuesdata <- tidytuesdayR::tt_load(2024, week = 41)
+most_visited_nps_species_data <- tuesdata$most_visited_nps_species_data
+
+#2.DATA WRANGLING
+dt <- most_visited_nps_species_data %>% 
+  filter(TaxonRecordStatus == "Active",
+         ParkAccepted == "TRUE", 
+         Occurrence == "Present") %>% 
+  select(ParkName, CategoryName, Abundance) %>% 
+  drop_na() %>% 
+  mutate(group = case_when(
+    CategoryName %in% c("Mammal", "Bird", "Reptile", "Amphibian", "Fish") ~ "Vertebrates",
+    CategoryName %in% c("Crab/Lobster/Shrimp", "Slug/Snail", "Spider/Scorpion", "Insect", "Other Non-vertebrates") ~ "Invertebrates",
+    CategoryName %in% c("Vascular Plant", "Non-vascular Plant") ~ "Plants",
+    CategoryName %in% c("Fungi", "Chromista", "Protozoa", "Bacteria") ~ "Microorganisms",
+    TRUE ~ CategoryName  # Keep original category if not grouped
+  )) %>% 
+  group_by(ParkName, group) %>%
+  summarise(species_count = n()) %>%
+  mutate(Percent = species_count / sum(species_count) * 100) %>%  
+  ungroup() %>% 
+  mutate(ParkName = str_replace_all(ParkName, 
+                                    c("Acadia National Park" = "Acadia\nNational Park",
+                                      "Bryce Canyon National Park" = "Bryce Canyon\nNational Park",
+                                      "Cuyahoga Valley National Park" = "Cuyahoga Valley\nNational Park",
+                                      "Glacier National Park" = "Glacier\nNational Park",
+                                      "Grand Canyon National Park" = "Grand Canyon\nNational Park",
+                                      "Grand Teton National Park" = "Grand Teton\nNational Park",
+                                      "Great Smoky Mountains National Park" = "Great Smoky \nMountains National Park",
+                                      "Hot Springs National Park" = "Hot Springs\nNational Park",
+                                      "Indiana Dunes National Park" = "Indiana Dunes\nNational Park",
+                                      "Joshua Tree National Park" = "Joshua Tree\nNational Park",
+                                      "Olympic National Park" = "Olympic\nNational Park",
+                                      "Rocky Mountain National Park" = "Rocky Mountain\nNational Park",
+                                      "Yellowstone National Park" = "Yellowstone\nNational Park",
+                                      "Yosemite National Park" = "Yosemite\nNational Park",
+                                      "Zion National Park" = "Zion\nNational Park")))
+
+#3. PLOT VIZUALIZATION 
+##Title,subtitle & caption 
+tt <- str_glue(stringr::str_wrap("Wildlife diversity in the 15 most-visited US parks",
+                                 width=60))
+st <- str_glue(stringr::str_wrap("Distribution of NPSpecies across four categories—vertebrates, invertebrates, 
+                                 plants, and microorganisms—in 15 U.S. parks ",
+                                 width=70))
+ct  <- str_glue(stringr::str_wrap("Data source:National Parks Service (NPS) | 
+                                  Creator:Zoi Diamantakou | 
+                                  Tidytuesday:2024, week 41",width=100))
+
+##plot
+
+cols=c("#BF9663","#02734A","#61A64E","#F2B705")
+p<-
+  ggplot(dt, aes(area = species_count, fill = group,
+                 label = paste(sprintf("%.1f%%", Percent), sep = "\n"))) +
+  geom_treemap()+
+  facet_wrap(~ParkName)+
+  geom_treemap_text(colour = "black",
+                    place = "centre",
+                    size = 14)+
+  scale_fill_manual(values=cols)+
+  labs(x="",
+       y="",
+       fill="Category of NPSpecies",
+       title = tt,
+       subtitle =st ,
+       caption = ct,
+       col="")+
+  theme_minimal()+
+  theme(plot.margin           = margin(t = 20, r = 20, b = 20, l = 20),
+        plot.title            = element_text(
+          family= 'title',face= "bold",size= 24,hjust = 0,
+          colour="#19201D",
+          margin= margin(t = 22, b = 5)),
+        plot.subtitle = element_text(
+          family= 'subtitle', hjust = 0,
+          lineheight= 0.9,size  = 18,colour="black",
+          margin= margin(t = 5, b = 10)),
+        plot.caption = element_text(colour="black",size=12,family="x",hjust = 0),
+        plot.caption.position = "plot",
+        #axis
+        axis.title.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        #panel
+        strip.text.x = element_text(
+          size = 12,hjust = 0.5, family = 'x', colour = "black"
+        ),
+        #legend
+        legend.position = "top",
+        legend.justification = "left",
+        legend.text = element_text(family="x",color = "black",size = 12),
+        legend.title = element_text(family="x",color = "black",size = 12),
+        #background
+        plot.background = element_rect(fill = "#eff3eb", color = NA))
+
+
+#4. SAVE THE PLOT
+ggsave("TT2024Week_41.png", width = 10, height = 8,type = "Cairo",dpi = 300, bg = "white") 
+ggsave("TT2024Week_41.svg", width = 10, height = 8,dpi = 300, bg = "white")
+browseURL("TT2024Week_41.svg")
+
+
+
