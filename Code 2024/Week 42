@@ -1,0 +1,142 @@
+#Southern Resident Killer Whale Encounters
+#2024: week 42
+
+
+#load key libraries 
+library(tidytuesdayR)# Access data for the #TidyTuesday project.
+library(dplyr)
+library(ggplot2)
+library(tidyverse) # Collection of tools for data manipulation and visualization.
+library(showtext) #Easily use custom fonts in plots.Allows the use of google fonts
+library(glue)#Simple string formatting and interpolation.
+library(Cairo) #High-quality graphics rendering for plots.
+
+#additional libraries
+library(ggtext) #Allows rich text formatting (Markdown/HTML) in ggplot.
+library(forcats) #Tools for handling categorical variables (factors).
+library(ggrepel) #Avoids overlapping labels in ggplot2.
+library(lubridate)#Simplifies working with dates and times.
+library(ggridges) #Create ridge/joy plots for visualizing distributions.
+library(sf)
+
+
+## Load Google fonts (https://fonts.google.com/)
+font_add_google("Lato", family = "title")                           
+font_add_google("Lato", family = "subtitle")
+font_add_google("Lato", family = "x")
+showtext::showtext_auto()
+showtext::showtext_opts(dpi = 300) 
+
+#1.DATA LOADING
+tuesdata <- tidytuesdayR::tt_load(2024, week = 42)
+orcas <- tuesdata$orcas
+head(orcas)
+
+#2.DATA WRANGLING
+dt<-orcas %>%
+  select(year,date,begin_time,end_time) %>% 
+  na.omit() %>% 
+  mutate(
+    begin_time = as.POSIXct(begin_time, format = "%H:%M:%S"),
+    end_time = as.POSIXct(end_time, format = "%H:%M:%S"),
+    duration = abs(as.numeric(difftime(end_time, begin_time, units = "mins")))
+  ) %>% 
+  mutate(
+    year = format(date, "%Y"),  # Extract year for faceting
+    month_num = format(date, "%m"),  # Numeric month (01 to 12)
+    month = factor(month_num,
+                   levels = sprintf("%02d", 1:12),  
+                   labels = c("J", "F", "M", "A", "M", "J", 
+                              "J", "A", "S", "O", "N", "D")),  # Abbreviated month labels
+    full_month = factor(month_num,
+                        levels = sprintf("%02d", 1:12),  
+                        labels = c("January", "February", "March", "April", "May", "June", 
+                                   "July", "August", "September", "October", "November", "December"))  # Full month names
+  ) %>% 
+
+mutate(season = case_when(
+  full_month %in% c("December", "January", "February") ~ "Winter",
+  full_month %in% c("March", "April", "May") ~ "Spring",
+  full_month %in% c("June", "July", "August") ~ "Summer",
+  full_month %in% c("September", "October", "November") ~ "Autumn"
+))
+
+#calculate monthly average
+monthly_avg <- dt %>%
+  group_by(year, month_num, month,season) %>%
+  summarise(avg_duration = mean(duration), .groups = 'drop')
+
+
+
+
+#3. PLOT VIZUALIZATION 
+##Title,subtitle & caption 
+tt <- str_glue(stringr::str_wrap("Seasonal patterns in southern resident killer 
+                                 whale encounters in Salish Sea",
+                                 width=90))
+st <- str_glue(stringr::str_wrap("Average duration of encounters in minutes by year, month, and season",
+                                 width=100))
+ct  <- str_glue(stringr::str_wrap("Data source:Center for Whale Research (CWR) | 
+                                  Creator:Zoi Diamantakou | 
+                                  Tidytuesday: 2024, week 42",width=100))
+
+##plot
+p<-
+  ggplot(monthly_avg, aes(x = month_num, y = avg_duration,fill=season)) +  
+  geom_bar(stat = "identity", na.rm = TRUE) +
+  facet_wrap(~ year,scale="free") +
+  scale_fill_manual(values=c("#D98162","#F2A25C","#A66A65","#5D8AA6"))+
+  scale_y_continuous(limits=c(0,650),breaks = seq(0, 650, by = 100))+
+  scale_x_discrete(limits = c("01","02","03","04","05","06",
+                              "07","08","09","10","11",12))+
+  labs(title=tt,subtitle = st,caption = ct,
+     x="Month",y="Average duration (mins)",fill="Season")+
+    theme_minimal()
+
+p+theme_minimal()+
+  theme(plot.margin= margin(t = 20, r = 20, b = 20, l = 20),
+        plot.title= element_text(family= 'title',face= "bold",
+                                 size= 20,hjust = 0,colour="#19201D"),
+        plot.subtitle = element_text(family= 'subtitle', hjust = 0,
+                                     lineheight= 0.9,size  = 16,colour="black"),
+        plot.caption = element_text(colour="black",size=10, hjust = 0,family='x'),
+        plot.title.position = "plot", 
+        plot.subtitle.position = "plot", 
+        plot.caption.position = "plot",
+        #axis text
+        axis.title.x = element_text(family="x",size=12,face="italic"),
+        axis.title.y = element_text(family="x",size=12,face="italic"),
+        axis.text.x = element_text(family="x",size=10,vjust =0.5),
+        axis.text.y = element_text(family="x",size=10,vjust =0.5), #or element_blank()
+        #legend
+        legend.position = "top",
+        legend.justification='left',
+        legend.text = element_text(family="x",color = "black",size = 12),
+        legend.title = element_text(family="x",color = "black",size = 12),
+        legend.key.size = unit(0.5, "lines"), 
+        legend.spacing.y = unit(0.1, "lines"), 
+        #panel
+        panel.spacing = unit(1, "cm"),
+        strip.text.x = element_text(size = 14,face="bold",hjust=0.5,family= 'x'),
+        panel.background = element_blank(),
+        #grid
+        panel.grid = element_blank(),
+        panel.grid.major.y = element_line(color = "#dedddd", linewidth = 1, linetype = 1),
+        panel.grid.major.x = element_blank(),
+        axis.line.x = element_line(color = "black", linewidth = 0.5, linetype = 1),  
+        axis.line.y =element_blank(),
+        axis.ticks= element_blank(), 
+        axis.ticks.x = element_line(color = "black",linewidth = 0.5),
+        #background
+        plot.background = element_rect(fill = "white", color = NA))
+  #guides(color = guide_legend(ncol = 1, byrow = TRUE))
+
+
+
+#4. SAVE THE PLOT
+ggsave("TT2024Week_42.png", width = 10, height = 8,type = "Cairo",dpi = 300, bg = "white") 
+ggsave("TT2024Week_42.svg", width = 10, height = 8,dpi = 300, bg = "white")
+browseURL("TT2024Week_42.svg")
+
+
+
