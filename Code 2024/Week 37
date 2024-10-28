@@ -1,0 +1,79 @@
+#3. PLOT VIZUALIZATION 
+##Title,subtitle & caption 
+tt <- str_glue(stringr::str_wrap("Relative attendance by parent income percentile in U.S. Colleges and Universities",
+                                 width=80))
+st <- str_glue(stringr::str_wrap("Average ratio of attendance to applications across income percentiles 
+                                 for private  and public institutions in the U.S.",
+                                 width=100))
+ct  <- str_glue(stringr::str_wrap("Data source: Opportunity Insights | 
+                                  Creator:Zoi Diamantakou | 
+                                  tidytuesday | 
+                                  2024,week 37",width=100))
+
+##plot
+col <- c(
+  "#003366",
+  "#005B5D",  
+  "#9B1B30",
+  "#D4B76B",  
+  "#D8CBAA",
+  "#7A7B7D" 
+)
+
+
+p<-
+  ggplot(dt, aes(x = av_att, y = par_income_lab, color = tier)) +
+ 
+  geom_segment(aes(x = 0, xend = av_att, y = par_income_lab, yend = par_income_lab), 
+               color = "#CCCCCC") +
+  geom_point(size = 5) +
+  scale_y_discrete(limits = rev)+
+  theme_minimal() +
+ labs(title=tt,subtitle = st,caption = ct,
+       x="Average ratio of attendance to application Rate",
+      y="Parent income percentile group",
+      color="College type")+
+  scale_color_manual(values = col)  # Set the muted colors for points
+  
+
+p+theme_minimal()+
+  theme(plot.margin= margin(t = 20, r = 25, b = 20, l = 25),
+        plot.title= element_text(family= 'title',face= "bold",size= 20,
+                                 hjust = 0,colour="#19201D"),
+        plot.subtitle = element_text(family= 'subtitle', hjust = 0,
+                                     lineheight= 0.9,size  = 16,colour="black"),
+        plot.caption = element_text(colour="black",size=11, hjust = 0,family='x'),
+        plot.title.position = "plot", 
+        plot.subtitle.position = "plot", 
+        plot.caption.position = "plot",
+        #axis text
+        axis.title.x = element_text(family="x",size=12,face="italic"),
+        axis.title.y = element_text(family="x",size=12,face="italic"),
+        axis.text.x = element_text(family="x",size=12,vjust =0.5),
+        axis.text.y = element_text(family="x",size=12,vjust =0.5), #or element_blank()
+        #legend
+        legend.position = "top",
+        legend.justification='left',
+        legend.text = element_text(family="x",color = "black",size = 12),
+        legend.title = element_text(family="x",color = "black",size = 12),
+        legend.key.size = unit(0.5, "lines"), 
+        legend.spacing.y = unit(0.1, "lines"),
+        #grid
+        panel.grid = element_blank(),
+        panel.grid.major.y = element_blank(),
+        panel.grid.major.x = element_blank(),
+        axis.line.x = element_line(color = "#CCCCCC", linewidth = 0.5, linetype = 1),  
+        axis.line.y =element_blank(),
+        axis.ticks= element_blank(), 
+        axis.ticks.x = element_line(color = "#CCCCCC",linewidth = 0.5),
+        #background
+        plot.background = element_rect(fill = "#F7F7F7", color = NA))
+
+
+#4. SAVE THE PLOT
+ggsave("TT2024Week_37.png", width = 12, height = 8,type = "Cairo",dpi = 300, bg = "white") 
+ggsave("TT2024Week_37.svg", width = 12, height = 8,dpi = 300, bg = "white")
+browseURL("TT2024Week_37.svg")
+
+
+
