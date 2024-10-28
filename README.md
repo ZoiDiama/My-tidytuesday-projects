@@ -423,6 +423,13 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/a
 
 ![TT2024Week_36](https://github.com/user-attachments/assets/621be1ea-2e86-4af6-b604-08b80148892a)
 
+### Week 37 | Economic Diversity and Student Outcomes
+
+The graph was prepared in R. 
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/25c6a08ae2cd5e09e90cc671f7f333cee4c2218a/Code%202024/Week%2037#L1)
+
+![TT2024Week_37](https://github.com/user-attachments/assets/cc3a51be-4df9-4996-8c1f-876391f26823)
 
 ### Week 38 | Shakespeare Dialogue
 
