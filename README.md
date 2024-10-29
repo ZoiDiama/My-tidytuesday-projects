@@ -1,7 +1,7 @@
 # My-tidytuesday-projects
 Welcome to my TidyTuesday project repository! 🎉
 
-TidyTuesday is a weekly data challenge that invites data enthusiasts to explore and visualize a new dataset using the R programming language and the tidyverse suite of packages. Each week, a new dataset is shared, often highlighting interesting topics and stories, allowing participants to create their own visualizations and analyses. This initiative not only fosters a community of learners but also encourages creativity in data analysis and visualization. More info about TidyTuesday you can find here: https://github.com/rfordatascience/tidytuesday.
+TidyTuesday is a weekly data challenge that invites data enthusiasts to explore and visualize a new dataset using the R programming language and the tidyverse suite of packages. Each week, a new dataset is shared, often highlighting interesting topics and stories, allowing participants to create their own visualizations and analyses. This initiative not only fosters a community of learners but also encourages creativity in data analysis and visualization. More info about TidyTuesday you can find [here:](https://github.com/rfordatascience/tidytuesday).
 
 I began creating visuals for TidyTuesday in 2023. This repository showcases the visualizations I prepared using R, often with the final design polished in Figma. The repository includes both the visualizations and its code. Additionally, it serves as a portfolio to document my progress in R programming and data visualization. 
 
