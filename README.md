@@ -487,6 +487,16 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/0
 
 ![TT2024Week_43](https://github.com/user-attachments/assets/b0f9b662-8195-4f6c-b535-1fef2334b335)
 
+### Week 44 | Monster Movies
+
+The graph was prepared in R. 
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/87f78655143e131f5bfdae880935da727f1b482d/Code%202024/Week%2044#L1)
+
+![TT2024Week_44](https://github.com/user-attachments/assets/4828658b-d45e-4d84-aa08-d0330bca6d1f)
+
+
+
 
   
 </details>
