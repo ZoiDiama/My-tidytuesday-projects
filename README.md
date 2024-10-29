@@ -365,6 +365,8 @@ The graph was prepared in R and the final desing was made with Figma.
 
 Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/271d3a0c35e28b9d1f05bf9aa0e260486f00ce85/Code%202024/Week%2028#L1)
 
+![TT2024Week_28 2](https://github.com/user-attachments/assets/5ad00671-272a-4b13-b61c-953099c9959a)
+
 ### Week 29 | English Women's Football
 
 The graph was prepared in R and the final desing was made with Figma. 
