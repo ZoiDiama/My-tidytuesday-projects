@@ -1,3 +1,52 @@
+#Rolling Stone Album Rankings
+#2024: week 19 
+#load libraries 
+library(tidyverse)
+library(showtext)
+library(ggtext)
+library(tidytuesdayR)
+library(glue)
+library(Cairo)
+library(forcats)
+library(ggrepel)
+library(lubridate)
+library(ggridges)
+library(waffle)
+
+
+
+#1.DATA LOADING
+tuesdata <- tidytuesdayR::tt_load(2024, week = 19)
+rolling_stone <- tuesdata$rolling_stone
+
+#2.DATA WRANGLING
+dt <- rolling_stone %>%
+  select(rank_2003, rank_2012, rank_2020, artist_gender) %>%
+  rename("2003" = rank_2003, "2012" = rank_2012, "2020" = rank_2020) %>%
+  pivot_longer(cols = '2003':'2020', names_to = "year", values_to = "rank") %>%
+  drop_na() %>%  # Omit missing values
+  mutate(rank = as.numeric(rank)) %>%
+  arrange(year,rank) %>% 
+  mutate(n=1)
+
+#3. PLOT VIZUALIZATION 
+## Load Google fonts (https://fonts.google.com/)
+font_add_google("Rock Salt", family = "title")                           
+font_add_google("Lato", family = "subtitle")
+font_add_google("Lato", family = "x")
+showtext::showtext_auto()
+showtext::showtext_opts(dpi = 300) 
+
+##Title,subtitle & caption 
+tt <- str_glue(stringr::str_wrap("Rolling Stone 500 greatest albums: 
+                                 Just a men's world?",width=30))
+st <- str_glue(stringr::str_wrap("Analyzing gender representation in the Rolling Stone 500 Greatest Albums from 2003, 2012, and 2023 reveals that, out of 1,489 albums featured, only 170 were created by female artists.",
+                                 width=80))
+ct  <- str_glue(stringr::str_wrap("Data Source:Rolling Stone/Data Is Plural | 
+                                  Creator:Zoi Diamantakou | tidytuesday | 2024, 
+                                  week 19",width=100))
+
+##plot
 p<-
 ggplot(dt,aes(fill = artist_gender, values = n)) +
   geom_waffle(colour = '#F2F2F2', 
