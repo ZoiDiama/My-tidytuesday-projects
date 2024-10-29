@@ -284,6 +284,13 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/a
 ![TT2024Week11 1 (2)](https://github.com/user-attachments/assets/05300f56-6308-49b6-9649-0d8c974da782)
 
 
+### Week 11 | 2023 & 2024 US Solar Eclipses
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/46091eedd4006e021069708f9b899fe50fd2271a/Code%202024/Week%2015#L1)
+
+![TT2024Week_15](https://github.com/user-attachments/assets/8543f4a4-823c-47ed-b95d-3e04b5a780e3)
+
+
 ### Week 17 | Objects Launched into Space
 
 The graph was prepared in R and the final desing was made with Figma. 
