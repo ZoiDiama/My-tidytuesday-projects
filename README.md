@@ -307,6 +307,13 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/a
 
 ![TT_week_18](https://github.com/user-attachments/assets/d5b029d8-c347-4e80-8e45-c7c17520fdab)
 
+### Week 19 | Rolling Stone Album Rankings
+
+The graph was prepared in R. 
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/4adae83b6a904462068498f2e1ceeac5d9ee8341/Code%202024/week%2019#L1)
+
+![TT2024Week19](https://github.com/user-attachments/assets/6a5d83fd-137d-4f85-908b-5cc4b8d82c5e)
 
 ### Week 20 | The Great American Coffee Taste Test
 
