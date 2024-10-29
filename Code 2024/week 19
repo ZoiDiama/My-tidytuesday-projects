@@ -1,0 +1,57 @@
+p<-
+ggplot(dt,aes(fill = artist_gender, values = n)) +
+  geom_waffle(colour = '#F2F2F2', 
+              tile_shape = 'circle',
+              n_rows = 5,
+              size=0.5,
+              radius = unit(0.05, units = "mm"),
+              na.rm = TRUE,
+              flip = FALSE) +
+  facet_wrap(~year,nrow=3)+
+  scale_fill_manual(values = c("#FE3952","#262626","#BFBFBF")) +
+  scale_x_discrete(expand=c(0,0)) +
+  scale_y_discrete(expand=c(0,0))+
+  labs(title=tt,
+       subtitle = st,
+       caption = ct,
+       x="",
+       y="",
+       fill="Gender")
+
+
+p+theme_minimal()+
+  theme(plot.margin= margin(t = 50, r = 50, b = 50, l = 50),
+        plot.title= element_text(family= 'title',face= "bold",size= 25,hjust = 0,
+                                 colour="black"),
+        plot.subtitle = element_text(family= 'subtitle', hjust = 0,colour="black",
+                                     lineheight= 0.9,size  = 16),
+        plot.caption = element_text(colour="black",size=11, hjust = 0,family='x'),
+        plot.caption.position = "plot",
+        #axis
+        axis.title.x = element_text(family="x",size=12),
+        axis.title.y = element_text(family="x",size=12),
+        axis.text.x = element_text(family="x",size=12,vjust =0.5),
+        axis.text.y = element_text(family="x",size=12,vjust =0), #or element_blank()
+        axis.line = element_blank(),  
+        #panel
+        panel.spacing = unit(1, "cm"),
+        strip.text.x = element_text(size = 16,hjust=0,family= 'x'),
+        panel.background = element_blank(),
+        #legend
+        legend.position = "top",
+        legend.justification='left',
+        legend.text = element_text(family="x",color = "black",size = 14),
+        legend.title = element_text(family="x",color = "black",size = 14),
+        #grid
+        panel.grid = element_blank(),
+        #panel.grid.major.y = element_line(color = "#dedddd", linewidth = 1, linetype = 1),  # Corrected to element_line
+        #panel.grid.major.x = element_blank(),
+        #background
+        plot.background = element_rect(fill = "#F2F2F2", color = NA))
+
+#4. SAVE THE PLOT
+ggsave("TT2024Week19.png", width = 12, height = 8,type = "Cairo",dpi = 300, bg = "white") 
+ggsave("TT2024Week19.svg", width = 10, height = 8, 
+       dpi = 300, bg = "white") 
+browseURL("TT2024Week19.svg")
+
