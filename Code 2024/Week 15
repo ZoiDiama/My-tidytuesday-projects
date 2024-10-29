@@ -1,0 +1,112 @@
+#2023 & 2024 US Solar Eclipses
+#2024: week 15
+
+
+#load key libraries 
+library(tidytuesdayR)# Access data for the #TidyTuesday project.
+library(dplyr)
+library(ggplot2)
+library(tidyverse) # Collection of tools for data manipulation and visualization.
+library(showtext) #Easily use custom fonts in plots.Allows the use of google fonts
+library(glue)#Simple string formatting and interpolation.
+library(Cairo) #High-quality graphics rendering for plots.
+
+#additional libraries
+library(ggtext) #Allows rich text formatting (Markdown/HTML) in ggplot.
+library(forcats) #Tools for handling categorical variables (factors).
+library(ggrepel) #Avoids overlapping labels in ggplot2.
+library(lubridate)#Simplifies working with dates and times.
+library(ggridges) #Create ridge/joy plots for visualizing distributions.
+library(ggmap)
+
+## Load Google fonts (https://fonts.google.com/)
+font_add_google("Orbitron", family = "title")                           
+font_add_google("Open Sans", family = "subtitle")
+font_add_google("Lato", family = "x")
+showtext::showtext_auto()
+showtext::showtext_opts(dpi = 300) 
+
+#1.DATA LOADING
+tuesdata <- tidytuesdayR::tt_load(2024, week = 15)
+eclipse_annular_2023 <- tuesdata$eclipse_annular_2023
+eclipse_total_2024 <- tuesdata$eclipse_total_2024
+eclipse_partial_2023 <- tuesdata$eclipse_partial_2023
+eclipse_partial_2024 <- tuesdata$eclipse_partial_2024
+
+#2.DATA WRANGLING
+dt<-eclipse_total_2024 %>% 
+  select(state,name,lat,lon,eclipse_3,eclipse_4) %>% 
+    mutate(
+    eclipse_3 = as.POSIXct(eclipse_3, format = "%H:%M:%S", tz = "UTC"),
+    eclipse_4 = as.POSIXct(eclipse_4, format = "%H:%M:%S", tz = "UTC")
+  ) %>%
+  mutate(duration = as.numeric(abs(difftime(eclipse_4, eclipse_3, units = "secs"))))
+
+#to make the map
+usa_map <- map_data("state")
+state_centroids <- usa_map %>%
+  group_by(region) %>%
+  summarize(
+    lon = mean(range(long)),
+    lat = mean(range(lat))
+  )
+
+# for states label with their 2-letter codes
+state_codes <- data.frame(
+  region = tolower(state.name),  # Convert state names to lowercase to match `region`
+  code = state.abb
+)
+
+# Merge the centroids with state codes to get abbreviations
+state_centroids <- state_centroids %>%
+  left_join(state_codes, by = "region")
+
+#3. PLOT VIZUALIZATION 
+##Title,subtitle & caption 
+tt <- str_glue(stringr::str_wrap("Duration of total solar eclipses across the U.S. (2024)",
+                                 width=50))
+st <- str_glue(stringr::str_wrap("On April 8, 2024, a total solar eclipse crossed North and Central America, creating a path of totality. This graph illustrates 
+                                 the duration of totality in seconds for various U.S. cities. ",
+                                 width=80))
+ct  <- str_glue(stringr::str_wrap("Data source: NASA's Scientific Visualization Studio | 
+                                  Creator:Zoi Diamantakou | 
+                                   Tidytuesday:2024, week 15",width=120))
+
+##plot
+ggplot() +
+  geom_polygon(data = usa_map, aes(x = long, y = lat, group = group), 
+               fill = "#8C857B", color = "#D9CBA3") +
+  geom_point(data = dt, aes(x = lon, y = lat, 
+                            colour = duration), size=1,alpha = 0.6) +
+  geom_text(data = state_centroids, aes(x = lon, y = lat, label = code), 
+            size = 3, color ="black", fontface = "bold")+
+  scale_colour_gradient(low = "#F2AB27", high = "#051940")+
+  labs(title=tt,subtitle = st,caption = ct,
+       x="",y="",color="Duration \nof totality\n(in seconds)")+
+  theme_void()+ 
+  theme(plot.margin= margin(t = 20, r = 25, b = 20, l = 25),
+        plot.title= element_text(family= 'title',face= "bold",size= 20,hjust = 0,colour="#19201D"),
+        plot.subtitle = element_text(family= 'subtitle', hjust = 0,
+                                     lineheight= 0.9,size  = 16,colour="black"),
+        plot.caption = element_text(colour="black",size=10, hjust = 0,family='x'),
+        plot.title.position = "plot", 
+        plot.caption.position = "plot",
+        #legend
+        legend.position = "right",
+        legend.justification='left',
+        legend.text = element_text(family="x",color = "black",size = 10),
+        legend.title = element_text(family="x",color = "black",size = 12),
+        #background
+        plot.background = element_rect(fill = "#F2F2F2", color = NA))
+
+
+
+
+#4. SAVE THE PLOT
+ggsave("TT2024Week_15.png", width = 8.5, height = 6,type = "Cairo",dpi = 300, bg = "white") 
+ggsave("TT2024Week_15.svg", width = 8.5, height = 6,dpi = 300, bg = "white")
+browseURL("TT2024Week_15.svg")
+
+
+
+
