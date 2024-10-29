@@ -1,0 +1,68 @@
+#David Robinson's TidyTuesday Functions
+#2024: week 28
+
+
+#load key libraries 
+library(tidytuesdayR)# Access data for the #TidyTuesday project.
+library(dplyr)
+library(ggplot2)
+library(tidyverse) # Collection of tools for data manipulation and visualization.
+library(showtext) #Easily use custom fonts in plots.Allows the use of google fonts
+library(glue)#Simple string formatting and interpolation.
+library(Cairo) #High-quality graphics rendering for plots.
+
+#additional libraries
+library(ggtext) #Allows rich text formatting (Markdown/HTML) in ggplot.
+library(forcats) #Tools for handling categorical variables (factors).
+library(ggrepel) #Avoids overlapping labels in ggplot2.
+library(packcircles)
+
+
+
+## Load Google fonts (https://fonts.google.com/)
+font_add_google("Lato", family = "title")                           
+font_add_google("Lato", family = "subtitle")
+font_add_google("Lato", family = "x")
+showtext::showtext_auto()
+showtext::showtext_opts(dpi = 300) 
+
+#1.DATA LOADING
+tuesdata <- tidytuesdayR::tt_load(2024, week = 28)
+drob_funs <- tuesdata$drob_funs
+
+#2.DATA WRANGLING
+data <- drob_funs %>% 
+  group_by(funs) %>% 
+  summarise(n = n(), .groups = 'drop') %>% 
+  arrange(-n)
+
+#for the bubble chart
+packing <- circleProgressiveLayout(data$n, sizetype='area')
+data <- cbind(data, packing)
+dat.gg <- circleLayoutVertices(packing, npoints=50)
+
+#for the labels
+data_top30 <- data %>%
+  arrange(-n) %>%
+  slice_head(n = 30)
+
+
+#3. PLOT VIZUALIZATION 
+##plot
+  ggplot() + 
+  geom_polygon(data = dat.gg, aes(x, y, 
+                                  group = id, 
+                                  fill=as.factor(id)), # Make the bubbles
+               colour = "black", alpha = 0.6) +
+  geom_text_repel(data = data_top30, aes(x = x, y = y, label = funs), size = 3) +
+  geom_text_repel(data = data_top30, aes(x = x, y = y, label = n), size = 3) +
+  scale_size_continuous(range = c(1,4)) +
+  scale_color_viridis(discrete=TRUE) +
+  theme_void() +
+  coord_equal()
+
+
+#4. SAVE THE PLOT
+#ggsave("TT2024Week_X.png", width = 12, height = 8,type = "Cairo",dpi = 300, bg = "white") 
+ggsave("TT2024Week_28.svg", width = 8, height = 8,dpi = 300, bg = "white")
+browseURL("TT2024Week28.svg")
