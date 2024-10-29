@@ -359,6 +359,12 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/8
 
 ![TT2024Week27](https://github.com/user-attachments/assets/ddd1b541-951d-47dd-9066-f0a100337610)
 
+### Week 28 | David Robinson's TidyTuesday Functions
+
+The graph was prepared in R and the final desing was made with Figma. 
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/271d3a0c35e28b9d1f05bf9aa0e260486f00ce85/Code%202024/Week%2028#L1)
+
 ### Week 29 | English Women's Football
 
 The graph was prepared in R and the final desing was made with Figma. 
