@@ -294,7 +294,7 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/4
 
 Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/d7d51bd24dab23a1d830bd831b0dbda36a3d9d99/Code%202024/Week%2014#L1)
 
-![TT2024Week_14](https://github.com/user-attachments/assets/34b8acb5-c43c-4734-acb5-338348abd71a)
+![TT2024Week_14](https://github.com/user-attachments/assets/33a09c59-c003-4bad-85ed-af7407da9831)
 
 
 ### Week 17 | Objects Launched into Space
