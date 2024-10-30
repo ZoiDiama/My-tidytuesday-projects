@@ -290,6 +290,12 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/4
 
 ![TT2024Week_15](https://github.com/user-attachments/assets/8543f4a4-823c-47ed-b95d-3e04b5a780e3)
 
+### Week 14 | Du Bois Visualization Challenge 2024
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/d7d51bd24dab23a1d830bd831b0dbda36a3d9d99/Code%202024/Week%2014#L1)
+
+![TT2024Week_14](https://github.com/user-attachments/assets/34b8acb5-c43c-4734-acb5-338348abd71a)
+
 
 ### Week 17 | Objects Launched into Space
 
