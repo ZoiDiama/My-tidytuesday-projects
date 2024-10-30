@@ -1,0 +1,95 @@
+#Du Bois Visualization Challenge 2024
+#2024: week 14
+
+
+#load key libraries 
+library(tidytuesdayR)# Access data for the #TidyTuesday project.
+library(dplyr)
+library(ggplot2)
+library(tidyverse) # Collection of tools for data manipulation and visualization.
+library(showtext) #Easily use custom fonts in plots.Allows the use of google fonts
+library(glue)#Simple string formatting and interpolation.
+library(Cairo) #High-quality graphics rendering for plots.
+
+#additional libraries
+library(ggtext) #Allows rich text formatting (Markdown/HTML) in ggplot.
+library(forcats) #Tools for handling categorical variables (factors).
+library(ggrepel) #Avoids overlapping labels in ggplot2.
+library(lubridate)#Simplifies working with dates and times.
+library(ggridges) #Create ridge/joy plots for visualizing distributions.
+
+
+## Load Google fonts (https://fonts.google.com/)
+font_add_google("Special Elite", family = "f")                           
+showtext::showtext_auto()
+showtext::showtext_opts(dpi = 300) 
+
+#1.DATA LOADING
+
+tuesdata <- tidytuesdayR::tt_load(2024, week = 14)
+
+dubois_week10 <- tuesdata$dubois_week10
+
+#2.DATA WRANGLING
+
+dt<-dubois_week10 %>% 
+  mutate(Occupation=factor(
+    Occupation,levels=c("Teachers",
+                        "Ministers",
+                        "Government Service",
+                        "Business",
+                        "Other Professions",
+                        "House Wives"),
+    labels=c("TEACHERS","MINISTERS",
+             "GOVERNMENT SERVICE","BUSINESS",
+             "OTHER PROFESSIONS","HOUSE WIVES")))
+
+
+
+#3. PLOT VIZUALIZATION 
+##Title,subtitle & caption 
+tt <- "THE UNIVERISTY WAS FOUNDED IN 1867. IT HAS INSTRUCTED 6000 BLACK STUDENTS.
+IT HAS GRADUATED 330 BLACK PEOPLE AMONG WHOM ARE:"
+st <- str_glue(stringr::str_wrap("Subtitle ",
+                                 width=120))
+ct  <- str_glue(stringr::str_wrap("Data source: 2024 Du Bois Visualization Challenge | 
+                                  Creator:Zoi Diamantakou | 
+                                   Tidytuesday:2024, week 14",width=120))
+
+##plot
+p<-
+  ggplot(dt, aes(x = "", y = Percentage, fill = Occupation)) +
+  geom_col(width = 1) +
+  coord_polar(theta = "y", start = pi / 2) +  # Start with largest part at the top
+  geom_text(aes(label = paste0(Percentage, "%")),  # Add % to label
+            position = position_stack(vjust = 0.5), size = 4)+
+  scale_fill_manual(values = c("#CC1D3C", "#727BAE","#B4907A", 
+                               "#EAC3B5","#898672","#ECB762"))+
+  labs(title=tt,subtitle = "",caption = ct,
+       x="",y="",fill="")+
+  theme_void()
+
+p+theme(plot.margin= margin(t = 20, r = 25, b = 20, l = 25),
+        plot.title= element_text(family= 'f',
+                                 size= 15,hjust = 0.5,colour="#5B4D3F"),
+        plot.caption = element_text(colour="#5B4D3F",size=10, 
+                                    hjust = 0.5,family='f'),
+        plot.title.position = "plot", 
+        plot.caption.position = "plot",
+        #legend
+        legend.position = "left",
+        legend.text = element_text(family="f",color = "#5B4D3f",size = 12),
+        #legend.justification='left',
+        
+        #background
+        plot.background = element_rect(fill = "#eadbc8", color = NA))
+
+
+
+#4. SAVE THE PLOT
+ggsave("TT2024Week_14.png", width = 12, height = 8,type = "Cairo",dpi = 300, bg = "white") 
+ggsave("TT2024Week_14.svg", width = 12, height = 8,dpi = 300, bg = "white")
+browseURL("TT2024Week_14.svg")
+
+
+
