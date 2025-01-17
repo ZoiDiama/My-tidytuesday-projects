@@ -516,7 +516,7 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/8
 
 </details>
 
-<details open>
+<details close>
   <summary>2025</summary>
 
 ### Week 1 | Bring your own data to start the year!
@@ -538,6 +538,8 @@ The graph was prepared in R and Figma.
 Check the code [here]()
 
   </details>
+
+## Gallery of examples: 
 
 
 
