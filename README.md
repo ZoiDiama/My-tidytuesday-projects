@@ -128,7 +128,6 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/a
 
 ![TT2023Week42](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/f6d60abd-3528-4695-b57e-ae55b8bce229)
 
-### Week 43 | TBA
 
 ### Week 44 | Horror Legends
 The data this week comes from snopes.com. 
@@ -202,7 +201,7 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/9
 
 </details>
 
-<details open>
+<details close>
   <summary>2024</summary>
 
 ### Week 2 | Canadian Hockey Players
@@ -515,11 +514,12 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/8
 
 ![TT2024Week_44](https://github.com/user-attachments/assets/4828658b-d45e-4d84-aa08-d0330bca6d1f)
 
-
-
-
-  
 </details>
+
+<details open>
+  <summary>2025</summary>
+
+  </details>
 
 
 
