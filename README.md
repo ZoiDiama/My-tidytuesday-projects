@@ -3,12 +3,12 @@ Welcome to my TidyTuesday project repository! 🎉
 
 TidyTuesday is a weekly data challenge that invites data enthusiasts to explore and visualize a new dataset using the R programming language and the tidyverse suite of packages. Each week, a new dataset is shared, often highlighting interesting topics and stories, allowing participants to create their own visualizations and analyses. This initiative not only fosters a community of learners but also encourages creativity in data analysis and visualization. More info about TidyTuesday you can find [here](https://github.com/rfordatascience/tidytuesday).
 
-I began creating visuals for TidyTuesday in 2023. This repository showcases the visualizations I prepared using R, often with the final design polished in Figma. The repository includes both the visualizations and its code. Additionally, it serves as a portfolio to document my progress in R programming and data visualization. 
-
-Check my creations below!
+I began creating visuals for TidyTuesday in 2023. This repository showcases the visualizations I prepared using R, often with the final design polished in Figma. The repository includes both the visualizations and its code. The graphics are grouped per year. 
 
 <details close>
   <summary>2023</summary>
+
+This year was the first time I started preparing graphs for TidyTuesday. Over the year, I created a total of 23 visuals. My main goal was to familiarize myself with ggplot2 and explore different types of plots.
 
 ### Week 28 | Global Surface Temperatures
 This week's data is sourced from NASA GISS Surface Temperature Analysis (GISTEMP v4). It consists of global and hemispheric monthly means and zonal annual means, combining land, air, and sea-surface temperature anomalies (Land-Ocean Temperature Index, L-OTI). To visualize this data, I chose a heatmap, providing an intuitive and visually appealing representation of temperature patterns. 
@@ -159,7 +159,7 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/4
 
 ![TT_week_47_2023](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/c99ebfef-6131-445d-b7bf-26995e016479)
 
-### Week 48 |Doctor Who Episodes
+### Week 48 | Doctor Who Episodes
 
 The data this week comes from  Wikipedia's [List of Doctor Who episodes] via the {datardis} package.The graph was prepared with ggplot while the final editing was completed in Figma. 
 
@@ -167,7 +167,7 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/e
 
 ![DR WHO](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/91bbf2f5-a325-4bad-b9a0-df98a108f8f4)
 
-### Week 49 |Life Expectancy
+### Week 49 | Life Expectancy
 
 The data this week comes from  the Our World in Data Life Expectancy report.The graph was prepared with ggplot while the final editing was completed in Figma. 
 
@@ -175,7 +175,7 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/b
 
 ![TT2023Week49 (1)](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/b39a69d7-9956-4b1d-b73a-79975f7742c0)
 
-### Week 50 |Holiday movies
+### Week 50 | Holiday movies
 
 The data this week comes from the Internet Movie Database.The graph was prepared with ggplot. 
 
@@ -183,7 +183,7 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/6
 
 ![TT2023Week50](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/6b6f7ec6-f51a-4d11-93c4-6935b3a0dfb7)
 
-### Week 51 |Holiday Episodes
+### Week 51 | Holiday Episodes
 
 The data this week comes from the Internet Movie Database.The graph was prepared with ggplot while the final editing was completed in Figma. Inspired by [https://www.behance.net/gallery/13486555/Infographic-Data-Visualisation-Collection. ](https://www.behance.net/gallery/13486555/Infographic-Data-Visualisation-Collection).
 
@@ -191,7 +191,7 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/f
 
 ![TT2023Week51 2](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/d5753874-dfef-417a-8121-721547df9c17)
 
-### Week 52 |R structure package
+### Week 52 | R structure package
 
 The data this week comes from {pkgstats} R package .The graph was prepared with ggplot. 
 
@@ -203,6 +203,8 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/9
 
 <details close>
   <summary>2024</summary>
+
+This was my second year making graphs for TidyTuesday. I created 40 visuals throughout the year. Along with improving my plot designs, I also focused on typography, colors etc. I used Figma to polish my final designs. My work included both traditional plots (bar, line, pie) and creative ones like streamgraphs, jitter plots, and alluvial diagrams.
 
 ### Week 2 | Canadian Hockey Players
 
@@ -517,14 +519,23 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/8
 <details open>
   <summary>2025</summary>
 
-  ### Week 1 | Monster Movies
+### Week 1 | Bring your own data to start the year!
 
-The graph was prepared in R. 
+The graph was prepared in R and Figma. 
 
-Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/87f78655143e131f5bfdae880935da727f1b482d/Code%202024/Week%2044#L1)
+Check the code [here]()
 
-![TT2024Week_44](https://github.com/user-attachments/assets/4828658b-d45e-4d84-aa08-d0330bca6d1f)
+### Week 2 | posit::conf talks
 
+The graph was prepared in R and Figma. 
+
+Check the code [here]()
+
+### Week 3 | The History of Himalayan Mountaineering Expeditions
+
+The graph was prepared in R and Figma. 
+
+Check the code [here]()
 
   </details>
 
