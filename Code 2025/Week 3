@@ -1,0 +1,99 @@
+##2025: week 3
+#load key libraries 
+library(tidytuesdayR)# Access data for the #TidyTuesday project.
+library(dplyr)
+library(ggplot2)
+library(tidyverse) # Collection of tools for data manipulation and visualization.
+library(showtext) #Easily use custom fonts in plots.Allows the use of google fonts
+library(glue)#Simple string formatting and interpolation.
+library(Cairo) #High-quality graphics rendering for plots.
+
+#additional libraries
+library(ggtext) #Allows rich text formatting (Markdown/HTML) in ggplot.
+library(forcats) #Tools for handling categorical variables (factors).
+library(ggrepel) #Avoids overlapping labels in ggplot2.
+library(lubridate)#Simplifies working with dates and times.
+library(ggridges) #Create ridge/joy plots for visualizing distributions.
+
+
+## Load Google fonts (https://fonts.google.com/)
+font_add_google("Lato", family = "title")                           
+font_add_google("Lato", family = "subtitle")
+font_add_google("Lato", family = "x")
+showtext::showtext_auto()
+showtext::showtext_opts(dpi = 300) 
+
+#1.DATA LOADING
+
+tuesdata <- tidytuesdayR::tt_load(2025, week = 3)
+exped_tidy <- tuesdata$exped_tidy
+peaks_tidy <- tuesdata$peaks_tidy
+
+#2.DATA WRANGLING
+
+
+dt<-exped_tidy %>% 
+  select(PEAKID,YEAR) %>% 
+  #filter(HEIGHTM >= 8000) %>% 
+  group_by(PEAKID,YEAR) %>% 
+  summarise(n=n())
+
+height <- peaks_tidy %>% 
+  mutate(HEIGHTM_f = as.factor(HEIGHTM)) %>% 
+  select(PEAKID, PKNAME, HEIGHTM, HEIGHTM_f) %>% 
+  group_by(PEAKID, PKNAME, HEIGHTM, HEIGHTM_f) %>% 
+  summarise(n = n()) %>% 
+  filter(HEIGHTM >= 8000) %>% 
+  arrange(desc(HEIGHTM)) %>% 
+  mutate(colour = case_when(
+    HEIGHTM >= 8000 & HEIGHTM < 8250 ~ "8000-8250",
+    HEIGHTM >= 8250 & HEIGHTM <= 8500 ~ "8250-8500",
+    HEIGHTM > 8500 ~ ">8500"
+  ))
+
+#3. PLOT VIZUALIZATION 
+##Title,subtitle & caption 
+tt <- str_glue(stringr::str_wrap("Title",
+                                 width=100))
+st <- str_glue(stringr::str_wrap("Subtitle ",
+                                 width=100))
+ct  <- str_glue(stringr::str_wrap("Data source:XXX | 
+                                  Creator:Zoi Diamantakou | 
+                                   Tidytuesday:2024, week 44",width=100))
+
+##plot
+height$PEAKID <- fct_reorder(height$PEAKID, height$HEIGHTM, .desc = TRUE)
+
+p<-
+  ggplot() +
+  geom_point(data = height, aes(x = factor(PEAKID), 
+                                y = 0, size = HEIGHTM, color = colour), 
+             shape = 17)+
+geom_jitter(data = dt, aes(x = factor(PEAKID), 
+                            y = 0.02, color = as.factor(YEAR)),
+            width = 0.1, height = 0.02, size = 0.5)+
+  scale_y_continuous(limits=c(0,0.05))+
+  scale_size_continuous(range = c(10, 40))+
+  labs(title="",subtitle = "",caption = "",
+       x="",y="",fill="")+
+  scale_x_discrete(expand = expansion(mult = c(0.1, 0.05)))+
+  theme_minimal()+
+  theme(plot.margin= margin(t = 60, r = 60, b = 60, l = 40),
+        #axis text
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.x = element_text(family="x",size=12,vjust =0.5,angle = 90),
+        axis.text.y = element_blank(), #or element_blank()
+        #legend
+        legend.position = "none",
+        #grid
+        panel.grid = element_blank(),
+        panel.grid.major.y = element_blank(),
+        panel.grid.major.x = element_blank(),
+        axis.line.x = element_line(color = "black", linewidth = 0.5, linetype = 1),  
+        axis.line.y =element_blank(),
+        axis.ticks= element_blank(), 
+        axis.ticks.x = element_line(color = "black",linewidth = 0.5),
+        #background
+        plot.background = element_rect(fill = "white", color = NA))
+
