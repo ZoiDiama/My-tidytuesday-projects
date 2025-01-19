@@ -1,1 +1,125 @@
+#Tidytuesday #2025: week 1
+#load key libraries 
+library(tidytuesdayR)# Access data for the #TidyTuesday project.
+library(dplyr)
+library(ggplot2)
+library(tidyverse) # Collection of tools for data manipulation and visualization.
+library(showtext) #Easily use custom fonts in plots.Allows the use of google fonts
+library(glue)#Simple string formatting and interpolation.
+library(Cairo) #High-quality graphics rendering for plots.
 
+## Load Google fonts (https://fonts.google.com/)
+font_add_google("Lato", family = "title")                           
+font_add_google("Lato", family = "subtitle")
+font_add_google("Lato", family = "x")
+showtext::showtext_auto()
+showtext::showtext_opts(dpi = 300) 
+
+#1.DATA LOADING
+dt <- read_excel("ilc_mded01__custom_12697144_page_spreadsheet.xlsx", 
+                 sheet = "data")
+#2.DATA WRANGLING
+dt<-dt %>% 
+  mutate(colour = case_when(
+    Country=="EU"~ 'w',
+    TRUE ~ 'b'))
+ 
+
+#3. PLOT VIZUALIZATION 
+##Title,subtitle & caption 
+tt <- str_glue(stringr::str_wrap("EU households spent 20% on average on housing in 2023",
+                                 width=60))
+st <- str_glue(stringr::str_wrap("Housing costs as share (%) of disposable income across EU Member States",
+                                 width=100))
+ct  <- str_glue(stringr::str_wrap("Data source: Eurostat | 
+                                  Creator:Zoi Diamantakou | 
+                                   Tidytuesday:2025, week 1",width=100))
+
+#plot buildinsg
+p<-
+  ggplot(data=dt,aes(x=reorder(Country, -Value), y=Value,fill = colour,
+                     colour=colour)) +
+  geom_bar(stat = "identity",size=1, width=0.9)+
+  scale_fill_manual(values = c("w" = "white", "b" = "#1E1E1E")) +
+  scale_colour_manual(values = c("w" = "#1E1E1E", "b" = "#1E1E1E")) +
+  scale_y_continuous(labels = function(x) paste0(x, "%")) +  
+  labs(title=tt,subtitle = st,caption = ct,
+       x="",y="",fill="",colour="")
+
+p+theme_minimal()+
+  theme(plot.margin= margin(t = 70, r = 70, b = 70, l = 70),
+        plot.title= element_text(family= 'title',
+                                 face= "bold",size= 18,hjust = 0,colour="#19201D"),
+        plot.subtitle = element_text(family= 'subtitle', hjust = 0,
+                                     lineheight= 0.9,size  = 12,colour="black"),
+        plot.caption = element_text(colour="black",size=8, hjust = 0,family='x'),
+        plot.title.position = "plot", 
+        plot.subtitle.position = "plot", 
+        plot.caption.position = "plot",
+        #axis text
+        axis.title.x = element_text(family="x",size=12,face="italic"),
+        axis.title.y = element_text(family="x",size=12,face="italic"),
+        axis.text.x = element_text(colour="black",family="x",size=12,vjust =0.5,hjust=1,angle = 90),
+        axis.text.y = element_text(colour="black",family="x",size=12,vjust =0.5), #or element_blank()
+        #legend
+        legend.position = "none",
+        
+        #grid
+        panel.grid = element_blank(),
+        panel.grid.major.y = element_line(color = "#dedddd", linewidth = 0.2, linetype = 1),
+        panel.grid.major.x = element_blank(),
+        axis.line.x = element_line(color = "black", linewidth = 0.5, linetype = 1),  
+        axis.line.y =element_blank(),
+        axis.ticks= element_blank(), 
+        axis.ticks.x = element_line(color = "black",linewidth = 0.5),
+        #background
+        plot.background = element_rect(fill = "white", color = NA))
+
+
+#4. SAVE THE PLOT
+ggsave("TT2025W1.svg", width = 8, height = 5,dpi = 300, bg = "white")
+browseURL("TT2025W1.svg")
+
+
+
+
+#######################################################################################################
+##plot
+p<-
+  ggplot(data=dt,aes(x=reorder(Country, -Value), y=Value,fill = colour,
+                     colour=colour)) +
+  geom_bar(stat = "identity",size=2, width=0.5)+
+  scale_fill_manual(values = c("white","#1E1E1E")) +
+  scale_colour_manual(values = c("#1E1E1E","white")) +
+  scale_y_continuous(labels = function(x) paste0(x, "%")) +  
+  labs(title=tt,subtitle = st,caption = ct,
+       x="",y="",fill="",colour="")
+
+p+theme_minimal()+
+  theme(plot.margin= margin(t = 70, r = 70, b = 70, l = 70),
+        plot.title= element_text(family= 'title',
+                                 face= "bold",size= 18,hjust = 0,colour="#19201D"),
+        plot.subtitle = element_text(family= 'subtitle', hjust = 0,
+                                     lineheight= 0.9,size  = 12,colour="black"),
+        plot.caption = element_text(colour="black",size=8, hjust = 0,family='x'),
+        plot.title.position = "plot", 
+        plot.subtitle.position = "plot", 
+        plot.caption.position = "plot",
+        #axis text
+        axis.title.x = element_text(family="x",size=12,face="italic"),
+        axis.title.y = element_text(family="x",size=12,face="italic"),
+        axis.text.x = element_text(colour="black",family="x",size=12,vjust =0.5,hjust=1,angle = 90),
+        axis.text.y = element_text(colour="black",family="x",size=12,vjust =0.5), #or element_blank()
+        #legend
+        legend.position = "none",
+        
+        #grid
+        panel.grid = element_blank(),
+        panel.grid.major.y = element_line(color = "#dedddd", linewidth = 0.2, linetype = 1),
+        panel.grid.major.x = element_blank(),
+        axis.line.x = element_line(color = "black", linewidth = 0.5, linetype = 1),  
+        axis.line.y =element_blank(),
+        axis.ticks= element_blank(), 
+        axis.ticks.x = element_line(color = "black",linewidth = 0.5),
+        #background
+        plot.background = element_rect(fill = "#3CB883", color = NA))
