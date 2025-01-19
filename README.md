@@ -553,15 +553,18 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/c
 <img src="https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/91bbf2f5-a325-4bad-b9a0-df98a108f8f4" alt="DR WHO" width="200"/>
 <img src="https://github.com/user-attachments/assets/5ad00671-272a-4b13-b61c-953099c9959a" alt="TT2024Week_28 2" width="200"/>
  <img src="https://github.com/user-attachments/assets/e8724fb9-5517-4307-9b78-6d3919c8abb2" alt="TT2024Week38" width="200"/>
+  <img src="https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/178bc72c-446d-4e89-8fa7-43c72702687d" alt="TT2024Week38" width="200"/>
  </p>
  <p align="center">
     <img src="https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/15b0710c-a43a-40ed-b665-35adb7ea463e" alt="TT2024Week6_figma" width="200"/>
   <img src="https://github.com/user-attachments/assets/05300f56-6308-49b6-9649-0d8c974da782" alt="TT2024Week11 1 (2)" width="200"/>
   <img src="https://github.com/user-attachments/assets/6a5d83fd-137d-4f85-908b-5cc4b8d82c5e" alt="TT2024Week19" width="200"/>
+     <img src="https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/5e04df52-dd01-4b6d-a68b-6f9d10ae5e06" alt="TT2024Week19" width="200"/>
   </p>
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/92375c72-fcf2-4aa2-8e82-327f2b19c416" alt="TT2024Week_35" width="200"/>
+   <img src="https://github.com/user-attachments/assets/92375c72-fcf2-4aa2-8e82-327f2b19c416" alt="TT2024Week_35" width="200"/>
+  <img src="https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/dfd68c4a-b76c-4cef-86de-9a56716df71c" alt="TT2024Week_35" width="200"/>
   <img src="https://github.com/user-attachments/assets/e075746a-eea9-4555-ab87-30a395c4d59b" alt="Image" width="200"/>
   <img src="https://github.com/user-attachments/assets/0fe0a989-4b98-430e-ab4d-ae1e3781314a" alt="Week 3" width="200"/>
 
