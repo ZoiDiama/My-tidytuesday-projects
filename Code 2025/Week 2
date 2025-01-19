@@ -1,0 +1,111 @@
+#Tidytuesday 2025: week 2
+#load key libraries 
+library(tidytuesdayR)# Access data for the #TidyTuesday project.
+library(dplyr)
+library(ggplot2)
+library(tidyverse) # Collection of tools for data manipulation and visualization.
+library(showtext) #Easily use custom fonts in plots.Allows the use of google fonts
+library(glue)#Simple string formatting and interpolation.
+library(Cairo) #High-quality graphics rendering for plots.
+
+#additional libraries
+library(ggtext) #Allows rich text formatting (Markdown/HTML) in ggplot.
+library(forcats) #Tools for handling categorical variables (factors).
+library(ggrepel) #Avoids overlapping labels in ggplot2.
+library(lubridate)#Simplifies working with dates and times.
+library(ggridges) #Create ridge/joy plots for visualizing distributions.
+library(stringr) # Ensure stringr is loaded
+
+
+
+## Load Google fonts (https://fonts.google.com/)
+font_add_google("Lato", family = "title")                           
+font_add_google("Lato", family = "subtitle")
+font_add_google("Lato", family = "x")
+showtext::showtext_auto()
+showtext::showtext_opts(dpi = 300) 
+
+#1.DATA LOADING
+tuesdata <- tidytuesdayR::tt_load(2025, week = 2)
+
+conf2023 <- tuesdata$conf2023
+conf2024 <- tuesdata$conf2024
+
+#2.DATA WRANGLING
+dt <- conf2023 %>% 
+  mutate(affiliation = case_when(
+    str_detect(speaker_affiliation, regex("Posit", ignore_case = TRUE)) ~ "Posit",
+    str_detect(speaker_affiliation, regex("university|univeristy", ignore_case = TRUE)) ~ "University",
+    TRUE ~ speaker_affiliation
+  )) %>% 
+  group_by(affiliation) %>% 
+  summarise(n = n(), time = sum(session_length)) %>% 
+  mutate(affiliation = case_when(
+    n >= 2 ~ affiliation,
+    TRUE ~ "Other"
+  )) %>% 
+  group_by(affiliation) %>% 
+  summarise(n = sum(n), time = sum(time)) %>% 
+  arrange(desc(n))
+
+dt <- dt %>% 
+  bind_rows(
+    summarise(., 
+              affiliation = "Total", 
+              n = sum(n, na.rm = TRUE), 
+              time = sum(time, na.rm = TRUE)))
+
+
+unique_affiliations <- unique(dt$affiliation)
+print(unique_affiliations)
+
+unique_affiliations <- paste0('c("', paste(unique(dt$affiliation), collapse = '", "'), '")')
+cat(unique_affiliations)
+
+
+
+#3. PLOT VIZUALIZATION 
+##Title,subtitle & caption 
+tt <- str_glue(stringr::str_wrap("Title",
+                                 width=100))
+st <- str_glue(stringr::str_wrap("Subtitle ",
+                                 width=100))
+ct  <- str_glue(stringr::str_wrap("Data source:XXX | 
+                                  Creator:Zoi Diamantakou | 
+                                   Tidytuesday:2024, week 44",width=100))
+
+##plot
+
+dt$affiliation <- fct_reorder(dt$affiliation, dt$n, .desc = FALSE)
+p<-
+  ggplot(data=dt,aes(x=affiliation, y=time)) +
+  geom_bar(stat='identity',width=0.7)+
+  coord_polar(theta='y')+
+  #scale_fill_manual(values = c("#061057","#F15B28","#8A1309","#D3D6CB")) +
+  scale_x_discrete(limits=c("","","","","","","","", "US Agency for International Development", "The Carpentries", 
+                            "PING, Inc.", "Epi-interactive", "GSK", "Appsilon", 
+                            "University", "Posit", "Other","Total"))+
+  scale_y_continuous(limits=c(0,3150))+
+  #scale_x_discrete(expand=c(0,0)) +
+  #scale_y_discrete(expand=c(0,0))+
+  labs(title="",subtitle = "",caption = "",
+       x="",y="",fill="")+
+  theme_minimal()+
+  theme(
+    plot.margin= margin(t = 50, r = 50, b = 50, l = 50),
+        #axis text
+        axis.title.x =element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.text.x =element_blank(), #or element_blank()
+        #grid
+        panel.grid = element_blank(),
+        panel.grid.major.x = element_line(color = "#dedddd", linewidth = 2, linetype = 1),
+        panel.grid.major.y = element_blank(),
+    panel.grid.minor.x = element_line(color = "blue", linewidth =4, linetype = 2),
+        axis.line.x = element_blank(),  
+        axis.line.y =element_blank(),
+        axis.ticks= element_blank(), 
+        axis.ticks.x = element_blank(), ,
+        #background
+        plot.background = element_rect(fill = "white", color = NA))
