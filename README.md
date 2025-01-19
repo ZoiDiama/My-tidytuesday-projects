@@ -569,9 +569,9 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/c
 </p>
 <p align="left">  
   <img src="https://github.com/user-attachments/assets/5ad00671-272a-4b13-b61c-953099c9959a" alt="2024Week28" width="200"/>
-  <img src="(https://github.com/user-attachments/assets/1f42bd6a-827d-4086-a975-c8a4fef92df5" alt="2024Week30" width="200"/>
+  <img src="https://github.com/user-attachments/assets/1f42bd6a-827d-4086-a975-c8a4fef92df5" alt="2024Week30" width="200"/>
   <img src="https://github.com/user-attachments/assets/0b84742f-6985-453e-af28-11342ba73764" alt="2024Week31" width="200"/>
-  <img src="https://github.com/user-attachments/assets/92375c72-fcf2-4aa2-8e82-327f2b19c416)" alt="20024Week35" width="200"/>  
+  <img src="https://github.com/user-attachments/assets/92375c72-fcf2-4aa2-8e82-327f2b19c416" alt="20024Week35" width="200"/>  
 </p>
 
 
