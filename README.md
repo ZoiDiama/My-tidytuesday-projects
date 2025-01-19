@@ -550,8 +550,10 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/c
 ## Gallery of examples: 
 
 <p align="center">
+<img src="https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/91bbf2f5-a325-4bad-b9a0-df98a108f8f4" alt="DR WHO" width="200"/>
+  
   <img src="https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/c99ebfef-6131-445d-b7bf-26995e016479" alt="TT_week_47_2023" width="200"/>
-  <img src="https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/91bbf2f5-a325-4bad-b9a0-df98a108f8f4" alt="DR WHO" width="200"/>
+  
   <img src="https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/15b0710c-a43a-40ed-b665-35adb7ea463e" alt="TT2024Week6_figma" width="200"/>
 </p>
 
