@@ -565,13 +565,15 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/c
   <img src="https://github.com/user-attachments/assets/7472f043-b27e-4df1-acae-ea52e11bfc00" alt="2024Week17" width="200"/>
   <img src="https://github.com/user-attachments/assets/6a5d83fd-137d-4f85-908b-5cc4b8d82c5e" alt="2024Week19" width="200"/>
   <img src="https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/5c1047d9-02ab-42a3-9332-4f9d6f8f9896" alt="2024Week21" width="200"/>
-  <img src="https://github.com/user-attachments/assets/e7e56354-0688-46be-abc5-75d24bdf56d9" alt="20024Week23" width="200"/>  
+  <img src="https://github.com/user-attachments/assets/92375c72-fcf2-4aa2-8e82-327f2b19c416" alt="20024Week35" width="200"/>  
+ 
 </p>
 <p align="left">  
   <img src="https://github.com/user-attachments/assets/5ad00671-272a-4b13-b61c-953099c9959a" alt="2024Week28" width="200"/>
+   <img src="https://github.com/user-attachments/assets/e8724fb9-5517-4307-9b78-6d3919c8abb2" alt="20024Week38" width="200"/>  
   <img src="https://github.com/user-attachments/assets/1f42bd6a-827d-4086-a975-c8a4fef92df5" alt="2024Week30" width="200"/>
   <img src="https://github.com/user-attachments/assets/0b84742f-6985-453e-af28-11342ba73764" alt="2024Week31" width="200"/>
-  <img src="https://github.com/user-attachments/assets/92375c72-fcf2-4aa2-8e82-327f2b19c416" alt="20024Week35" width="200"/>  
+  
 </p>
 
 
