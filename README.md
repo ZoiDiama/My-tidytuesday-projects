@@ -549,21 +549,22 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/c
 
 ## Gallery of examples: 
 
-![TT_week_47_2023](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/c99ebfef-6131-445d-b7bf-26995e016479)
+<p align="center">
+  <img src="https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/c99ebfef-6131-445d-b7bf-26995e016479" alt="TT_week_47_2023" width="200"/>
+  <img src="https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/91bbf2f5-a325-4bad-b9a0-df98a108f8f4" alt="DR WHO" width="200"/>
+  <img src="https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/15b0710c-a43a-40ed-b665-35adb7ea463e" alt="TT2024Week6_figma" width="200"/>
+</p>
 
-![DR WHO](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/91bbf2f5-a325-4bad-b9a0-df98a108f8f4)
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/05300f56-6308-49b6-9649-0d8c974da782" alt="TT2024Week11 1 (2)" width="200"/>
+  <img src="https://github.com/user-attachments/assets/6a5d83fd-137d-4f85-908b-5cc4b8d82c5e" alt="TT2024Week19" width="200"/>
+  <img src="https://github.com/user-attachments/assets/5ad00671-272a-4b13-b61c-953099c9959a" alt="TT2024Week_28 2" width="200"/>
+</p>
 
-![TT2024Week6_figma](https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/15b0710c-a43a-40ed-b665-35adb7ea463e)
-
-![TT2024Week11 1 (2)](https://github.com/user-attachments/assets/05300f56-6308-49b6-9649-0d8c974da782)
-
-![TT2024Week19](https://github.com/user-attachments/assets/6a5d83fd-137d-4f85-908b-5cc4b8d82c5e)
-
-![TT2024Week_28 2](https://github.com/user-attachments/assets/5ad00671-272a-4b13-b61c-953099c9959a)
-
-![TT2024Week_35](https://github.com/user-attachments/assets/92375c72-fcf2-4aa2-8e82-327f2b19c416)
-
-![TT2024Week38](https://github.com/user-attachments/assets/e8724fb9-5517-4307-9b78-6d3919c8abb2)
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/92375c72-fcf2-4aa2-8e82-327f2b19c416" alt="TT2024Week_35" width="200"/>
+  <img src="https://github.com/user-attachments/assets/e8724fb9-5517-4307-9b78-6d3919c8abb2" alt="TT2024Week38" width="200"/>
+</p>
 
 
 
