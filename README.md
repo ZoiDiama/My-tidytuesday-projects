@@ -544,6 +544,15 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/c
 
 ![Week 3](https://github.com/user-attachments/assets/0fe0a989-4b98-430e-ab4d-ae1e3781314a)
 
+### Week 4 | 
+
+The graph was prepared in R and Figma. 
+
+Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/31300ca1f786211ba6e467f92970073afea1bbdf/Code%202025/Week%204#L1)
+
+![Image](https://github.com/user-attachments/assets/874b0efd-571c-41ef-aab7-f8f2d87c46b5)
+
+
 
   </details>
 
