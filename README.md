@@ -544,7 +544,7 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/c
 
 ![Week 3](https://github.com/user-attachments/assets/0fe0a989-4b98-430e-ab4d-ae1e3781314a)
 
-### Week 4 | 
+### Week 4 | Water Insecurity
 
 The graph was prepared in R and Figma. 
 
@@ -561,6 +561,8 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/3
 <p align="left">
   <img src="https://github.com/user-attachments/assets/e075746a-eea9-4555-ab87-30a395c4d59b" alt="Image" width="200"/>
   <img src="https://github.com/user-attachments/assets/0fe0a989-4b98-430e-ab4d-ae1e3781314a" alt="Week 3" width="200"/>
+    <img src="https://github.com/user-attachments/assets/874b0efd-571c-41ef-aab7-f8f2d87c46b5)" alt="Week 4" width="200"/>
+
 </p>
 
 ### 2024
