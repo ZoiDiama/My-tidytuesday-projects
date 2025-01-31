@@ -1,0 +1,55 @@
+#Tidytuesday 2025: week 4
+#load key libraries 
+library(tidytuesdayR)
+library(dplyr)
+library(ggplot2)
+library(waffle)
+library(showtext)
+
+#1.DATA LOADING
+tuesdata <- tidytuesdayR::tt_load('2025-01-28')
+water_insecurity_2022 <- tuesdata$water_insecurity_2022
+water_insecurity_2023 <- tuesdata$water_insecurity_2023
+
+#2.DATA WRANGLING
+dt <- bind_rows(water_insecurity_2022, water_insecurity_2023) %>% 
+  select(year, total_pop, plumbing) %>% 
+  group_by(year) %>% 
+  summarise(pop = sum(total_pop), plu = sum(plumbing, na.rm = TRUE)) %>% 
+  mutate(percentage =round((plu / pop) * 100,2)) %>% 
+  mutate(diff=100-percentage)
+  
+ 
+dt_2023 <- water_insecurity_2023 %>%
+  separate(name, into = c("county", "state"), sep = ", ", extra = "merge", fill = "right") %>%
+  select(state, county, year,total_pop, plumbing,percent_lacking_plumbing) %>%
+  group_by(state) %>%
+  summarise(pop = sum(total_pop), plu = sum(plumbing, na.rm = TRUE)) %>%
+  mutate(percentage =round((plu / pop) * 100),0) %>% 
+  ungroup()
+
+
+#3. PLOT VIZUALIZATION 
+##plot
+#for the waffle plot
+df <- data.frame(
+  ID = 1:100,  # Unique ID for each box
+  Category = c(rep("With Plumbing", 99), "Without Plumbing"),
+  Percentage = rep(1, 100)  # Each tile has the same area
+)
+
+p<-
+ggplot(data = df,aes(fill = Category, values = Percentage)) +
+  geom_waffle(na.rm = TRUE,color = "white", size = .25,n_rows = 10,              flip = TRUE)+
+  coord_equal() +
+  theme_minimal(base_family = "Roboto Condensed") +
+  theme_void() +  
+  theme(legend.position = "none") 
+
+
+#4. SAVE THE PLOT
+ggsave("TT2024Week_4.svg", width = 8, height = 4,dpi = 300, bg = "white")
+browseURL("TT2024Week_4.svg")
+
+
+
