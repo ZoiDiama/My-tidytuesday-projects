@@ -27,7 +27,7 @@ I build the charts in R, then finish the design in Figma.
 | 2024 · W17 | [**Space got crowded fast**](featured/2024-w17-space-launches.png) | From 4 launches in 1957 to 1,000+ a year since 2019. | Our World in Data |
 | 2025 · W3 | [**8 of 16 Himalayan summits saw zero climbers**](featured/2025-w03-himalaya-expeditions.png) | Expeditions to the 8,000 m peaks of Nepal, 2020–2024. | Himalayan Dataset |
 | 2024 · W38 | [**Hamlet never stops talking**](featured/2024-w38-shakespeare-words.png) | Word counts for the main characters across three Shakespeare plays. | shakespeare.mit.edu |
-| 2023 · W28 | [**The planet has warmed sharply since 1980**](featured/2023-w28-global-temperatures.png) | Monthly temperatures from 1880 to 2023 against the 1951–1980 average. | NASA GISTEMP v4 |
+| 2023 · W28 | [**The planet has warmed sharply since 1980**](featured/2023 w28 global temperatures.png) | Monthly temperatures from 1880 to 2023 against the 1951–1980 average. | NASA GISTEMP v4 |
 | 2024 · W19 | [**Fewer than 1 in 5 of rock's 'greatest albums' are by women**](featured/2024-w19-rolling-stone-women.png) | Across three Rolling Stone lists, only 170 of 1,500 entries were by women. Share of albums by women: 6% (2003), 12% (2012), 17% (2020). | Rolling Stone / Data is Plural |
 
 
