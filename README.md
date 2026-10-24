@@ -1,6 +1,6 @@
 # TidyTuesday: three years of data, one chart at a time
 
-[TidyTuesday](https://github.com/rfordatascience/tidytuesday) is a weekly data challenge. Every week, the R community shares a new dataset, and people around the world make something from it in R. Almost, every week since 2023, I've picked one question from it and tried to answer it with one clear chart.
+[TidyTuesday](https://github.com/rfordatascience/tidytuesday) is a weekly data challenge. Every week, the R community shares a new dataset, and people around the world make something from it in R. Almost every week since 2023, I've picked one question from it and tried to answer it with one clear chart.
 
 This repo holds 60+ visualizations and the R code behind every one of them. Most were built in R with ggplot2 and finished in Figma. Below are the ones I'm proudest of. Every chart, week by week, is in the chart catalogue.
 
