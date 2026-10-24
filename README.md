@@ -1,10 +1,12 @@
-# My TidyTuesday projects
+# TidyTuesday: three years of data, one chart at a time
 
-[TidyTuesday](https://github.com/rfordatascience/tidytuesday) is a weekly data challenge. A new dataset drops, and people around the world make something from it in R. I've been joining in for three years, and this is where all of it lives: **60+ visualizations**, each with its R script.
+[TidyTuesday](https://github.com/rfordatascience/tidytuesday) is a weekly data challenge. Every week, the R community shares a new dataset, and people around the world make something from it in R. Almost, every week since 2023, I've picked one question from it and tried to answer it with one clear chart.
+
+This repo holds 60+ visualizations and the R code behind every one of them. Most were built in R with ggplot2 and finished in Figma. Below are the ones I'm proudest of. Every chart, week by week, is in the chart catalogue.
 
 I build the charts in R, then finish the design in Figma.
 
-## A few I'm proud of
+## Featured charts
 
 | Week | Chart | What it shows | Data |
 |---|---|---|---|
@@ -15,6 +17,18 @@ I build the charts in R, then finish the design in Figma.
 | 2024 · W17 | **Space got crowded fast** | From 4 launches in 1957 to 1,000+ a year since 2019. | Our World in Data |
 | 2025 · W3 | **8 of 16 Himalayan summits saw zero climbers** | Expeditions to the 8,000 m peaks of Nepal, 2020–2024. | Himalayan Dataset |
 | 2024 · W38 | **Hamlet never stops talking** | Word counts for the main characters across three Shakespeare plays. | shakespeare.mit.edu |
+
+
+## Featured charts
+
+| Week | Chart | What it shows | Data |
+|---|---|---|---|
+| 2025 · W5 | [**Men do 75% of the talking in Springfield**](featured/2025-w05-simpsons-gender.png) | Men are 79% of the cast and speak about 168,000 of the 224,000 words. | Simpsons dataset, Kaggle |
+| 2024 · W17 | [**Space got crowded fast**](featured/2024-w17-space-launches.png) | From 4 launches in 1957 to 1,000+ a year since 2019. | Our World in Data |
+| 2025 · W3 | [**8 of 16 Himalayan summits saw zero climbers**](featured/2025-w03-himalaya-expeditions.png) | Expeditions to the 8,000 m peaks of Nepal, 2020–2024. | Himalayan Dataset |
+| 2024 · W38 | [**Hamlet never stops talking**](featured/2024-w38-shakespeare-words.png) | Word counts for the main characters across three Shakespeare plays. | shakespeare.mit.edu |
+| 2023 · W28 | [**The planet has warmed sharply since 1980**](featured/2023-w28-global-temperatures.png) | Monthly temperatures from 1880 to 2023 against the 1951–1980 average. | NASA GISTEMP v4 |
+| 2024 · W19 | [**Fewer than 1 in 5 of rock's 'greatest albums' are by women**](featured/2024-w19-rolling-stone-women.png) | Across three Rolling Stone lists, only 170 of 1,500 entries were by women. Share of albums by women: 6% (2003), 12% (2012), 17% (2020). | Rolling Stone / Data is Plural |
 
 
 
