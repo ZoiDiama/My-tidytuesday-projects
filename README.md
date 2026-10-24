@@ -20,19 +20,21 @@ This repo holds 60+ visualizations and the R code behind every one of them. Most
 
 ## How I approach each chart
 
-Start with one question. Not "what's in this data?" but "what would someone want to know?"
-Clean and check. Every dataset has quirks: missing values, odd categories, duplicates.
-Break it down. The story is usually in the split (by gender, country, year), not the total.
-Pick the simplest chart that answers it.
-Write the headline last. It should state the finding, not the topic.
+1. **Start with one question.** Not "what's in this data?" but "what would someone want to know?"
+2. **Clean and check.** Every dataset has quirks: missing values, odd categories, duplicates.
+3. **Break it down.** The story is usually in the split (by gender, country, year), not the total.
+4. **Pick the simplest chart that answers it.**
+5. **Write the headline last.** It should state the finding, not the topic.
 
-## How each project is organized
+## What's in this repo
 
-```
-- One R script per week. Each script runs start to finish, from loading the data to making the chart.
-- The finished charts appear in the gallery above and are saved as PNG files in [your images folder name].
-- Final edits are made in Figma, as explained in the note at the top.
-```
+| Folder | What's inside |
+|---|---|
+| [`featured/`](featured/) | The featured charts and the PDF portfolio |
+| [`Code/2023/`](Code/2023/) | R scripts for 2023 (23 charts, my first year learning ggplot2) |
+| [`Code 2024/`](Code%202024/) | R scripts for 2024 (40 charts, with more focus on typography and design) |
+| [`Code 2025/`](Code%202025/) | R scripts for 2025 |
+| [`Chart_Catalogue.md`](Chart_Catalogue.md) | Every chart, week by week, with links to its code |
 
 ## Tools
 R · tidyverse · ggplot2 · Figma
