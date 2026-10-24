@@ -1,0 +1,62 @@
+#Tidytuesday 2025: week 5
+#load key libraries 
+library(ggplot2)
+library(treemapify)
+library(dplyr)
+library(gridExtra)
+
+#1.DATA LOADING
+tuesdata <- tidytuesdayR::tt_load(2025, week = 5)
+simpsons_characters <- tuesdata$simpsons_characters
+simpsons_episodes <- tuesdata$simpsons_episodes
+simpsons_locations <- tuesdata$simpsons_locations
+simpsons_script_lines <- tuesdata$simpsons_script_lines
+
+#2.DATA WRANGLING
+dt <- simpsons_characters %>% 
+  inner_join(simpsons_script_lines, by = c("id" = "character_id")) %>% 
+  select(name,gender,id.y,word_count) %>% 
+  filter(!is.na(gender),!is.na(word_count)) %>% 
+  group_by(gender,name) %>% 
+  summarise(total=sum(word_count)) %>% 
+  ungroup() %>% 
+  arrange(desc(total))
+
+# Calculate total size per gender
+gender_totals <- dt %>%
+  group_by(gender) %>%
+  summarise(total_size = sum(total)) %>%
+  arrange(desc(total_size))
+
+# Create separate treemaps for each gender
+plot_list <- lapply(gender_totals$gender, function(g) {
+  ggplot(filter(dt, gender == g), aes(area = total, fill = name)) +
+    geom_treemap() +
+    ggtitle(paste("Gender:", g)) +
+    theme_void() +
+    theme(legend.position = "none")
+})
+
+# Arrange the treemaps in two columns
+grid.arrange(plot_list[[1]], plot_list[[2]], ncol = 2, widths = gender_totals$total_size)
+
+# Set the file path for the SVG export
+svg("treemaps_.svg", width = 10, height = 7)
+
+# Create an empty plot for spacing
+empty_plot <- ggplot() + 
+  theme_void()  # Completely blank space
+
+# Arrange the treemaps in two columns with space in between and export as SVG
+grid.arrange(plot_list[[1]], empty_plot, plot_list[[2]], 
+             ncol = 3, 
+             widths = c(gender_totals$total_size[1], 0.3, 
+                        gender_totals$total_size[2]))
+
+# Close the SVG device to save the file
+dev.off()
+
+
+
+
+
