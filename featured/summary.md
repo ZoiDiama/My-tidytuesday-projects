@@ -78,7 +78,7 @@ Seven charts from my #TidyTuesday work, each with why it matters, what I found, 
 
 ## 6. Fewer than 1 in 5 of rock's "greatest albums" are by women
 
-![Waffle chart of Rolling Stone's 500 greatest albums by artist gender, 2003, 2012 and 2020](featured/2024_w19.png)
+![Waffle chart of Rolling Stone's 500 greatest albums by artist gender, 2003, 2012 and 2020](2024_w19.png)
 
 **Why it matters:** "Greatest of all time" lists shape what gets played, taught and remembered.
 
