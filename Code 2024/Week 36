@@ -1,120 +1,132 @@
-# Union Membership in the United States
-# TidyTuesday 2023 · Week 36
-# Question: how has union membership changed in each state since 1983?
+#Stack Overflow Annual Developer Survey 2024
+#2024: week 36 
 
-# 1. LIBRARIES -------------------------------------------------------------
-library(tidyverse)
-library(geofacet)
-library(showtext)
-library(ggtext)
-library(cowplot)
-library(gridtext)
 
-font_add_google("Poppins", family = "poppins")
-showtext_auto()
-showtext_opts(dpi = 288)
+#load key libraries 
+library(tidytuesdayR)# Access data for the #TidyTuesday project.
+library(dplyr)
+library(ggplot2)
+library(tidyverse) # Collection of tools for data manipulation and visualization.
+library(showtext) #Easily use custom fonts in plots.Allows the use of google fonts
+library(glue)#Simple string formatting and interpolation.
+library(Cairo) #High-quality graphics rendering for plots.
 
-# 2. DATA ------------------------------------------------------------------
-states <- read_csv(
-  "https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2023/2023-09-05/states.csv",
-  show_col_types = FALSE)
+#additional libraries
+library(ggtext) #Allows rich text formatting (Markdown/HTML) in ggplot.
+library(forcats) #Tools for handling categorical variables (factors).
+library(ggrepel) #Avoids overlapping labels in ggplot2.
+library(lubridate)#Simplifies working with dates and times.
+library(ggridges) #Create ridge/joy plots for visualizing distributions.
 
-# 3. WRANGLING -------------------------------------------------------------
-dt <- states |>
-  filter(sector %in% c("Public", "Private", "Total")) |>
-  mutate(p_members = 100 * p_members,
-         sector = factor(sector, levels = c("Total", "Private", "Public")))
+#for the plot
 
-# Numbers for the title and subtitle, computed from the data
-first_year <- min(dt$year); last_year <- max(dt$year)
 
-change <- dt |>
-  filter(year %in% c(first_year, last_year)) |>
-  select(state, sector, year, p_members) |>
-  pivot_wider(names_from = year, values_from = p_members, names_prefix = "y")
+## Load Google fonts (https://fonts.google.com/)
+font_add_google("Lato", family = "title")                           
+font_add_google("Lato", family = "subtitle")
+font_add_google("Lato", family = "x")
+showtext::showtext_auto()
+showtext::showtext_opts(dpi = 300) 
 
-n_fell <- change |> filter(sector == "Total") |>
-  summarise(n = sum(.data[[paste0("y", last_year)]] < .data[[paste0("y", first_year)]])) |> pull(n)
+#1.DATA LOADING
+tuesdata <- tidytuesdayR::tt_load(2024, week = 36)
+qname_levels_single_response_crosswalk <- tuesdata$qname_levels_single_response_crosswalk
+stackoverflow_survey_questions <- tuesdata$stackoverflow_survey_questions
+stackoverflow_survey_single_response <- tuesdata$stackoverflow_survey_single_response
 
-med <- change |> group_by(sector) |>
-  summarise(start = median(.data[[paste0("y", first_year)]]),
-            end   = median(.data[[paste0("y", last_year)]]))
-priv <- med |> filter(sector == "Private"); pub <- med |> filter(sector == "Public")
+#2.DATA WRANGLING
+dt <- stackoverflow_survey_single_response %>%
+  select(ed_level, years_code_pro,dev_type, converted_comp_yearly) %>%
+  filter(converted_comp_yearly<1000000) %>% 
+  na.omit() %>%
+  mutate(converted_comp_yearly_thousands=converted_comp_yearly/1000) %>% 
+  mutate(compensation_level = cut(converted_comp_yearly,
+                                  breaks = c(-Inf, 50000, 100000, 150000, Inf),
+                                  labels = c("Low", "Medium", "High", "Very High"))) %>% 
+  mutate(years_code_category = cut(years_code_pro,
+                                   breaks = c(-Inf, 5, 10, 20, 50, Inf),
+                                   labels = c("0-5", "6-10", 
+                                              "11-20", "21-50", 
+                                              "51+"))) %>% 
+  mutate(ed_level_category = factor(ed_level,
+                                    labels = c("Associate degree",
+                                               "Bachelor’s degree",
+                                               "Master’s degree",
+                                               "Primary/elementary school",
+                                               "Professional degree",
+                                               "Secondary school",
+                                               "Some study without earning a degree",
+                                               "Something else"),
+                                    levels = c(1, 2, 3, 4, 5, 6, 7, 8))) %>% 
+  mutate(comp_cut=as.factor(ifelse(converted_comp_yearly>median(converted_comp_yearly),
+                                   "Above","Below")))
 
-wi <- dt |> filter(state == "Wisconsin", sector == "Public", year %in% c(2011, last_year)) |>
-  arrange(year) |> pull(p_members)
 
-# 4. COLOURS & TEXT --------------------------------------------------------
-col_pub  <- "#3A9AD9"
-col_priv <- "#5B3FBF"
-col_all  <- "#9A9A9A"
-ink <- "#1A1A1A"; muted <- "#5A5A5A"; faint <- "#7A7A7A"
+#3. PLOT VIZUALIZATION 
+##Title,subtitle & caption 
+tt <- str_glue(stringr::str_wrap("Stack Overflow Annual Developer Survey 2024", width = 80))
+st <- str_glue(stringr::str_wrap("Annual compensation by education level and 
+                                 professional coding experience (N=23,272)", 
+                                 width = 80))
 
-tt <- paste0("Union membership has fallen in every US state since ", first_year)
+ct  <- "Data source:2024 Stack Overflow Annual Developer Survey | Creator:Zoi Diamantakou | tidytuesday | 2024,week 36\nNote: Missing and extreme values were excluded from the graph"
 
-st <- paste0(
-  "Share of workers who are union members, ", first_year, "–", last_year, ", in ",
-  "the <span style='color:", col_pub, "'>**public**</span> and ",
-  "<span style='color:", col_priv, "'>**private**</span> sectors, and ",
-  "<span style='color:", col_all, "'>**all workers**</span>. ",
-  "In the typical state, private-sector membership fell from ",
-  round(priv$start), "% to ", round(priv$end), "%; public-sector unions held up better (",
-  round(pub$start), "% to ", round(pub$end), "%).")
+##plot
+p<-
+  ggplot(dt, aes(x = ed_level_category, 
+                 y = converted_comp_yearly_thousands,
+                 color=years_code_category)) +
+  geom_jitter(width = 0.3, height = 0.1) +
+  scale_y_continuous(labels = scales::dollar_format()) +
+  scale_x_discrete(labels = function(x) str_wrap(x, width = 20),limits=rev)+
+  scale_color_brewer(palette = "Set2")+
+  labs(title=tt,subtitle = st,caption = ct,
+       x="Education level",y="Annual compensation (in thousand $)",
+       color="Years of professional \ncoding experience")+
+  coord_flip()
 
-ct <- paste0("Data source: Current Population Survey (CPS), unionstats.com",
-             " · Creator: Zoi Diamantakou · TidyTuesday 2023 · Week 36")
 
-# 5. PLOT ------------------------------------------------------------------
-p <- ggplot(dt, aes(year, p_members, colour = sector)) +
-  geom_hline(yintercept = c(25, 50), colour = "#E2E2E2", linewidth = 0.25) +
-  geom_line(aes(linewidth = sector)) +
-  facet_geo(~ state, grid = "us_state_grid2", label = "code") +
-  scale_colour_manual(values = c(Total = col_all, Private = col_priv, Public = col_pub),
-                      guide = "none") +
-  scale_linewidth_manual(values = c(Total = 0.35, Private = 0.5, Public = 0.5),
-                         guide = "none") +
-  scale_x_continuous(breaks = NULL) +
-  scale_y_continuous(breaks = NULL, limits = c(0, 75), expand = c(0, 0)) +
-  labs(title = tt, subtitle = st, caption = ct, x = NULL, y = NULL) +
-  theme_minimal(base_family = "poppins") +
-  theme(
-    plot.title.position   = "plot",
-    plot.caption.position = "plot",
-    plot.title = element_textbox_simple(face = "bold", size = 22, colour = ink,
-                                        lineheight = 1.05, margin = margin(b = 12)),
-    plot.subtitle = element_textbox_simple(size = 11, colour = muted,
-                                           lineheight = 1.25, margin = margin(b = 18)),
-    plot.caption = element_text(size = 7, colour = faint, hjust = 0,
-                                margin = margin(t = 14)),
-    # state tiles: light background, plain bold state code
-    panel.background = element_rect(fill = "#F5F5F5", colour = NA),
-    panel.grid  = element_blank(),
-    panel.spacing = unit(1.2, "mm"),
-    strip.text  = element_text(size = 6.5, face = "bold", colour = ink,
-                               hjust = 0, margin = margin(b = 1.5)),
-    strip.background = element_blank(),
-    axis.text = element_blank(),
-    plot.background = element_rect(fill = "white", colour = NA),
-    plot.margin = margin(36, 36, 36, 36))
 
-# Note in the empty space above the map: how to read it + one callout
-note_txt <- paste0(
-  "**How to read:** each tile is a state, running from ", first_year,
-  " (left) to ", last_year, " (right). Gridlines at 25% and 50%.<br><br>",
-  "**Wisconsin (WI):** public-sector membership fell from ", round(wi[1]), "% to ",
-  round(wi[2]), "% after a 2011 state law limited public-sector bargaining.")
+p+theme_minimal()+
+  theme(plot.margin= margin(t = 20, r = 20, b = 20, l = 20),
+        plot.title= element_text(family= 'title',face= "bold",
+                                 size= 20,hjust = 0,colour="#19201D"),
+        plot.subtitle = element_text(family= 'subtitle', hjust = 0,
+                                     lineheight= 0.9,size  = 14,colour="black"),
+        plot.caption = element_text(colour="black",size=10, hjust = 0,family='x'),
+        plot.title.position = "plot", 
+        plot.subtitle.position = "plot", 
+        plot.caption.position = "plot",
+        #axis text
+        axis.title.x = element_text(family="x",size=12,face="italic"),
+        axis.title.y = element_blank(),
+        axis.text.x = element_text(family="x",size=12,vjust =0.5),
+        axis.text.y = element_text(family="x",size=12,vjust =0), #or element_blank()
+        #legend
+        legend.position = "top",
+        legend.justification='left',
+        legend.title = element_text(family = "x", color = "grey40", size = 10, hjust = 0), # Add hjust to left-align the title
+        # bring legend items closer
+        legend.spacing.x = unit(0.1, 'cm'),  
+        legend.key.height = unit(0.25, "lines"),
+        legend.key.width = unit(2, "lines"),
+        #grid
+        panel.grid = element_blank(),
+        panel.grid.major.x = element_line(color = "#dedddd", linewidth = 0.5, linetype = 1),  # Corrected to element_line
+        panel.grid.major.y = element_blank(),
+        axis.line.x = element_line(color = "#dedddd", linewidth = 0.5, linetype = 1),  
+        axis.line.y = element_blank(), 
+        axis.ticks= element_blank(), 
+        axis.ticks.x = element_line(color = "#dedddd",linewidth = 0.5),
+        #background
+        plot.background = element_rect(fill = "white", color = NA))+
+  guides(color = guide_legend(nrow = 2, byrow = TRUE))  # Split legend into 2 rows
 
-# geofacet drops the empty grid cells when it draws, so render it to a grob
-# first, then place the note on the empty area at the top of the map.
-map_grob <- get_geofacet_grob(p)
 
-note <- textbox_grob(
-  note_txt, x = unit(0.18, "npc"), y = unit(0.715, "npc"),
-  width = unit(0.44, "npc"), hjust = 0, vjust = 1,
-  gp = grid::gpar(fontfamily = "poppins", fontsize = 7.5, col = muted, lineheight = 1.3))
+#4. SAVE THE PLOT
+ggsave("TT2024Week_36.png", width = 8, height = 8,type = "Cairo",dpi = 300, bg = "white") 
+ggsave("TT2024Week_36.svg", width = 8, height = 8,dpi = 300, bg = "white")
+browseURL("TT2024Week_36.svg")
 
-final <- ggdraw() + draw_grob(map_grob) + draw_grob(note)
 
-# 6. SAVE ------------------------------------------------------------------
-ggsave("TT2023Week36.png", final, width = 7.5, height = 7.5, dpi = 288, bg = "white")
-ggsave("TT2023Week36.svg", final, width = 7.5, height = 7.5, bg = "white")
+
