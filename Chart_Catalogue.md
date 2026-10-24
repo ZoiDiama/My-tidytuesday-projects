@@ -552,5 +552,59 @@ Check the code [here](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/9
 
 </details>
 
+## Gallery of examples: 
+### 2025
+<p align="left">
+  <img src="https://github.com/user-attachments/assets/e075746a-eea9-4555-ab87-30a395c4d59b" alt="Image" width="200"/>
+  <img src="https://github.com/user-attachments/assets/0fe0a989-4b98-430e-ab4d-ae1e3781314a" alt="Week 3" width="200"/>
+    <img src="https://github.com/user-attachments/assets/635e4579-33ea-4921-b686-f7043c2c9116" alt="Week 4" width="200"/>
+
+</p>
+
+### 2024
+<p align="left">
+  <img src="https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/f46600d3-404e-4311-ba10-0a70cb816225" alt="2024Week3" width="200"/>
+  <img src="https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/db7b8751-7329-471d-823b-d87af7aec162" alt="2024Week4" width="200"/>
+  <img src="https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/15b0710c-a43a-40ed-b665-35adb7ea463e" alt="2024Week6" width="200"/>
+  <img src="https://github.com/user-attachments/assets/05300f56-6308-49b6-9649-0d8c974da782" alt="20024Week11" width="200"/>
+  </p>
+   <p align="left">  
+  <img src="https://github.com/user-attachments/assets/8543f4a4-823c-47ed-b95d-3e04b5a780e3" alt="2024Week11" width="200"/>
+  <img src="https://github.com/user-attachments/assets/5ac02908-283b-4e14-8266-4ccd869ac63b" alt="2024Week22" width="200"/>
+  <img src="https://github.com/user-attachments/assets/fdb8bdc3-ee96-4ef9-9bb2-6135922b9128" alt="2024Week26" width="200"/>
+  <img src="https://github.com/user-attachments/assets/b0f9b662-8195-4f6c-b535-1fef2334b335" alt="20024Week43" width="200"/>  
+ 
+</p>
+  <p align="left">  
+  <img src="https://github.com/user-attachments/assets/7472f043-b27e-4df1-acae-ea52e11bfc00" alt="2024Week17" width="200"/>
+  <img src="https://github.com/user-attachments/assets/6a5d83fd-137d-4f85-908b-5cc4b8d82c5e" alt="2024Week19" width="200"/>
+  <img src="https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/5c1047d9-02ab-42a3-9332-4f9d6f8f9896" alt="2024Week21" width="200"/>
+  <img src="https://github.com/user-attachments/assets/92375c72-fcf2-4aa2-8e82-327f2b19c416" alt="20024Week35" width="200"/>  
+ 
+</p>
+<p align="left">  
+  <img src="https://github.com/user-attachments/assets/5ad00671-272a-4b13-b61c-953099c9959a" alt="2024Week28" width="200"/>
+   <img src="https://github.com/user-attachments/assets/e8724fb9-5517-4307-9b78-6d3919c8abb2" alt="20024Week38" width="200"/>  
+  <img src="https://github.com/user-attachments/assets/1f42bd6a-827d-4086-a975-c8a4fef92df5" alt="2024Week30" width="200"/>
+  <img src="https://github.com/user-attachments/assets/0b84742f-6985-453e-af28-11342ba73764" alt="2024Week31" width="200"/>
+  
+</p>
+
+
+ 
+### 2023
+<p align="left">  
+  <img src="https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/5e04df52-dd01-4b6d-a68b-6f9d10ae5e06" alt="2023Week_34" width="200"/>
+  <img src="https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/9e5e3cfb-6ea0-41bf-b34b-f70c598c2998" alt="2023Week37" width="200"/>
+  <img src="https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/178bc72c-446d-4e89-8fa7-43c72702687d" alt="2023Week45" width="200"/>
+  <img src="https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/dfd68c4a-b76c-4cef-86de-9a56716df71c" alt="2023Week47" width="200"/>
+ </p>
+ <p align="left">  
+  <img src="https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/c99ebfef-6131-445d-b7bf-26995e016479" alt="2023Week_47" width="200"/>
+  <img src="https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/91bbf2f5-a325-4bad-b9a0-df98a108f8f4" alt="2023Week48" width="200"/>
+  <img src="https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/6b6f7ec6-f51a-4d11-93c4-6935b3a0dfb7" alt="2023Week50" width="200"/>
+  <img src="https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/c6373430-32e8-4e76-bf50-64a394adf0db)" alt="2023Week52" width="200"/>
+ </p>
+
 
 
