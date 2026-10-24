@@ -1,126 +1,122 @@
-#US Polling Places 2012-2020
-#load libraries 
+# US Polling Places 2012-2020
+# TidyTuesday 2024 · Week 3
+# Question: which states have cut, or added, polling places since 2012?
+
+# 1. LIBRARIES -------------------------------------------------------------
 library(tidyverse)
+library(geofacet)   # only for the us_state_grid1 tile layout
 library(showtext)
 library(ggtext)
-library(tidytuesdayR)
-library(glue)
-library(Cairo)
-library(lubridate)
-library(usmap)
-library(geofacet)
 
-#1.DATA LOADING
-tuesdata <- tidytuesdayR::tt_load(2024, week = 3)
-polling_places <- tuesdata$polling_places
-glimpse(polling_places)
+font_add_google("Poppins", family = "poppins")
+showtext_auto()
+showtext_opts(dpi = 288)
 
-#2.DATA WRANGLING
-dt<-polling_places %>% 
-  #filter(year(election_date) %in% c("2012","2020")) %>% 
+# 2. DATA ------------------------------------------------------------------
+polling_places <- read_csv(
+  "https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2024/2024-01-16/polling_places.csv",
+  show_col_types = FALSE)
+
+# 3. WRANGLING -------------------------------------------------------------
+# Change from the first to the last election with data in each state.
+# States with a single election year (only 2020) cannot be compared.
+change <- polling_places |>
+  mutate(year = year(election_date)) |>
+  count(state, year) |>
+  arrange(state, year) |>
+  group_by(state) |>
+  summarise(n_years = n(),
+            value = (last(n) - first(n)) / first(n) * 100, .groups = "drop") |>
+  filter(n_years > 1)
+
+groups <- c("Down more than 50%", "Down 10–50%", "Within ±10%",
+            "Up 10–50%", "Up more than 50%")
+
+dt <- as_tibble(as.data.frame(us_state_grid1)) |>
+  filter(code != "DC") |>
+  left_join(change, by = c("code" = "state")) |>
   mutate(
-    election_year = lubridate::year(election_date),
-    election_month = lubridate::month(election_date)) %>% 
-  count(state, election_year) %>% 
-  group_by(state) %>% 
-  mutate(perct_change= (last(n) - first(n))/first(n)*100) %>%
-  summarize(value = round(max(perct_change, na.rm = TRUE),1)) %>% 
-  filter(value != 0 & !is.na(value)) %>%
-  mutate(code=state) %>% 
-  mutate(change_group = case_when(
-      value < -50 ~ "<-50",
-      value >-50 & value <=-10 ~ "-50- -10",
-      value > -10 & value <=10 ~ "-10-10",
-      value >10 & value <=50 ~ "10-50",
-      value >50~ ">50"),
-    # Convert to factor
-    change_group = factor(
-      change_group,
-      level = c("<-50","-50- -10", "-10-10",
-                "10-50",">50"))) %>% 
-  ungroup()
+    group = case_when(
+      is.na(value)  ~ NA_character_,
+      value <= -50  ~ groups[1],
+      value <= -10  ~ groups[2],
+      value <   10  ~ groups[3],
+      value <   50  ~ groups[4],
+      TRUE          ~ groups[5]),
+    group = factor(group, levels = groups),
+    # show the number only where the change is large
+    big   = !is.na(value) & abs(value) >= 40,
+    pct   = if_else(value > 0, paste0("+", round(value), "%"),
+                    paste0("−", abs(round(value)), "%")),
+    y     = -row)          # top of the map at the top
 
+n_down <- sum(change$value <= -10)
+n_up   <- sum(change$value >=  10)
+md     <- change |> filter(state == "MD") |> pull(value)
+n_cmp  <- nrow(change)
 
+# 4. COLOURS & TEXT --------------------------------------------------------
+cols <- setNames(c("#C35E34", "#E7A877", "#F0ECD8", "#A7C2A4", "#448B81"), groups)
+ink <- "#1A1A1A"; muted <- "#5A5A5A"; faint <- "#7A7A7A"; nodata <- "#DCDCDC"
 
-my_us_grid <- us_state_grid1%>% 
-  inner_join(dt) %>% 
-  select(row,col,code,name)
+tt <- paste0("Maryland lost ", round(abs(md)), "% of its polling places between 2012 and 2020")
 
+st <- paste0(
+  "Change in the number of polling places by state, from the first to the last election ",
+  "with data. ", n_down, " states cut more than 10% (",
+  "<span style='color:", cols[1], "'>**orange**</span>); ", n_up, " added more than 10% (",
+  "<span style='color:", cols[5], "'>**green**</span>). ",
+  "Grey outline: no comparable data.")
 
-  
+ct <- paste0("Periods vary by state; 2020 includes pandemic-era changes to voting.<br>",
+             "Data source: The Center for Public Integrity · Creator: Zoi Diamantakou · ",
+             "TidyTuesday 2024 · Week 3")
 
+# Legend drawn as a row of tiles under the subtitle
+leg <- tibble(group = factor(groups, levels = groups),
+              x = 1:5 * 1.25 + 3.4, y = -8.0)
 
-#3. PLOT VIZUALIZATION 
-## Load Google fonts (https://fonts.google.com/)
-font_add_google("Racing Sans One", family = "title")                           
-font_add_google("Lato", family = "subtitle")
-font_add_google("Caveat", family = "x")
-showtext::showtext_auto()
-showtext::showtext_opts(dpi = 300) 
+# 5. PLOT ------------------------------------------------------------------
+p <- ggplot(dt, aes(col, y)) +
+  # states without comparable data: outlined, empty
+  geom_tile(data = filter(dt, is.na(group)), fill = "white", colour = nodata,
+            linewidth = 0.5, width = 0.9, height = 0.9) +
+  geom_tile(data = filter(dt, !is.na(group)), aes(fill = group),
+            width = 0.9, height = 0.9) +
+  # state codes (moved up a little when a % is shown underneath)
+  geom_text(aes(y = y + if_else(big, 0.13, 0), label = code,
+                colour = case_when(is.na(group) ~ "nodata",
+                                   group %in% groups[c(1, 5)] ~ "light",
+                                   TRUE ~ "dark")),
+            family = "poppins", fontface = "bold", size = 3.4) +
+  geom_text(data = filter(dt, big), aes(y = y - 0.2, label = pct),
+            family = "poppins", size = 2.4, colour = "white") +
+  # legend
+  geom_tile(data = leg, aes(x, y, fill = group), width = 1.2, height = 0.24) +
+  annotate("text", x = 4.0, y = -7.62, label = "Change in polling places", hjust = 0,
+           family = "poppins", fontface = "bold", size = 2.3, colour = muted) +
+  geom_text(data = leg, aes(x, y - 0.24, label = str_replace(group, " ", "\n")),
+            family = "poppins", size = 2.1, colour = muted, vjust = 1, lineheight = 0.9) +
+  scale_fill_manual(values = cols, guide = "none") +
+  scale_colour_manual(values = c(light = "white", dark = ink, nodata = "#B5B5B5"),
+                      guide = "none") +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  coord_equal(xlim = c(0.4, 11.6), ylim = c(-8.75, -0.45), clip = "off") +
+  labs(title = tt, subtitle = st, caption = ct) +
+  theme_void(base_family = "poppins") +
+  theme(
+    plot.title.position   = "plot",
+    plot.caption.position = "plot",
+    plot.title = element_textbox_simple(face = "bold", size = 22, colour = ink,
+                                        lineheight = 1.05, margin = margin(b = 12)),
+    plot.subtitle = element_textbox_simple(size = 11, colour = muted,
+                                           lineheight = 1.25, margin = margin(b = 14)),
+    plot.caption = element_markdown(size = 7, colour = faint, hjust = 0,
+                                    lineheight = 1.4, margin = margin(t = 18)),
+    plot.background = element_rect(fill = "white", colour = NA),
+    plot.margin = margin(36, 36, 36, 36))
 
-##Title,subtitle & caption 
-tt <- str_glue(stringr::str_wrap("Percentage Change in US Polling Places: 2012-2020",width=100))
-st <- str_glue(stringr::str_wrap("The graph illustrates the percentage change in US polling places from 2012 to 2020, focusing on countries with available data. In cases where specific countries did not have data for certain years, the earliest and latest available data points were selected for the calculation.",
-                                 width=100))
-ct  <- str_glue(stringr::str_wrap("Data Source: The Center for Public Integrity | 
-                                  Creator:Zoi Diamantakou | tidytuesday | 2024, 
-                                  week 3",width=100))
-
-##plot
-p <- dt%>% 
-  ggplot()+
-  geom_bar(mapping=aes(x=1, fill=change_group))  +
-  facet_geo(~ state, grid = my_us_grid) +
-  scale_fill_manual(values = c("#C35E34","#E7A877",
-                               "#F0ECD8",
-                               "#A7C2A4","#448B81"))+ 
-  labs(title=tt,
-       subtitle=st,
-       caption = ct,
-       x="",
-       y="",
-       fill="Percentage change:2012-2022")
-  
-  p+theme_classic()+
-  theme(plot.margin           = margin(t = 50, r = 50, b = 20, l = 50),
-        plot.caption.position = "plot",
-        legend.position       = 'bottom',
-        plot.title            = element_text(
-          family= 'title',face= "bold",size= 32,
-          colour="#3C2E3F",hjust = 0.5,
-          margin= margin(t = 10, b = 5)),
-        plot.subtitle = element_text(
-          family= 'subtitle', 
-          lineheight= 1,
-          hjust = 0.5,
-          size  = 16,
-          colour="#3C2E3F",
-          margin= margin(t = 5, b = 10)),
-        plot.caption = element_text(size=10,colour="#3C2E3F",hjust = 0.5),
-        axis.text.y=element_blank(), 
-        plot.background = element_rect(fill = "#F8F8F8", color = NA),
-        legend.title = element_text(size=10,
-                                    color = "#3C2E3F",
-                                    vjust=0.5),
-        legend.text = element_text(color = "grey40", size = 10),
-        legend.box.margin = margin(t = 30),
-        legend.background = element_rect(color = "grey40",
-                                         size = .3,
-                                         fill = "grey95"),
-        legend.key.height = unit(.25, "lines"),
-        legend.key.width = unit(2.5, "lines"),
-        axis.title=element_blank(),
-        axis.text=element_blank(),
-        axis.ticks = element_blank(),
-        strip.text.x = element_blank(),
-        axis.line = element_blank()) +
-    guides(fill = guide_legend(nrow = 1))+
-  geom_text(aes(x=1, y=0.5, label=state), color='black', size=10) 
-
-
-
-
-#4. SAVE THE PLOT
-ggsave("TT2024Week3.svg", width = 12, height = 8, 
-       dpi = 300, bg = "white") 
-
+# 6. SAVE ------------------------------------------------------------------
+ggsave("TT2024Week3.png", p, width = 7.5, height = 7.5, dpi = 288, bg = "white")
+ggsave("TT2024Week3.svg", p, width = 7.5, height = 7.5, bg = "white")
