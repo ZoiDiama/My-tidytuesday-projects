@@ -1,88 +1,108 @@
-library(ggh4x)
+# Scurvy
+# TidyTuesday 2023 · Week 30
+# Question: which of Lind's six treatments actually worked?
+
+# 1. LIBRARIES -------------------------------------------------------------
 library(tidyverse)
-library(dplyr)
-library(ggplot2)
+library(showtext)
 library(ggtext)
-library(forcats)
-library(grid)
-library(skimr)
 
-#Read directly from GitHub
-scurvy <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2023/2023-07-25/scurvy.csv')
-summarise(scurvy)
+font_add_google("Poppins", family = "poppins")
+showtext_auto()
+showtext_opts(dpi = 288)
 
-skimr::skim(scurvy)
+# 2. DATA ------------------------------------------------------------------
+scurvy <- read_csv(
+  "https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2023/2023-07-25/scurvy.csv",
+  show_col_types = FALSE)
 
-dt<-scurvy %>% 
-  select(study_id,treatment,gum_rot_d6,skin_sores_d6,
-         weakness_of_the_knees_d6,
-         lassitude_d6,fit_for_duty_d6) %>% 
-  pivot_longer(
-    cols = gum_rot_d6:lassitude_d6,
-    names_to ="symtpom",
-    values_to = "severety") %>% 
-  group_by(study_id,treatment,symtpom) %>% 
-  mutate(result=recode(severety, '0_none'='0', '1_mild'='1',
-                       "2_moderate"="2","3_severe"="3"),
-         severety=recode(severety, '0_none'='None', '1_mild'='Mild',
-                         "2_moderate"="Moderate","3_severe"="Severe"),  
-         symtpom=recode(symtpom,
-                        gum_rot_d6="Gum rot",
-                        skin_sores_d6="Skin sores",
-                        weakness_of_the_knees_d6="Weakness of the knees",
-                        lassitude_d6="Lassitude"),
-         treatment=recode(treatment,
-                          cider="Cider",
-                          dilute_sulfuric_acid="Dilute sulfuric acid", 
-                          vinegar="Vinegar", 
-                          sea_water="Sea water", 
-                          citrus="Citrus fruits", 
-                          purgative_mixture="Purgative mixture"))%>%
-  mutate(severety=factor(severety, levels = c("None", "Mild", 
-                                              "Moderate","Severe")))
- 
+# 3. WRANGLING -------------------------------------------------------------
+symptoms <- c(gum_rot_d6 = "Gum rot", skin_sores_d6 = "Skin sores",
+              weakness_of_the_knees_d6 = "Weak knees", lassitude_d6 = "Fatigue")
 
+treat_lab <- c(citrus = "2 lemons + 1 orange", cider = "Cider",
+               dilute_sulfuric_acid = "Dilute sulfuric acid", vinegar = "Vinegar",
+               sea_water = "Sea water", purgative_mixture = "Purgative paste")
 
+dt <- scurvy |>
+  pivot_longer(names(symptoms), names_to = "symptom", values_to = "score") |>
+  mutate(score   = as.integer(str_sub(score, 1, 1)),
+         symptom = factor(symptoms[symptom], levels = symptoms),
+         fit     = fit_for_duty_d6 == "1_yes")
 
-  p1<-ggplot(data=dt, aes(result,symtpom,colour = severety))+
-    geom_point(size=3)+
-    labs(
-      title="Scurvy cure: Lind's Sailors cured with 2 Lemons and an Orange", 
-      subtitle=stringr::str_wrap("In 1757, James Lind published A Treatise on the Scurvy in Three Parts, presenting a dataset from a study that involved 12 participants with similar severity of scurvy. These seamen underwent six distinct therapies, and six days after treatment, they were asked to rate the severity of their condition on a 0-3 Likert scale. The graph below presents the results after 6 days of treatment for each participant per treatment category. It  unveils the outcomes after six days of therapy, revealing that the seamen treated with 2 lemons and an orange daily emerged as the top performers, closely followed by those treated with cider.",width = 140),
-      caption = "Data source: medicaldata R package, Scurvy dataset | Creator:Zoi Diamantakou | tidytuesday | 2023, week 30",
-      color = "Severety level",
-      x = "Likert scale",
-      y = "Symptoms")+
-    facet_nested(~treatment+study_id,
-                 labeller = labeller(treatment = label_wrap_gen(width = 10)))+
-    scale_color_manual(values = c("#1a9641", "#a6d96a", "#fdae61","#d7191c"))
-  
-  p1+ theme(
-    plot.margin = unit(c(1,2,1,1), "cm"),
-    plot.title = element_text(size = 22, face = "bold",hjust = 0.5),
-    plot.subtitle = element_text(size = 10,hjust = 0.5),
-    plot.caption = element_text(size = 8,hjust = 0.5),
-    axis.title.x = element_text(size = 8),
-    axis.title.y= element_text(size = 8),
-    axis.text.x = element_text(size=8),
-    axis.text.y = element_text(size=10),
-    strip.text.x = element_text(size = 10,colour="white",face="bold"),
-    strip.text.y = element_text(size = 10,angle = 0), 
-    legend.position="bottom",
-    legend.title = element_text(size = 10),
-    legend.key = element_blank(),
-    panel.spacing = unit(0.08, "cm"),
-    panel.grid.major = element_blank(), 
-    panel.grid.minor= element_blank(), 
-    panel.grid.major.x = element_line(color = "#e8e7da",
-                                      size = 2),
-    panel.grid.major.y = element_line(color = "#e8e7da",
-                                      size = 0.5),
-    panel.background = element_rect(fill = "#dadbe8"),
-        strip.background=element_rect(colour="white",
-                                  fill="#4A4E8C"))
-  
-  
-  ggsave("TT2023Week30_Scurvy.png", width = 12, height = 6, dpi = 300, bg = "white")
-  
+# Rank treatments from best (lowest total severity) to worst
+rank <- dt |> group_by(treatment) |> summarise(total = sum(score)) |>
+  arrange(total, treatment) |> pull(treatment)
 
+dt <- dt |>
+  mutate(treatment = factor(treatment, levels = rank)) |>
+  arrange(treatment, study_id) |>
+  # one row per sailor, a small gap between treatments, best treatment on top
+  mutate(t = as.integer(treatment),
+         pos = as.integer(factor(study_id, levels = unique(study_id))),
+         y = -(pos + (t - 1) * 0.35),
+         x = as.integer(symptom))
+
+n_fit <- dt |> distinct(study_id, fit) |> filter(fit) |> nrow()
+
+# 4. COLOURS & TEXT --------------------------------------------------------
+sev_cols <- c(`0` = "#2E9E5B", `1` = "#A8D5A2", `2` = "#F4B860", `3` = "#D7443E")
+ink <- "#1A1A1A"; muted <- "#5A5A5A"; faint <- "#7A7A7A"
+
+tt <- "Citrus was the only treatment that cured scurvy in Lind's 1747 trial"
+
+st <- paste0(
+  "In 1747 James Lind gave 12 sailors with scurvy six different treatments, two sailors each. ",
+  "After six days, symptoms were scored ",
+  "<span style='color:", sev_cols["0"], "'>**none**</span>, ",
+  "<span style='color:#6FAF68'>**mild**</span>, ",
+  "<span style='color:#E39A2D'>**moderate**</span> or ",
+  "<span style='color:", sev_cols["3"], "'>**severe**</span>. ",
+  "Each row is one sailor; treatments are ranked from best to worst.")
+
+ct <- paste0("Data source: {medicaldata} R package, Scurvy dataset",
+             " · Creator: Zoi Diamantakou · TidyTuesday 2023 · Week 30")
+
+# Treatment labels: one per pair of sailors, on the y axis
+treat_pos <- dt |> group_by(treatment) |> summarise(y = mean(y)) |>
+  mutate(label = treat_lab[as.character(treatment)],
+         label = if_else(treatment == rank[1], paste0("**", label, "**"), label))
+
+fit_pos <- dt |> distinct(y, fit) |> filter(fit)
+
+# 5. PLOT ------------------------------------------------------------------
+p <- ggplot(dt, aes(x, y)) +
+  geom_tile(aes(fill = factor(score)), colour = "white", linewidth = 1.4,
+            height = 1, width = 1) +
+  # "fit for duty" marker
+  geom_richtext(data = fit_pos, aes(x = 4.58, y = y), label = "**Back on<br>duty**",
+                hjust = 0, family = "poppins", size = 2.4, colour = sev_cols["0"],
+                lineheight = 1, fill = NA, label.colour = NA,
+                label.padding = unit(0, "pt"), inherit.aes = FALSE) +
+  scale_fill_manual(values = sev_cols, guide = "none") +
+  scale_x_continuous(breaks = 1:4, labels = levels(dt$symptom), position = "top",
+                     expand = c(0, 0)) +
+  scale_y_continuous(breaks = treat_pos$y, labels = treat_pos$label, expand = c(0, 0)) +
+  coord_cartesian(xlim = c(0.5, 4.5), clip = "off") +
+  labs(title = tt, subtitle = st, caption = ct, x = NULL, y = NULL) +
+  theme_minimal(base_family = "poppins") +
+  theme(
+    plot.title.position   = "plot",
+    plot.caption.position = "plot",
+    plot.title = element_textbox_simple(face = "bold", size = 22, colour = ink,
+                                        lineheight = 1.05, margin = margin(b = 12)),
+    plot.subtitle = element_textbox_simple(size = 11, colour = muted,
+                                           lineheight = 1.25, margin = margin(b = 20)),
+    plot.caption = element_text(size = 7, colour = faint, hjust = 0,
+                                margin = margin(t = 18)),
+    axis.text.x = element_text(size = 8.5, colour = ink, face = "bold",
+                               margin = margin(b = 6)),
+    axis.text.y = element_markdown(size = 9, colour = ink, hjust = 1,
+                                   margin = margin(r = 8)),
+    panel.grid  = element_blank(),
+    plot.background = element_rect(fill = "white", colour = NA),
+    plot.margin = margin(36, 60, 36, 36))
+
+# 6. SAVE ------------------------------------------------------------------
+ggsave("TT2023Week30_Scurvy.png", p, width = 7.5, height = 7.5, dpi = 288, bg = "white")
+ggsave("TT2023Week30_Scurvy.svg", p, width = 7.5, height = 7.5, bg = "white")
