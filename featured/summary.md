@@ -10,9 +10,9 @@ Seven charts from my #TidyTuesday work, each with why it matters, what I found, 
 
 ![Treemap of words spoken by Simpsons characters, split by gender](2025_w05.png)
 
-**Why it matters:** What we watch shapes who we picture as worth listening to. The Simpsons has been on screen for over 35 years, so its patterns repeat at scale.
+**Why it matters:**The Simpsons has been on TV for over 35 years. Millions of people have grown up with it. So who gets to talk on the show matters.
 
-**What I found:** The imbalance isn't just in who appears, but in who speaks. Men are 79% of the characters and say 75% of the words. Outside Marge and Lisa, female characters barely get lines.
+**What I found:** Most of the characters are men: 79%. And they don't just show up more, they talk more too: 75% of all the words. Apart from Marge and Lisa, the women barely speak.
 
 **The takeaway:** Counting heads isn't enough. To understand representation, measure voice too.
 
