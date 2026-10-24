@@ -2,19 +2,123 @@
 
 Every chart I've made for [#TidyTuesday](https://github.com/rfordatascience/tidytuesday) since 2023, **68 in total**, grouped by topic. Click a picture to open it full size, or **code** to see the R script.
 
-⭐ marks the charts featured on the [main page](README.md).
-
 ## Contents
 
-- [Equality & representation](#equality--representation) (9)
+- [Featured charts](#featured--charts) (7)
+- [Equality & representation](#equality--representation) (7)
 - [Rights, governance & displacement](#rights-governance--displacement) (8)
-- [Health, education & living conditions](#health-education--living-conditions) (5)
-- [Environment & science](#environment--science) (10)
-- [Culture & entertainment](#culture--entertainment) (16)
+- [Health, education & living conditions](#health-education--living-conditions) (4)
+- [Environment & science](#environment--science) (7)
+- [Culture & entertainment](#culture--entertainment) (15)
 - [Sport, food & everyday life](#sport-food--everyday-life) (12)
 - [R & the data community](#r--the-data-community) (8)
+- [By year](#by-year)
 
 ---
+# Featured charts: the story behind each one
+
+Seven charts from my #TidyTuesday work, each with why it matters, what I found, and what to take from it. All charts were built in R, and most were finished in Figma. The code is linked in the [chart catalogue](../Chart_Catalogue.md).
+
+📄 Prefer one file? Download the [portfolio (PDF)](tidytuesday-portfolio.pdf).
+
+---
+
+## 1. Men do 75% of the talking in Springfield
+
+![Treemap of words spoken by Simpsons characters, split by gender](featured/2025_w05.png)
+
+**Why it matters:** The Simpsons has been on TV for over 35 years. Millions of people have grown up with it. So who gets to talk on the show matters.
+
+**What I found:** Most of the characters are men: 79%. And they don't just show up more, they talk more too: 75% of all the words. Apart from Marge and Lisa, the women barely speak.
+
+**The takeaway:** Counting heads isn't enough. To understand representation, measure voice too.
+
+<sub>Data: Simpsons dataset, Kaggle · Characters without gender information are excluded · TidyTuesday 2025, week 5</sub>
+
+---
+
+## 2. Space got crowded fast
+
+![Streamgraph of objects launched into space by country, 1957–2023](featured/2024_w17.png)
+
+**Why it matters:** Orbit around the Earth is shared by everyone, but it's filling up quickly, and mostly through a few countries.
+
+**What I found:** For decades launches stayed fairly flat, after an early jump to 142 in 1963. Then, after 2015, numbers took off: more than 1,000 objects a year since 2019, out of 34,595 in total. The United States alone accounts for 9,632.
+
+**The takeaway:** The space story is no longer about firsts, but about volume. The growth is recent, sudden and concentrated.
+
+<sub>Data: Our World in Data · TidyTuesday 2024, week 17</sub>
+
+---
+
+## 3. Being 8,000 m tall isn't enough
+
+![Glyph chart of expeditions to 16 Himalayan summits above 8,000 m, 2020–2024](featured/2025_w03.png)
+
+**Why it matters:** Where people put their effort is rarely spread evenly. It follows reputation.
+
+**What I found:** Of 16 summits above 8,000 m in the Nepal Himalaya, 8 saw no expeditions at all in 2020–2024. The 8 that did are the "official" eight-thousanders. Everest alone drew 189 expeditions, about 2 in every 5. And Manaslu, one of the shortest, came second with 96.
+
+**The takeaway:** A famous list can matter more than the thing it measures. Being on the list, not height, decides where climbers go.
+
+<sub>Data: The Himalayan Database · TidyTuesday 2025, week 3</sub>
+
+---
+
+## 4. Hamlet never stops talking
+
+![Voronoi treemap of words spoken by characters in Hamlet, Macbeth and Romeo and Juliet](featured/2024_w38.png)
+
+**Why it matters:** How a story shares out its words tells you whose story it is.
+
+**What I found:** Hamlet speaks 11,543 words, 38% of his play. Macbeth takes 31% of his. But Romeo and Juliet split their play almost evenly (4,665 and 4,263 words), with a large supporting cast.
+
+**The takeaway:** Two tragedies are about one man's mind, and one is about a relationship, and you can see it in the word counts alone.
+
+<sub>Data: shakespeare.mit.edu · Top 10 characters per play, including stage directions · TidyTuesday 2024, week 38</sub>
+
+---
+
+## 5. The planet has warmed sharply since 1980
+
+![Heatmap of monthly global temperature anomalies, 1880–2023](featured/2023_w28.png)
+
+**Why it matters:** Climate change is often shown as one line. That makes it look like a slow trend rather than a change you can feel in every season.
+
+**What I found:** Every month from 1880 to 2023, compared with the 1951–1980 average. Until around 1980, the picture is a mix of blue and pale red. After that, it turns red in every month of the year, reaching up to 1.37°C above the baseline.
+
+**The takeaway:** This isn't a few hot summers. The whole calendar has shifted.
+
+<sub>Data: NASA GISS Surface Temperature Analysis (GISTEMP v4) · TidyTuesday 2023, week 28</sub>
+
+---
+
+## 6. Fewer than 1 in 5 of rock's "greatest albums" are by women
+
+![Waffle chart of Rolling Stone's 500 greatest albums by artist gender, 2003, 2012 and 2020](featured/2024_w19.png)
+
+**Why it matters:** "Greatest of all time" lists shape what gets played, taught and remembered.
+
+**What I found:** Across Rolling Stone's 2003, 2012 and 2020 lists, only 170 entries were by female artists. The share nearly tripled, from 6% to 17%, but it's still far from parity.
+
+**The takeaway:** Canons change, but slowly. A list called "the greatest" also reflects who was recorded, reviewed and voting.
+
+<sub>Data: Rolling Stone / Data is Plural · "Mixed" groups shown separately · TidyTuesday 2024, week 19</sub>
+
+---
+
+## 7. Over 250,000 Americans live without plumbing
+
+![Waffle chart showing 0.08% of the US population without plumbing](featured/2025_w04.png)
+
+**Why it matters:** Small percentages can hide large numbers of people.
+
+**What I found:** In 2023, 0.08% of the US population lacked basic plumbing at home. It looks like a rounding error, a single tiny square out of 100. But it's about 265,000 people.
+
+**The takeaway:** Always turn a small share back into a head count. "Almost everyone" still leaves people out.
+
+<sub>Data: U.S. Census Bureau via tidycensus · TidyTuesday 2025, week 4</sub>
+
 
 ## Equality & representation
 
@@ -22,9 +126,7 @@ Who gets counted, heard and included.
 
 | Preview | Chart | Week | Code |
 |---|---|---|---|
-| <a href="featured/2025_w05.png"><img src="featured/2025_w05.png" width="160" alt="Simpsons: who does the talking"></a> | **Simpsons: who does the talking** ⭐<br>Men are 79% of the characters and speak 75% of the words.<br><sub>Data: Simpsons dataset, Kaggle</sub>| [2025 · W5](https://github.com/rfordatascience/tidytuesday/blob/main/data/2025/2025-02-04/readme.md) | [code](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/main/Code%202025/Week%205) |
 | <a href="https://github.com/user-attachments/assets/33a09c59-c003-4bad-85ed-af7407da9831"><img src="https://github.com/user-attachments/assets/33a09c59-c003-4bad-85ed-af7407da9831" width="160" alt="Du Bois Visualization Challenge 2024"></a> | **Du Bois Visualization Challenge 2024** | 2024 · W14 | [code](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/d7d51bd24dab23a1d830bd831b0dbda36a3d9d99/Code%202024/Week%2014#L1) |
-| <a href="https://github.com/user-attachments/assets/6a5d83fd-137d-4f85-908b-5cc4b8d82c5e"><img src="featured/2024_w19.png" width="160" alt="Rolling Stone's greatest albums"></a> | **Rolling Stone's greatest albums** ⭐ | 2024 · W19 | [code](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/4adae83b6a904462068498f2e1ceeac5d9ee8341/Code%202024/week%2019#L1) |
 | <a href="https://github.com/user-attachments/assets/c670d6ba-2e64-4bd2-88a3-87f7b6ac9cf6"><img src="https://github.com/user-attachments/assets/c670d6ba-2e64-4bd2-88a3-87f7b6ac9cf6" width="160" alt="Campus Pride Index"></a> | **Campus Pride Index** | 2024 · W24 | [code](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/aa94d605dc46bf26437b1c8395bd5df0f1b54477/Code%202024/Week%2024#L1-L113) |
 | <a href="https://github.com/user-attachments/assets/c92ee14b-b922-4053-acaf-e511eb1672c0"><img src="https://github.com/user-attachments/assets/c92ee14b-b922-4053-acaf-e511eb1672c0" width="160" alt="English Women's Football"></a> | **English Women's Football** | 2024 · W29 | [code](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/097f7714eb82b8ebafc2bdeb2272d903042ac5a2/Code%202024/Week%2029#L1-L114) |
 | <a href="https://github.com/user-attachments/assets/cc3a51be-4df9-4996-8c1f-876391f26823"><img src="https://github.com/user-attachments/assets/cc3a51be-4df9-4996-8c1f-876391f26823" width="160" alt="Economic Diversity and Student Outcomes"></a> | **Economic Diversity and Student Outcomes** | 2024 · W37 | [code](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/25c6a08ae2cd5e09e90cc671f7f333cee4c2218a/Code%202024/Week%2037#L1) |
@@ -61,7 +163,6 @@ How people live, learn and spend their days.
 
 | Preview | Chart | Week | Code |
 |---|---|---|---|
-| <a href="https://github.com/user-attachments/assets/635e4579-33ea-4921-b686-f7043c2c9116"><img src="featured/2025_w04.png" width="160" alt="Water insecurity: Americans without plumbing"></a> | **Water insecurity: Americans without plumbing** ⭐ | 2025 · W4 | [code](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/31300ca1f786211ba6e467f92970073afea1bbdf/Code%202025/Week%204#L1) |
 | <a href="https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/db7b8751-7329-471d-823b-d87af7aec162"><img src="https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/db7b8751-7329-471d-823b-d87af7aec162" width="160" alt="Educational attainment of young people in English towns"></a> | **Educational attainment of young people in English towns** | 2024 · W4 | [code](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/64db00486dd77f856422b0809e53fbfbd246e4a2/Code%202024/Week%204#L1-L103) |
 | <a href="https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/13bf6ade-c546-4e59-8028-39acaf8ee92e"><img src="https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/13bf6ade-c546-4e59-8028-39acaf8ee92e" width="160" alt="Scurvy"></a> | **Scurvy** | 2023 · W30 | [code](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/7daa9b29c8756a2f1d5c6863d426c17231363a8c/Code/2023/Week30_Scurvy#L1C1-L1C1) |
 | <a href="https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/9e5e3cfb-6ea0-41bf-b34b-f70c598c2998"><img src="https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/9e5e3cfb-6ea0-41bf-b34b-f70c598c2998" width="160" alt="The Global Human Day"></a> | **The Global Human Day** | 2023 · W37 | [code](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/1a44f946eedf2792eb651dc56ea671d34e92d1cb/Code/2023/Week%2037#L1-L54) |
@@ -77,16 +178,13 @@ Climate, nature, space and the physical world.
 
 | Preview | Chart | Week | Code |
 |---|---|---|---|
-| <a href="https://github.com/user-attachments/assets/0fe0a989-4b98-430e-ab4d-ae1e3781314a"><img src="featured/2025_w03.png" width="160" alt="Himalayan mountaineering expeditions"></a> | **Himalayan mountaineering expeditions** ⭐ | 2025 · W3 | [code](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/c6a11fc9464669cf8d3a5eccb5b23297403243fa/Code%202025/Week%203#L1) |
 | <a href="https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/b01a4e95-09ba-4e46-9ff7-55c2f93ecb03"><img src="https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/b01a4e95-09ba-4e46-9ff7-55c2f93ecb03" width="160" alt="Groundhog predictions"></a> | **Groundhog predictions** | 2024 · W5 | [code](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/ef098be27a5f5c4acf24f23f826bbb86e62c429f/Code%202024/Week%205#L1-L131) |
 | <a href="https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/8f266ebe-3213-4778-9f92-0a514ff867ce"><img src="https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/8f266ebe-3213-4778-9f92-0a514ff867ce" width="160" alt="Trash Wheel Collection Data"></a> | **Trash Wheel Collection Data** | 2024 · W10 | [code](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/3f0266042d104c20fabcf24a6c7169be5d9c9a45/Code%202024/Week%2010#L1-L139) |
 | <a href="https://github.com/user-attachments/assets/8543f4a4-823c-47ed-b95d-3e04b5a780e3"><img src="https://github.com/user-attachments/assets/8543f4a4-823c-47ed-b95d-3e04b5a780e3" width="160" alt="2023 & 2024 US Solar Eclipses"></a> | **2023 & 2024 US Solar Eclipses** | 2024 · W15 | [code](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/46091eedd4006e021069708f9b899fe50fd2271a/Code%202024/Week%2015#L1) |
-| <a href="https://github.com/user-attachments/assets/7472f043-b27e-4df1-acae-ea52e11bfc00"><img src="featured/2024_w17.png" width="160" alt="Objects Launched into Space"></a> | **Objects Launched into Space** ⭐ | 2024 · W17 | [code](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/184db5c457c1acbecae3d535969d114b2953d04b/Code%202024/Week%2017#L1-L114) |
 | <a href="https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/5c1047d9-02ab-42a3-9332-4f9d6f8f9896"><img src="https://github.com/ZoiDiama/My-tidytuesday-projects/assets/139105670/5c1047d9-02ab-42a3-9332-4f9d6f8f9896" width="160" alt="Carbon Majors Emissions Data"></a> | **Carbon Majors Emissions Data** | 2024 · W21 | [code](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/b63fbd144ad42467cc1ca117154806f1c6e917bc/Code%202024/Week%2021#L1-L122) |
 | <a href="https://github.com/user-attachments/assets/5ac02908-283b-4e14-8266-4ccd869ac63b"><img src="https://github.com/user-attachments/assets/5ac02908-283b-4e14-8266-4ccd869ac63b" width="160" alt="Lisa's Vegetable Garden Data"></a> | **Lisa's Vegetable Garden Data** | 2024 · W22 | [code](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/10c1df73bad064ae65d907baddf811b8052eaa6c/Code%202024/Week%2022#L1-L89) |
 | <a href="https://github.com/user-attachments/assets/216d65d6-e3bf-4cfa-a5a6-3dc8b97bbf3a"><img src="https://github.com/user-attachments/assets/216d65d6-e3bf-4cfa-a5a6-3dc8b97bbf3a" width="160" alt="National Park Species"></a> | **National Park Species** | 2024 · W41 | [code](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/7c9f06ace9684ca1740b9d0635c9624898230c9f/Code%202024/Week%2041#L1-L130) |
 | <a href="https://github.com/user-attachments/assets/6586b56c-26ac-46d1-9c97-c66f464f995e"><img src="https://github.com/user-attachments/assets/6586b56c-26ac-46d1-9c97-c66f464f995e" width="160" alt="Southern Resident Killer Whale Encounters"></a> | **Southern Resident Killer Whale Encounters** | 2024 · W42 | [code](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/61818796a0bb99468d96e452befa590dfe9e33cb/Code%202024/Week%2042#L1) |
-| <a href="https://github.com/user-attachments/assets/ede50d6b-9fd5-4839-a776-da5e7f5aa36e"><img src="featured/2023_w28.png" width="160" alt="Global Surface Temperatures"></a> | **Global Surface Temperatures** ⭐ | 2023 · W28 | [code](https://github.com/ZoiDiama/My-tidytuesday-projects/blob/4af0c90acb7b5255ed37e3b07756bb30bed0bf0a/Code/2023/Week28Global%20Surface%20Temperatures#L1C1-L80C4) |
 
 [↑ Back to contents](#contents)
 
