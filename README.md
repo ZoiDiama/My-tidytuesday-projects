@@ -17,6 +17,7 @@ This repo holds 60+ visualizations and the R code behind every one of them. Most
 | 2024 · W19 | [**Fewer than 1 in 5 of rock's 'greatest albums' are by women**](featured/2024_w19.png) | Across three Rolling Stone lists, only 170 of 1,500 entries were by women. Share of albums by women: 6% (2003), 12% (2012), 17% (2020). | Rolling Stone / Data is Plural |
 | 2025 · W4 | [**Over 265,000 Americans live without plumbing**](featured/2025_w04.png)| It's only 0.08% of the population, which sounds like nothing. But it's hundreds of thousands of people. | tidycensus |
 
+📄 **Prefer a quick read?** Download the [portfolio (PDF)](featured/tidytuesday-portfolio.pdf).
 
 ## How I approach each chart
 
