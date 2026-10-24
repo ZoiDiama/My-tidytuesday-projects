@@ -1,57 +1,120 @@
+# Union Membership in the United States
+# TidyTuesday 2023 · Week 36
+# Question: how has union membership changed in each state since 1983?
+
+# 1. LIBRARIES -------------------------------------------------------------
 library(tidyverse)
-library(ggplot2)
-library(dplyr)
-library(tidyr)
-library(scales)
 library(geofacet)
+library(showtext)
 library(ggtext)
+library(cowplot)
+library(gridtext)
 
-tuesdata <- tidytuesdayR::tt_load('2023-09-05')
+font_add_google("Poppins", family = "poppins")
+showtext_auto()
+showtext_opts(dpi = 288)
 
-demographics <- tuesdata$demographics
-wages <- tuesdata$wages
-states <- tuesdata$states
+# 2. DATA ------------------------------------------------------------------
+states <- read_csv(
+  "https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2023/2023-09-05/states.csv",
+  show_col_types = FALSE)
 
-dt<-states %>% 
-  filter(sector%in%c("Public","Private","Total"))%>% 
-  mutate(p_members=100*p_members,
-         p_covered=100*p_covered) 
+# 3. WRANGLING -------------------------------------------------------------
+dt <- states |>
+  filter(sector %in% c("Public", "Private", "Total")) |>
+  mutate(p_members = 100 * p_members,
+         sector = factor(sector, levels = c("Total", "Private", "Public")))
 
-plot<-ggplot(dt, aes(x=year,y=p_members,color=sector)) +
-  geom_line(size=0.8)+
-  facet_geo(~ state, grid = "us_state_grid2")+
-  scale_x_continuous(breaks = seq(1983,2022,39),
-                     guide = guide_axis(check.overlap = TRUE))+
-  scale_y_continuous(#expand = expansion(c(0, 0.1)), 
-                     breaks = c(0,20,40,60,100))+
-  scale_color_manual(labels=c("Private","Public","All"),
-                    values = c('#5B3FBF','#52B5F2',"#F2766B"))+
-  labs(
-    title="US Union Membership on decline", 
-    subtitle=stringr::str_wrap("Behold the graph showcasing the percentage of unionized workers across various sectors (private,public and all),  in the US Member States. Since 1983, membership in the American union has been in decline. Interestingly, union membership in the public sector consistently surpasses that of the private sector across all Member States and throughout time.",width = 90),
-    caption = "Data source: Current Population Survey (CPS)| Creator:Zoi Diamantakou | tidytuesday | 2023, week 36",
-    color = "Sector workers")
-  
-  
-plot+theme(
-  #plot.margin = unit(c(1,1,1,1), "cm"),
-  plot.title = element_text(size = 30, face = "bold",hjust = 0),
-  plot.subtitle = element_text(size = 12,hjust = 0),
-  plot.caption = element_text(size = 8,hjust = 0),
-  axis.title.x = element_blank(),
-  axis.title.y= element_blank(),
-  axis.text.x = element_text(size=6,hjust = 0.5,angle = 90),
-  axis.text.y = element_text(size=6),
-  strip.text.x = element_text(size = 8,colour="white",face="bold"),
-  legend.position="bottom",
-  legend.title = element_text(size = 10),
-  legend.key = element_blank(),
-  panel.background = element_rect(fill = "white"),
-  panel.spacing = unit(2, "mm"),
-  panel.grid.major.y = element_blank(),
-  panel.grid = element_blank(),
-  strip.background=element_rect(colour="white",
-                                fill="#4A4E8C"))
+# Numbers for the title and subtitle, computed from the data
+first_year <- min(dt$year); last_year <- max(dt$year)
 
-ggsave("TT2023Week36.png", width = 12, height = 8, dpi = 300, bg = "white")            
-  
+change <- dt |>
+  filter(year %in% c(first_year, last_year)) |>
+  select(state, sector, year, p_members) |>
+  pivot_wider(names_from = year, values_from = p_members, names_prefix = "y")
+
+n_fell <- change |> filter(sector == "Total") |>
+  summarise(n = sum(.data[[paste0("y", last_year)]] < .data[[paste0("y", first_year)]])) |> pull(n)
+
+med <- change |> group_by(sector) |>
+  summarise(start = median(.data[[paste0("y", first_year)]]),
+            end   = median(.data[[paste0("y", last_year)]]))
+priv <- med |> filter(sector == "Private"); pub <- med |> filter(sector == "Public")
+
+wi <- dt |> filter(state == "Wisconsin", sector == "Public", year %in% c(2011, last_year)) |>
+  arrange(year) |> pull(p_members)
+
+# 4. COLOURS & TEXT --------------------------------------------------------
+col_pub  <- "#3A9AD9"
+col_priv <- "#5B3FBF"
+col_all  <- "#9A9A9A"
+ink <- "#1A1A1A"; muted <- "#5A5A5A"; faint <- "#7A7A7A"
+
+tt <- paste0("Union membership has fallen in every US state since ", first_year)
+
+st <- paste0(
+  "Share of workers who are union members, ", first_year, "–", last_year, ", in ",
+  "the <span style='color:", col_pub, "'>**public**</span> and ",
+  "<span style='color:", col_priv, "'>**private**</span> sectors, and ",
+  "<span style='color:", col_all, "'>**all workers**</span>. ",
+  "In the typical state, private-sector membership fell from ",
+  round(priv$start), "% to ", round(priv$end), "%; public-sector unions held up better (",
+  round(pub$start), "% to ", round(pub$end), "%).")
+
+ct <- paste0("Data source: Current Population Survey (CPS), unionstats.com",
+             " · Creator: Zoi Diamantakou · TidyTuesday 2023 · Week 36")
+
+# 5. PLOT ------------------------------------------------------------------
+p <- ggplot(dt, aes(year, p_members, colour = sector)) +
+  geom_hline(yintercept = c(25, 50), colour = "#E2E2E2", linewidth = 0.25) +
+  geom_line(aes(linewidth = sector)) +
+  facet_geo(~ state, grid = "us_state_grid2", label = "code") +
+  scale_colour_manual(values = c(Total = col_all, Private = col_priv, Public = col_pub),
+                      guide = "none") +
+  scale_linewidth_manual(values = c(Total = 0.35, Private = 0.5, Public = 0.5),
+                         guide = "none") +
+  scale_x_continuous(breaks = NULL) +
+  scale_y_continuous(breaks = NULL, limits = c(0, 75), expand = c(0, 0)) +
+  labs(title = tt, subtitle = st, caption = ct, x = NULL, y = NULL) +
+  theme_minimal(base_family = "poppins") +
+  theme(
+    plot.title.position   = "plot",
+    plot.caption.position = "plot",
+    plot.title = element_textbox_simple(face = "bold", size = 22, colour = ink,
+                                        lineheight = 1.05, margin = margin(b = 12)),
+    plot.subtitle = element_textbox_simple(size = 11, colour = muted,
+                                           lineheight = 1.25, margin = margin(b = 18)),
+    plot.caption = element_text(size = 7, colour = faint, hjust = 0,
+                                margin = margin(t = 14)),
+    # state tiles: light background, plain bold state code
+    panel.background = element_rect(fill = "#F5F5F5", colour = NA),
+    panel.grid  = element_blank(),
+    panel.spacing = unit(1.2, "mm"),
+    strip.text  = element_text(size = 6.5, face = "bold", colour = ink,
+                               hjust = 0, margin = margin(b = 1.5)),
+    strip.background = element_blank(),
+    axis.text = element_blank(),
+    plot.background = element_rect(fill = "white", colour = NA),
+    plot.margin = margin(36, 36, 36, 36))
+
+# Note in the empty space above the map: how to read it + one callout
+note_txt <- paste0(
+  "**How to read:** each tile is a state, running from ", first_year,
+  " (left) to ", last_year, " (right). Gridlines at 25% and 50%.<br><br>",
+  "**Wisconsin (WI):** public-sector membership fell from ", round(wi[1]), "% to ",
+  round(wi[2]), "% after a 2011 state law limited public-sector bargaining.")
+
+# geofacet drops the empty grid cells when it draws, so render it to a grob
+# first, then place the note on the empty area at the top of the map.
+map_grob <- get_geofacet_grob(p)
+
+note <- textbox_grob(
+  note_txt, x = unit(0.18, "npc"), y = unit(0.715, "npc"),
+  width = unit(0.44, "npc"), hjust = 0, vjust = 1,
+  gp = grid::gpar(fontfamily = "poppins", fontsize = 7.5, col = muted, lineheight = 1.3))
+
+final <- ggdraw() + draw_grob(map_grob) + draw_grob(note)
+
+# 6. SAVE ------------------------------------------------------------------
+ggsave("TT2023Week36.png", final, width = 7.5, height = 7.5, dpi = 288, bg = "white")
+ggsave("TT2023Week36.svg", final, width = 7.5, height = 7.5, bg = "white")
