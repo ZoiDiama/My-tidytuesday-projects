@@ -1,190 +1,123 @@
-#Cheese
-#2024: week 23 
-#load libraries 
+# Cheese
+# TidyTuesday 2024 · Week 23
+# Question: what colour are the cheeses of the top cheese countries?
+
+# 1. LIBRARIES -------------------------------------------------------------
 library(tidyverse)
 library(showtext)
 library(ggtext)
-library(tidytuesdayR)
-library(glue)
-library(Cairo)
-library(forcats)
-library(ggrepel)
-library(lubridate)
-library(ggridges)
 library(waffle)
+library(ggh4x)      # force_panelsizes: lets the two rows of panels have different heights
 
+font_add_google("Poppins", family = "poppins")
+showtext_auto()
+showtext_opts(dpi = 288)
 
-#1.DATA LOADING
-tuesdata <- tidytuesdayR::tt_load(2024, week = 23)
-cheeses <- tuesdata$cheeses
-#2.DATA WRANGLING
-#top 10 countries
-top_10_countries <- cheeses %>%
-select(country) %>% 
-  mutate(country=case_when(
-    country=="England"~"United Kingdom",
-    TRUE~country)) %>% 
-group_by(country) %>% 
-summarise(n = n()) %>% 
-arrange(desc(n)) %>% 
-slice(-8) %>%  # Excludes the 9th row
-slice_head(n = 10) %>%  # Adjusts to only take the top 10 after exclusion
-pull(country)
+# 2. DATA ------------------------------------------------------------------
+cheeses <- read_csv(
+  "https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2024/2024-06-04/cheeses.csv",
+  show_col_types = FALSE)
 
-#most popular cheese
-dt_c<-cheeses %>% 
-  filter(country %in% top_10_countries) %>%
-  select(country,color) %>% 
-  filter(!is.na(color)) %>% 
-  group_by(color) %>% 
-  summarise(n=n()) %>% 
-  arrange(desc(n))
+# 3. WRANGLING -------------------------------------------------------------
+# The UK appears under many names ("England", "England, Great Britain, United Kingdom",
+# "Scotland", "Wales"...). Any entry made only of UK names becomes "United Kingdom".
+uk <- "England|Scotland|Wales|Great Britain|United Kingdom|Northern Ireland"
 
-#unique colors of cheese
-unique_colours <- cheeses %>%
-  filter(country %in% top_10_countries) %>%
-  select(color) %>% 
-  filter(!is.na(color)) %>%  # Exclude NA values
-  distinct() %>%  # Get unique colour values
-  pull(color)  # Pull the colours into a vector
+colour_levels <- c("white", "pale white", "ivory", "cream", "pale yellow", "yellow",
+                   "straw", "golden yellow", "orange", "blue", "Other")
+yellows <- c("pale yellow", "yellow", "straw", "golden yellow")
 
-#data for the plot
-dt<-cheeses %>% 
-  filter(country %in% top_10_countries) %>%
-  select(country,color) %>% 
-  filter(!is.na(color)) %>% 
-  mutate(color2=case_when(
-    color=="blue-grey"~"Other",
-    color=="green"~"Other",
-    color=="pink and white"~"Other",
-    color=="red"~"Other",
-    color=="golden orange"~"Other",
-    color=="pale white"~"Other",
-    color=="brown"~"Other",
-    color=="brownish yellow"~"Other",
-    TRUE ~ color  # Keeps the original color for all others
-  )) %>% 
-  group_by(country,color2) %>% 
-  summarise(n=n()) %>% 
-  mutate(total_n = sum(n, na.rm = TRUE)) %>%  # Calculate total count per country
-  ungroup() %>%
-  mutate(country = fct_reorder(country, total_n, .desc = TRUE)) %>%   # Reorder factor levels based on total_n in descending order
-  mutate(color2=factor(dt$color2, levels = c("white",
-                                          "pale yellow",
-                                          "ivory","cream",
-                                          "yellow","straw",
-                                          "golden yellow",
-                                          "orange","blue",
-                                          "Other"))) %>% 
-  arrange(-n)
+base <- cheeses |>
+  filter(!is.na(color), !is.na(country)) |>
+  mutate(country = if_else(str_remove_all(country, paste0("(", uk, ")|,| ")) == "",
+                           "United Kingdom", country),
+         colour  = if_else(color %in% colour_levels, color, "Other"))
 
+top_10 <- base |> count(country, sort = TRUE) |> slice_head(n = 10) |> pull(country)
 
-neworder <- c("United States","France","Italy","Canada","Astralia",
-              "United Kingdom","Ireland","Germany","Netherlands","Spain")
+dt <- base |>
+  filter(country %in% top_10) |>
+  count(country, colour) |>
+  group_by(country) |>
+  mutate(total = sum(n),
+         yellow = sum(n[colour %in% yellows]) / total) |>
+  ungroup() |>
+  mutate(colour = factor(colour, levels = colour_levels)) |>
+  arrange(country, colour)          # waffle fills in data order, so group by colour
 
-  
-#3. PLOT VIZUALIZATION 
-## Load Google fonts (https://fonts.google.com/)
-font_add_google("Montserrat", family = "title")                           
-font_add_google("Open Sans", family = "subtitle")
-font_add_google("Lato", family = "x")
-showtext::showtext_auto()
-showtext::showtext_opts(dpi = 300) 
+# Strip label: country name + share of yellow cheeses
+strip <- dt |> distinct(country, total, yellow) |> arrange(desc(total)) |>
+  mutate(label = paste0("**", country, "**<br><span style='color:#7A7A7A'>",
+                        round(yellow * 100), "% yellow · ", total, "</span>"))
+dt <- dt |> mutate(country = factor(country, levels = strip$country, labels = strip$label))
 
-##Title,subtitle & caption 
-tt <- str_glue(stringr::str_wrap("Title"),width=100)
-st <- str_glue(stringr::str_wrap("Subtitle",
-                                 width=100))
-ct  <- str_glue(stringr::str_wrap("Data Source: cheese.com, | 
-                                  Creator:Zoi Diamantakou | tidytuesday | 2024, 
-                                  week 23",width=100))
+nl        <- strip |> filter(country == "Netherlands")
+yel_other <- base |> filter(country %in% top_10, country != "Netherlands") |>
+  summarise(mean(colour %in% yellows)) |> pull()
+n_all     <- sum(strip$total)
 
-##plot
-cols <- c(
-  "white" = "#E5E5E5",             # Light grey-white
-  "pale yellow" = "#F7E2A2",       # Light beige-yellow
-  "ivory" = "#F0E68C",             # Khaki
-  "cream" = "#FAEBD7",             # Antique white
-  "yellow" = "#FFD700",            # Classic gold
-  "straw" = "#D2B48C",             # Tan
-  "golden yellow" = "#E1AD01",     # Mustard yellow
-  "orange" = "#FF7F50",            # Coral
-  "blue" = "#5F9EA0",              # Cadet blue
-  "Other" = "grey"              # Sienna brown
-)
+# Each row of panels is only as tall as its biggest waffle (12 squares per row of the waffle)
+tile_rows <- strip |> mutate(row = if_else(row_number() <= 5, 1, 2), h = ceiling(total / 12)) |>
+  group_by(row) |> mutate(h = max(h)) |> ungroup()
+blank <- tibble(country = factor(strip$label, levels = strip$label), y = tile_rows$h + 0.5)
+row_h <- unique(tile_rows$h)
 
+# 4. COLOURS & TEXT --------------------------------------------------------
+cols <- c(white = "#ECECEC", `pale white` = "#E4E1DA", ivory = "#F1E9C6", cream = "#EBD9B8",
+          `pale yellow` = "#F7E2A2", yellow = "#F5CF3A", straw = "#D9B97A",
+          `golden yellow` = "#E1AD01", orange = "#F08A3C", blue = "#5F8FA0", Other = "#9A8C8C")
+ink <- "#1A1A1A"; muted <- "#5A5A5A"; faint <- "#7A7A7A"; panel <- "white"
 
+tt <- paste0(round(nl$yellow * 100), "% of Dutch cheeses are yellow, ",
+             "the highest share of the top cheese countries")
 
-p<-
-  ggplot(data = dt,aes(fill = color2, values = n)) +
-  geom_waffle(na.rm = TRUE,
-              color = "white", 
-              size = .5, 
-              n_rows = 15,
-              height = 1, width = 1,
-              radius = unit(2, "pt"),
-              flip = TRUE) +
-  facet_wrap(~country,nrow = 2,strip.position = "top",
-             labeller = as_labeller(
-               c("United States"= "United\nStates", 
-                 "France"="France",
-                 "Italy"="Italy",
-                 "Canada"="Canada",
-                 "Australia"="Australia",
-                 "United Kingdom"="United\nKingdom",
-                 "Ireland"="Ireland",
-                 "Germany"="Germany",
-                 "Netherlands"="Netherlands",
-                 "Spain"="Spain"
-                 ))) +
-  coord_equal()+
-  labs(title=tt,
-       subtitle=st,
-       caption = ct,
-       x="",
-       y="",
-       fill="Cheese color")+
-  scale_fill_manual(values = cols) 
-  
+st <- paste0(
+  "Colour of ", n_all, " cheeses from the 10 countries with the most cheeses on cheese.com. ",
+  "Each square is one cheese; the number after each country is its total. Across the other nine countries, ",
+  round(yel_other * 100), "% are yellow and most are white or cream.")
 
-p+
-  theme(plot.margin = margin(t = 20, r = 50, b = 20, l = 150),
-        plot.title = element_text(
-          family= 'title',face= "bold",size= 35,hjust = 0,
-          colour="#19201D",
-          margin= margin(t = 16, b = 5)),
-        plot.subtitle = element_text(
-          family= 'subtitle', hjust = 0,
-          lineheight= 0.9,size  = 18,colour="black",
-          margin= margin(t = 5, b = 10)),
-        plot.caption = element_text(colour="black"),
-        plot.caption.position = "plot",
-        #axis
-        axis.title.x = element_blank(),
-        axis.text.x = element_blank(),
-        axis.text.y = element_blank(),
-        #legend
-        legend.position = "right",
-        legend.text = element_text(color = "grey40", size = 10),
-        legend.box.margin = margin(t = 30),
-        legend.background = element_blank(),
-        #panel
-        panel.spacing = unit(0.1, "lines"),
-        strip.text.x = element_text(size = 12,
-                                    hjust=0.5,family= 'x',),
-        panel.grid = element_blank(),
-        panel.grid.major.x = element_blank(),
-        panel.grid.major.y = element_blank(),
-        panel.background = element_rect(fill = "#AAABBF"),
-        strip.background=element_rect(colour="pink",
-                                      fill="#AAABBF"),
-        #background
-        axis.ticks= element_blank(), 
-        plot.background = element_rect(fill = "white", color = NA))
+ct <- paste0("Yellow = pale yellow, yellow, straw and golden yellow. Cheeses with no colour listed are left out; ",
+             "England, Scotland and Wales are counted as the United Kingdom.<br>",
+             "Data source: cheese.com · Creator: Zoi Diamantakou · TidyTuesday 2024 · Week 23")
 
+# 5. PLOT ------------------------------------------------------------------
+p <- ggplot(dt, aes(fill = colour, values = n)) +
+  geom_waffle(colour = panel, size = 0.3, n_rows = 12, flip = TRUE,
+              radius = unit(1.2, "pt"), na.rm = TRUE) +
+  geom_blank(data = blank, aes(x = 1, y = y), inherit.aes = FALSE) +
+  facet_wrap(~country, nrow = 2, scales = "free_y") +
+  force_panelsizes(rows = row_h, cols = rep(12, 5), respect = TRUE) +
+  scale_fill_manual(values = cols, name = NULL, drop = FALSE) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  labs(title = tt, subtitle = st, caption = ct, x = NULL, y = NULL) +
+  guides(fill = guide_legend(nrow = 2, keywidth = unit(3, "mm"), keyheight = unit(3, "mm"),
+                             override.aes = list(colour = NA))) +
+  theme_minimal(base_family = "poppins") +
+  theme(
+    plot.title.position   = "plot",
+    plot.caption.position = "plot",
+    plot.title = element_textbox_simple(face = "bold", size = 22, colour = ink,
+                                        lineheight = 1.05, margin = margin(b = 12)),
+    plot.subtitle = element_textbox_simple(size = 11, colour = muted,
+                                           lineheight = 1.25, margin = margin(b = 10)),
+    plot.caption = element_textbox_simple(size = 7, colour = faint,
+                                          lineheight = 1.4, margin = margin(t = 16)),
+    legend.position = "top",
+    legend.justification = "left",
+    legend.location = "plot",
+    legend.text = element_text(size = 7, colour = muted),
+    legend.margin = margin(b = 8),
+    strip.text = element_markdown(size = 7.5, colour = ink, hjust = 0, lineheight = 1.2,
+                                  margin = margin(b = 4)),
+    axis.text  = element_blank(),
+    panel.grid = element_blank(),
+    panel.background = element_rect(fill = panel, colour = NA),
+    panel.spacing.x = unit(8, "pt"),
+    panel.spacing.y = unit(12, "pt"),
+    plot.background = element_rect(fill = "white", colour = NA),
+    plot.margin = margin(36, 36, 36, 36))
 
-#4. SAVE THE PLOT
-ggsave("TT2024Week23.svg", width = 12, height = 8, 
-       dpi = 300, bg = "white") 
-
-
+# 6. SAVE ------------------------------------------------------------------
+ggsave("TT2024Week23.png", p, width = 7.5, height = 7.5, dpi = 288, bg = "white")
+ggsave("TT2024Week23.svg", p, width = 7.5, height = 7.5, bg = "white")
