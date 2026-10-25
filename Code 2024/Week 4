@@ -1,111 +1,103 @@
-Educational attainment of young people in English towns
-#load libraries 
+# Educational attainment of young people in English towns
+# TidyTuesday 2024 · Week 4
+# Question: do young people in smaller towns do better at school, and why?
+
+# 1. LIBRARIES -------------------------------------------------------------
 library(tidyverse)
 library(showtext)
 library(ggtext)
-library(tidytuesdayR)
-library(glue)
 
+font_add_google("Poppins", family = "poppins")
+showtext_auto()
+showtext_opts(dpi = 288)
 
-## Load Google fonts (https://fonts.google.com/)
-font_add_google("Kalam", family = "title")                           
-font_add_google("Tillana", family = "subtitle")
-font_add_google("Caveat", family = "x")
-showtext::showtext_auto()
-showtext::showtext_opts(dpi = 300) 
+# 2. DATA ------------------------------------------------------------------
+english_education <- read_csv(
+  "https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2024/2024-01-23/english_education.csv",
+  show_col_types = FALSE)
 
-#1.DATA LOADING
-tuesdata <- tidytuesdayR::tt_load(2024, week = 4)
-english_education <- tuesdata$english_education
+# 3. WRANGLING -------------------------------------------------------------
+# Keep the four size groups. London and "other" are only 4 places in total,
+# too few to compare, so they are left out (see the footnote).
+sizes <- c("Small Towns", "Medium Towns", "Large Towns", "City")
+size_lab <- c("Small towns", "Medium towns", "Large towns", "Cities\n(excl. London)")
 
+dt <- english_education |>
+  filter(size_flag %in% sizes, !is.na(education_score)) |>
+  mutate(size = factor(size_flag, levels = sizes, labels = size_lab),
+         deprivation = case_when(
+           income_flag == "Lower deprivation towns"  ~ "Lower",
+           income_flag == "Mid deprivation towns"    ~ "Mid",
+           income_flag == "Higher deprivation towns" ~ "Higher",
+           TRUE                                      ~ "City"),
+         deprivation = factor(deprivation, levels = c("Lower", "Mid", "Higher", "City")))
 
-#2.DATA WRANGLING
-dt<-english_education %>% 
-  select(town11nm,size_flag,education_score) %>% 
-  mutate(group = case_when(
-    size_flag=="Inner London BUA" ~ "London",
-    size_flag=="Outer london BUA" ~ "London",
-    size_flag=="Other Small BUAs" ~ "Other",
-    size_flag=="Not BUA" ~ "Other",
-    size_flag=="City" ~ "City(excluding London)",
-    TRUE~size_flag)) %>% 
-  mutate(col_group=case_when(
-    education_score > 0 ~ "Positve",
-    TRUE~"negative")) %>% 
-  mutate(group = factor(
-      group,
-      level = c("Small Towns","Medium Towns", "Large Towns",
-                "City(excluding London)","London","Other")))
+means <- dt |> group_by(size) |> summarise(mean = mean(education_score), n = n())
 
-mean <- dt %>% 
-  group_by( group ) %>% 
-  summarise( mean_val = mean(education_score))
+small <- dt |> filter(size == "Small towns") |>
+  group_by(deprivation) |> summarise(mean = mean(education_score))
+gap <- small$mean[small$deprivation == "Lower"] - small$mean[small$deprivation == "Higher"]
 
-#3. PLOT VIZUALIZATION 
+n_left_out <- sum(!english_education$size_flag %in% sizes)
 
-##Title,subtitle & caption 
-tt <- str_glue(stringr::str_wrap("Smaller towns have the highest average educational attainment",width=100))
-st <- str_glue(stringr::str_wrap("Educational attainment score, by town size, England",
-                                 width=80))
-ct  <- str_glue(stringr::str_wrap("Data Source:  The UK Office for National Statistics | 
-                                  Creator:Zoi Diamantakou | tidytuesday | 2024, 
-                                  week 4",width=120))
+# 4. COLOURS & TEXT --------------------------------------------------------
+cols <- c(Lower = "#3A7DBF", Mid = "#BFC7CF", Higher = "#D1495B", City = "#8A8A8A")
+ink <- "#1A1A1A"; muted <- "#5A5A5A"; faint <- "#7A7A7A"
 
-##plot
-p <- dt%>% 
-  ggplot(aes(y=education_score,x=group,colour=col_group))+
-           geom_jitter(size = 3,
-                       alpha = 0.7,
-                       shape = 16,
-                       width = 0.2
-                       )+
-  geom_vline(
-    xintercept = seq(1.5, length(unique(dt$group)), by = 1),
-    color = "#595959",
-    size = 0.8)+
-  geom_hline(yintercept =0,
-             color = "#595959",
-             size = 0.8)+
-  labs(title=tt,
-       subtitle=st,
-       caption = ct,
-       y="Educational attainment score",
-       x="")+
-  scale_color_manual(values=c("#e36e67", "#91bfdb"))+
-  scale_x_discrete(position = "top")
+tt <- "Smaller towns score highest, but poverty matters more than size"
 
-p+theme_minimal()+
-  theme(plot.margin           = margin(t = 20, r = 30, b = 20, l = 25),
-        plot.title.position = "plot",
-      plot.title            = element_text(
-        family= 'title',face= "bold",size= 26,
-        colour="#353535",
-        margin= margin(t = 16, b = 5)),
-      plot.subtitle = element_text(
-        family= 'subtitle', hjust = 0,
-        lineheight= 0.9,size  = 18,colour="#353535",
-        margin= margin(t = 5, b = 10)),
-      plot.caption = element_text(colour="#595959"),
-      plot.caption.position = "plot",
-      #axis
-      axis.title.y = element_text(family="x",size=12),
-      axis.text.x = element_text(family="x",size=20,colour="#353535"),
-      axis.text.y =  element_text(family="x",size=12,colour="#353535"),
-      #legend
-      legend.position = "none",
-      #background
-      plot.background = element_rect(fill = "#e8e8e8", color = NA),
-      panel.grid.major.y = element_line(color = "#595959",
-                                        size = 0.5,
-                                        linetype = 2),
-      panel.grid.major= element_blank(),
-      panel.grid.minor= element_blank(),
-      ) 
+st <- paste0(
+  "Educational attainment score of young people in ", scales::comma(nrow(dt)), " English towns and cities ",
+  "(0 = national average). Each dot is a town: ",
+  "<span style='color:", cols["Lower"], "'>**less deprived**</span>, mid, or ",
+  "<span style='color:", cols["Higher"], "'>**more deprived**</span>. ",
+  "In small towns, the gap between them is ", round(gap, 1), " points.")
 
-#4. SAVE THE PLOT
-ggsave("TT2024Week4.png", width = 12, height = 8, 
-       dpi = 300, bg = "white") 
-ggsave("TT2024Week4.svg", width = 12, height = 8, 
-       dpi = 300, bg = "white") 
+ct <- paste0("Black line: average for each group. Cities are grey: they have no deprivation group.<br>",
+             n_left_out, " places are left out: Inner and Outer London, and 2 not classed by size.<br>",
+             "Data source: UK Office for National Statistics",
+             " · Creator: Zoi Diamantakou · TidyTuesday 2024 · Week 4")
 
+# 5. PLOT ------------------------------------------------------------------
+set.seed(4)
+p <- ggplot(dt, aes(size, education_score)) +
+  geom_hline(yintercept = 0, colour = "#8A8A8A", linewidth = 0.4) +
+  annotate("text", x = 4.6, y = -0.3, label = "National average", hjust = 1,
+           vjust = 1, family = "poppins", size = 2.3, colour = faint) +
+  geom_jitter(aes(colour = deprivation), width = 0.28, height = 0,
+              size = 1.4, alpha = 0.75, shape = 16) +
+  # group averages
+  geom_segment(data = means, aes(x = as.numeric(size) - 0.36, xend = as.numeric(size) + 0.36,
+                                 y = mean, yend = mean), colour = ink, linewidth = 0.9) +
+  geom_text(data = means, aes(x = as.numeric(size) + 0.4, y = mean,
+                              label = sprintf("%+.1f", mean)),
+            hjust = 0, family = "poppins", fontface = "bold", size = 2.5, colour = ink) +
+  # town counts under each label
+  geom_text(data = means, aes(x = size, y = 12.6, label = paste0(n, " places")),
+            family = "poppins", size = 2.2, colour = faint) +
+  scale_colour_manual(values = cols, guide = "none") +
+  scale_x_discrete(position = "top") +
+  scale_y_continuous(limits = c(-11, 13), breaks = seq(-10, 10, 5),
+                     labels = \(x) if_else(x > 0, paste0("+", x), as.character(x))) +
+  coord_cartesian(clip = "off") +
+  labs(title = tt, subtitle = st, caption = ct, x = NULL, y = NULL) +
+  theme_minimal(base_family = "poppins") +
+  theme(
+    plot.title.position   = "plot",
+    plot.caption.position = "plot",
+    plot.title = element_textbox_simple(face = "bold", size = 22, colour = ink,
+                                        lineheight = 1.05, margin = margin(b = 12)),
+    plot.subtitle = element_textbox_simple(size = 11, colour = muted,
+                                           lineheight = 1.25, margin = margin(b = 18)),
+    plot.caption = element_markdown(size = 7, colour = faint, hjust = 0,
+                                    lineheight = 1.4, margin = margin(t = 18)),
+    axis.text.x = element_text(size = 9, colour = ink, face = "bold", lineheight = 0.95),
+    axis.text.y = element_text(size = 7.5, colour = faint),
+    panel.grid  = element_blank(),
+    panel.grid.major.y = element_line(colour = "#ECECEC", linewidth = 0.3),
+    plot.background = element_rect(fill = "white", colour = NA),
+    plot.margin = margin(36, 36, 36, 36))
 
+# 6. SAVE ------------------------------------------------------------------
+ggsave("TT2024Week4.png", p, width = 7.5, height = 7.5, dpi = 288, bg = "white")
+ggsave("TT2024Week4.svg", p, width = 7.5, height = 7.5, bg = "white")
