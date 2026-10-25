@@ -1,123 +1,104 @@
-#Carbon Majors emissions data
-#2024: week 21 
-#load libraries 
+# Carbon Majors Emissions Data
+# TidyTuesday 2024 · Week 21
+# Question: how fast have emissions from the big fossil-fuel producers grown?
+
+# 1. LIBRARIES -------------------------------------------------------------
 library(tidyverse)
 library(showtext)
 library(ggtext)
-library(tidytuesdayR)
-library(glue)
-library(Cairo)
-library(forcats)
-library(ggrepel)
-library(lubridate)
-library(ggridges)
 
+font_add_google("Poppins", family = "poppins")
+showtext_auto()
+showtext_opts(dpi = 288)
 
+# 2. DATA ------------------------------------------------------------------
+emissions <- read_csv(
+  "https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2024/2024-05-21/emissions.csv",
+  show_col_types = FALSE)
 
+# 3. WRANGLING -------------------------------------------------------------
+fuels <- c("Coal", "Oil & NGL", "Natural Gas", "Cement")
 
-#1.DATA LOADING
-tuesdata <- tidytuesdayR::tt_load(2024, week = 21)
+all_years <- emissions |>
+  mutate(fuel = if_else(str_detect(commodity, "Coal"), "Coal", commodity)) |>
+  group_by(year, fuel) |>
+  summarise(total = sum(total_emissions_MtCO2e) / 1000, .groups = "drop")   # Gt CO2e
 
-emissions <- tuesdata$emissions
+# The year after which half of all emissions since 1854 were released
+yearly <- all_years |> group_by(year) |> summarise(total = sum(total))
+half_year <- yearly |> arrange(desc(year)) |>
+  mutate(share = cumsum(total) / sum(total)) |>
+  filter(share >= 0.5) |> slice(1) |> pull(year)
 
-#2.DATA WRANGLING
-dt<-emissions %>% 
-  select(year,value=total_emissions_MtCO2e,commodity) %>% 
-  mutate(group = case_when(
-    commodity=="Anthracite Coal" ~ "Coal",
-    commodity=="Bituminous Coal" ~ "Coal",
-    commodity=="Lignite Coal" ~ "Coal",
-    commodity=="Metallurgical Coal" ~ "Coal",
-    commodity=="Sub-Bituminous Coal" ~ "Coal",
-    commodity=="Thermal Coal" ~ "Coal",
-    TRUE~commodity)) %>% 
-  mutate(group = factor(
-    group,
-    level = c("Coal","Oil & NGL", "Natural Gas",
-              "Cement"))) %>% 
-  group_by(year,group) %>% 
-  summarise(total=sum(value)) %>% 
-  filter(year>=1900)
+dt <- all_years |>
+  filter(year >= 1900) |>
+  mutate(fuel = factor(fuel, levels = rev(fuels)))       # coal at the bottom
 
-dt2<-dt %>% 
-  filter(year%in% c(1900,2022)) %>% 
-  group_by(year) %>% 
-  summarise(sum(total))
-  
+n_producers <- n_distinct(emissions$parent_entity)
+last_year   <- max(dt$year)
+last_total  <- yearly$total[yearly$year == last_year]
 
+lab <- dt |> filter(year == last_year) |>
+  arrange(fuel) |>
+  mutate(top = cumsum(total), y = top - total / 2,
+         label = paste0("**", fuel, "** ", scales::percent(total / sum(total), accuracy = 1)))
 
-#3. PLOT VIZUALIZATION 
-## Load Google fonts (https://fonts.google.com/)
-font_add_google("Josefin Sans", family = "title")                           
-font_add_google("Cardo", family = "subtitle")
-font_add_google("Lato", family = "x")
-showtext::showtext_auto()
-showtext::showtext_opts(dpi = 300) 
+# 4. COLOURS & TEXT --------------------------------------------------------
+cols <- c(Coal = "#262626", `Oil & NGL` = "#595959", `Natural Gas` = "#8C8C8C",
+          Cement = "#BFBFBF")
+accent <- "#C8553D"
+ink <- "#1A1A1A"; muted <- "#5A5A5A"; faint <- "#7A7A7A"
 
-##Title,subtitle & caption 
-tt <- str_wrap("Fossil fuel CO2 emissions dramatically soar since 1900",width=80)
-st <- str_glue(stringr::str_wrap("Million tonnes of CO2 equivalent (MtCO2e)
-",
-                                 width=100))
-ct  <- str_glue(stringr::str_wrap("Data Source: Carbon Majors | 
-                                  Creator:Zoi Diamantakou | tidytuesday | 2024, 
-                                  week 21",width=100))
+tt <- paste0("Half of these producers' emissions since 1854 came after ", half_year)
 
-##plot
-cols <- c("#262626", "#595959", "#8C8C8C", "#BFBFBF")
+st <- paste0(
+  "Yearly CO2 emissions traced to the products of ", n_producers,
+  " of the world's largest oil, gas, coal and cement producers, in billion tonnes ",
+  "of CO2 equivalent. In ", last_year, " they reached ", round(last_total, 1),
+  " billion tonnes.")
 
-p<-
-  ggplot(
-    dt, aes(x = year, y=total,
-            fill = group)  ) + 
-  geom_area(size=0.5, colour="white")+
- 
-  labs(x="",
-       y="",
-       title = tt,
-       subtitle =st ,
-       caption = ct,
-       col="")+
-  scale_fill_manual(values = cols)+
-  scale_y_continuous(breaks = seq(0,40000,5000))+
-  scale_x_continuous(breaks = seq(1900,2023,20))
+ct <- paste0("NGL = natural gas liquids. Percentages are shares of ", last_year, " emissions.<br>",
+             "Data source: Carbon Majors database (InfluenceMap)",
+             " · Creator: Zoi Diamantakou · TidyTuesday 2024 · Week 21")
 
+# 5. PLOT ------------------------------------------------------------------
+p <- ggplot(dt, aes(year, total, fill = fuel)) +
+  # everything after the halfway year
+  annotate("rect", xmin = half_year, xmax = last_year, ymin = 0, ymax = 40,
+           fill = "#FBEDE9") +
+  geom_area(colour = "white", linewidth = 0.25) +
+  geom_vline(xintercept = half_year, colour = accent, linewidth = 0.5) +
+  annotate("richtext", x = half_year - 1.5, y = 36, hjust = 1, vjust = 1,
+           label = paste0("**", half_year, "–", last_year, "**<br>half of all emissions<br>since 1854"),
+           family = "poppins", size = 2.6, colour = accent, lineheight = 1.2,
+           fill = NA, label.colour = NA, label.padding = unit(0, "pt")) +
+  geom_richtext(data = lab, aes(x = last_year + 1.5, y = y, label = label, colour = fuel),
+                hjust = 0, family = "poppins", size = 2.5, fill = NA,
+                label.colour = NA, label.padding = unit(0, "pt")) +
+  scale_fill_manual(values = cols, guide = "none") +
+  scale_colour_manual(values = cols, guide = "none") +
+  scale_x_continuous(breaks = seq(1900, 2020, 20), expand = c(0, 0)) +
+  scale_y_continuous(breaks = seq(0, 40, 10), labels = \(x) paste0(x, " Gt"),
+                     expand = c(0, 0)) +
+  coord_cartesian(ylim = c(0, 40), clip = "off") +
+  labs(title = tt, subtitle = st, caption = ct, x = NULL, y = NULL) +
+  theme_minimal(base_family = "poppins") +
+  theme(
+    plot.title.position   = "plot",
+    plot.caption.position = "plot",
+    plot.title = element_textbox_simple(face = "bold", size = 22, colour = ink,
+                                        lineheight = 1.05, margin = margin(b = 12)),
+    plot.subtitle = element_textbox_simple(size = 11, colour = muted,
+                                           lineheight = 1.25, margin = margin(b = 20)),
+    plot.caption = element_markdown(size = 7, colour = faint, hjust = 0,
+                                    lineheight = 1.4, margin = margin(t = 18)),
+    axis.text  = element_text(size = 7.5, colour = faint),
+    panel.grid = element_blank(),
+    panel.grid.major.y = element_line(colour = "#ECECEC", linewidth = 0.3),
+    panel.ontop = FALSE,
+    plot.background = element_rect(fill = "white", colour = NA),
+    plot.margin = margin(36, 110, 36, 36))
 
-
-p+theme_minimal()+
-  theme(plot.margin           = margin(t = 2, r = 15, b = 10, l = 25),
-        plot.title            = element_text(
-          family= 'title',face= "bold",size= 28,hjust = 0,
-          colour="#19201D",
-          margin= margin(t = 16, b = 5)),
-        plot.subtitle = element_text(
-          family= 'subtitle', hjust = 0,
-          lineheight= 0.9,size  = 18,colour="black",
-          margin= margin(t = 5, b = 10)),
-        plot.caption = element_text(colour="black"),
-        plot.caption.position = "plot",
-        #axis
-        axis.title.x = element_text(family="x"),
-        axis.text.x = element_text(size=12),
-        axis.text.y = element_text(size=12),
-        axis.ticks.x =element_line(color = "black", size = 1) ,
-        #legend
-        legend.position = "top",
-        legend.title=element_blank(),
-        legend.justification='left',
-        legend.text = element_text(size = 14),
-        #background
-        panel.grid.major = element_blank(), 
-        panel.grid.minor= element_blank(),
-        panel.grid.major.y = element_line(color = "black",
-                                          linewidth = 0.1,
-                                          linetype = 2),
-        plot.background = element_rect(fill = "#D9D9D9", color = NA))
-
-
-#4. SAVE THE PLOT
-ggsave("TT2024Week21.png", width = 12, height = 8, 
-       type = "Cairo",dpi = 300, bg = "white") 
-ggsave("TT2024Week21.svg", width = 12, height = 8, 
-       dpi = 300, bg = "white") 
-
+# 6. SAVE ------------------------------------------------------------------
+ggsave("TT2024Week21.png", p, width = 7.5, height = 7.5, dpi = 288, bg = "white")
+ggsave("TT2024Week21.svg", p, width = 7.5, height = 7.5, bg = "white")
