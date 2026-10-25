@@ -1,112 +1,104 @@
-#2023 & 2024 US Solar Eclipses
-#2024: week 15
+# 2023 & 2024 US Solar Eclipses
+# TidyTuesday 2024 · Week 15
+# Question: where in the US did the April 2024 total eclipse last longest?
 
+# 1. LIBRARIES -------------------------------------------------------------
+library(tidyverse)
+library(maps)
+library(showtext)
+library(ggtext)
 
-#load key libraries 
-library(tidytuesdayR)# Access data for the #TidyTuesday project.
-library(dplyr)
-library(ggplot2)
-library(tidyverse) # Collection of tools for data manipulation and visualization.
-library(showtext) #Easily use custom fonts in plots.Allows the use of google fonts
-library(glue)#Simple string formatting and interpolation.
-library(Cairo) #High-quality graphics rendering for plots.
+font_add_google("Poppins", family = "poppins")
+showtext_auto()
+showtext_opts(dpi = 288)
 
-#additional libraries
-library(ggtext) #Allows rich text formatting (Markdown/HTML) in ggplot.
-library(forcats) #Tools for handling categorical variables (factors).
-library(ggrepel) #Avoids overlapping labels in ggplot2.
-library(lubridate)#Simplifies working with dates and times.
-library(ggridges) #Create ridge/joy plots for visualizing distributions.
-library(ggmap)
+# 2. DATA ------------------------------------------------------------------
+eclipse_total_2024 <- read_csv(
+  "https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2024/2024-04-09/eclipse_total_2024.csv",
+  show_col_types = FALSE)
 
-## Load Google fonts (https://fonts.google.com/)
-font_add_google("Orbitron", family = "title")                           
-font_add_google("Open Sans", family = "subtitle")
-font_add_google("Lato", family = "x")
-showtext::showtext_auto()
-showtext::showtext_opts(dpi = 300) 
+# 3. WRANGLING -------------------------------------------------------------
+# Totality = time between eclipse_3 (total begins) and eclipse_4 (total ends)
+dt <- eclipse_total_2024 |>
+  mutate(seconds = as.numeric(eclipse_4 - eclipse_3)) |>
+  arrange(seconds)                          # longest drawn on top
 
-#1.DATA LOADING
-tuesdata <- tidytuesdayR::tt_load(2024, week = 15)
-eclipse_annular_2023 <- tuesdata$eclipse_annular_2023
-eclipse_total_2024 <- tuesdata$eclipse_total_2024
-eclipse_partial_2023 <- tuesdata$eclipse_partial_2023
-eclipse_partial_2024 <- tuesdata$eclipse_partial_2024
+longest <- dt |> slice_max(seconds, n = 1, with_ties = FALSE)
+fmt <- function(s) paste0(s %/% 60, " min ", s %% 60, " s")
 
-#2.DATA WRANGLING
-dt<-eclipse_total_2024 %>% 
-  select(state,name,lat,lon,eclipse_3,eclipse_4) %>% 
-    mutate(
-    eclipse_3 = as.POSIXct(eclipse_3, format = "%H:%M:%S", tz = "UTC"),
-    eclipse_4 = as.POSIXct(eclipse_4, format = "%H:%M:%S", tz = "UTC")
-  ) %>%
-  mutate(duration = as.numeric(abs(difftime(eclipse_4, eclipse_3, units = "secs"))))
+# Base map: only the states in the eclipse path, plus neighbours for context
+usa <- map_data("state")
+path_states <- tolower(state.name[match(unique(dt$state), state.abb)])
 
-#to make the map
-usa_map <- map_data("state")
-state_centroids <- usa_map %>%
-  group_by(region) %>%
-  summarize(
-    lon = mean(range(long)),
-    lat = mean(range(lat))
-  )
+# State labels for the states in the path
+state_lab <- usa |>
+  filter(region %in% path_states) |>
+  group_by(region) |>
+  summarise(long = mean(range(long)), lat = mean(range(lat)), .groups = "drop") |>
+  mutate(code = state.abb[match(region, tolower(state.name))]) |>
+  # small nudges so labels sit beside the path, not under the dots
+  mutate(long = long + case_when(code %in% c("TX") ~ -2.5, code == "OK" ~ -2,
+                                 code == "AR" ~ 0.6, code == "MO" ~ -1.2,
+                                 code == "IL" ~ 1, code == "IN" ~ 1, code == "OH" ~ 1.2,
+                                 code == "KY" ~ 1, TRUE ~ 0),
+         lat  = lat + case_when(code == "AR" ~ -1.3, code == "NY" ~ -1.3, code == "VT" ~ 1.6, code == "ME" ~ 1.2,
+                                code == "PA" ~ -0.6, TRUE ~ 0))
 
-# for states label with their 2-letter codes
-state_codes <- data.frame(
-  region = tolower(state.name),  # Convert state names to lowercase to match `region`
-  code = state.abb
-)
+# 4. COLOURS & TEXT --------------------------------------------------------
+ink <- "#1A1A1A"; muted <- "#5A5A5A"; faint <- "#7A7A7A"
 
-# Merge the centroids with state codes to get abbreviations
-state_centroids <- state_centroids %>%
-  left_join(state_codes, by = "region")
+tt <- paste0("The 2024 eclipse lasted longest in Texas: up to ", fmt(longest$seconds), " of darkness")
 
-#3. PLOT VIZUALIZATION 
-##Title,subtitle & caption 
-tt <- str_glue(stringr::str_wrap("Duration of total solar eclipses across the U.S. (2024)",
-                                 width=50))
-st <- str_glue(stringr::str_wrap("On April 8, 2024, a total solar eclipse crossed North and Central America, creating a path of totality. This graph illustrates 
-                                 the duration of totality in seconds for various U.S. cities. ",
-                                 width=80))
-ct  <- str_glue(stringr::str_wrap("Data source: NASA's Scientific Visualization Studio | 
-                                  Creator:Zoi Diamantakou | 
-                                   Tidytuesday:2024, week 15",width=120))
+st <- paste0(
+  "Length of totality on April 8, 2024, in ", scales::comma(nrow(dt)),
+  " US places in the path of the total solar eclipse. ",
+  "The longer the darkness, the darker the dot. It shortened as the shadow moved northeast ",
+  "and towards the edges of the path.")
 
-##plot
-ggplot() +
-  geom_polygon(data = usa_map, aes(x = long, y = lat, group = group), 
-               fill = "#8C857B", color = "#D9CBA3") +
-  geom_point(data = dt, aes(x = lon, y = lat, 
-                            colour = duration), size=1,alpha = 0.6) +
-  geom_text(data = state_centroids, aes(x = lon, y = lat, label = code), 
-            size = 3, color ="black", fontface = "bold")+
-  scale_colour_gradient(low = "#F2AB27", high = "#051940")+
-  labs(title=tt,subtitle = st,caption = ct,
-       x="",y="",color="Duration \nof totality\n(in seconds)")+
-  theme_void()+ 
-  theme(plot.margin= margin(t = 20, r = 25, b = 20, l = 25),
-        plot.title= element_text(family= 'title',face= "bold",size= 20,hjust = 0,colour="#19201D"),
-        plot.subtitle = element_text(family= 'subtitle', hjust = 0,
-                                     lineheight= 0.9,size  = 16,colour="black"),
-        plot.caption = element_text(colour="black",size=10, hjust = 0,family='x'),
-        plot.title.position = "plot", 
-        plot.caption.position = "plot",
-        #legend
-        legend.position = "right",
-        legend.justification='left',
-        legend.text = element_text(family="x",color = "black",size = 10),
-        legend.title = element_text(family="x",color = "black",size = 12),
-        #background
-        plot.background = element_rect(fill = "#F2F2F2", color = NA))
+ct <- paste0("Data source: NASA's Scientific Visualization Studio",
+             " · Creator: Zoi Diamantakou · TidyTuesday 2024 · Week 15")
 
+# 5. PLOT ------------------------------------------------------------------
+p <- ggplot() +
+  geom_polygon(data = usa, aes(long, lat, group = group),
+               fill = "#F2F2F2", colour = "white", linewidth = 0.4) +
+  geom_point(data = dt, aes(lon, lat, colour = seconds), size = 0.7, alpha = 0.85) +
+  geom_text(data = state_lab, aes(long, lat, label = code), family = "poppins",
+            fontface = "bold", size = 2.4, colour = "#9A9A9A") +
+  # longest point
+  geom_point(data = longest, aes(lon, lat), shape = 21, size = 3, stroke = 0.8,
+             colour = ink, fill = NA) +
+  annotate("richtext", x = longest$lon + 1.2, y = longest$lat - 0.6,
+           label = paste0("**", fmt(longest$seconds), "**<br>", longest$name, ", TX"),
+           hjust = 0, vjust = 1, family = "poppins", size = 2.5, colour = ink,
+           lineheight = 1.2, fill = NA, label.colour = NA, label.padding = unit(0, "pt")) +
+  scale_colour_gradient(low = "#F7D58B", high = "#1B2A4A",
+                        breaks = c(60, 120, 180, 240),
+                        labels = c("1 min", "2 min", "3 min", "4 min"),
+                        name = "Totality") +
+  coord_quickmap(xlim = c(-104, -66), ylim = c(25.5, 48), expand = FALSE) +
+  labs(title = tt, subtitle = st, caption = ct) +
+  guides(colour = guide_colourbar(barwidth = unit(45, "mm"), barheight = unit(2.5, "mm"),
+                                  title.position = "left", title.vjust = 1)) +
+  theme_void(base_family = "poppins") +
+  theme(
+    plot.title.position   = "plot",
+    plot.caption.position = "plot",
+    plot.title = element_textbox_simple(face = "bold", size = 22, colour = ink,
+                                        lineheight = 1.05, margin = margin(b = 12)),
+    plot.subtitle = element_textbox_simple(size = 11, colour = muted,
+                                           lineheight = 1.25, margin = margin(b = 10)),
+    plot.caption = element_text(size = 7, colour = faint, hjust = 0,
+                                margin = margin(t = 18)),
+    legend.position = "top",
+    legend.justification = "left",
+    legend.location = "plot",
+    legend.title = element_text(size = 7.5, colour = muted, margin = margin(r = 8)),
+    legend.text  = element_text(size = 7, colour = muted),
+    legend.margin = margin(b = 8),
+    plot.background = element_rect(fill = "white", colour = NA),
+    plot.margin = margin(36, 36, 36, 36))
 
-
-
-#4. SAVE THE PLOT
-ggsave("TT2024Week_15.png", width = 8.5, height = 6,type = "Cairo",dpi = 300, bg = "white") 
-ggsave("TT2024Week_15.svg", width = 8.5, height = 6,dpi = 300, bg = "white")
-browseURL("TT2024Week_15.svg")
-
-
-
-
+# 6. SAVE ------------------------------------------------------------------
+ggsave("TT2024Week_15.png", p, width = 7.5, height = 7.5, dpi = 288, bg = "white")
+ggsave("TT2024Week_15.svg", p, width = 7.5, height = 7.5, bg = "white")
