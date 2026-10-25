@@ -36,8 +36,9 @@ dt <- films |> count(decade, group)
 tops <- films |> group_by(decade) |>
   summarise(n = n(), en = mean(group == "English"),
             langs = n_distinct(original_language)) |>
-  mutate(label = paste0("**", scales::comma(n), "**<br><span style='color:#0072B2'>",
+  mutate(label = paste0("**", scales::comma(n), "**<br><span style='color:#7A7A7A'>",
                         round((1 - en) * 100), "% other<br>languages</span>"))
+# each bar shows shares (100%), so the label sits just above the top
 d10 <- tops |> filter(decade == "2010s")
 d90 <- tops |> filter(decade == "1990s")
 d20 <- tops |> filter(decade == "2020–22")
@@ -58,9 +59,9 @@ tt <- paste0("Since the 1990s, LGBTQ films in languages other than English rose 
              round((1 - d90$en) * 100), "% to ", round((1 - d20$en) * 100), "%")
 
 st <- paste0(
-  "LGBTQ films on The Movie Database by decade of release and original language (",
-  scales::comma(n_films), " films). <span style='color:#8A8A8A'>**English**</span> took over ",
-  "in the 1990s, as the number of films grew; since then other languages have caught up, ",
+  "Share of LGBTQ films on The Movie Database in each language, by decade of release (",
+  scales::comma(n_films), " films; the number above each bar is the decade's total). <span style='color:#8A8A8A'>**English**</span> ",
+  "took over in the 1990s; since then other languages have caught up, ",
   "and the number of languages went from ", d90$langs, " to ", tops$langs[tops$decade == "2010s"],
   " in the 2010s.")
 
@@ -72,13 +73,14 @@ ct <- paste0("Films are tagged LGBTQ by TMDB users; tagging may be less complete
 
 # 5. PLOT ------------------------------------------------------------------
 p <- ggplot(dt, aes(decade, n, fill = group)) +
-  geom_col(width = 0.72, colour = "white", linewidth = 0.25) +
-  geom_richtext(data = tops, aes(decade, n, label = label), inherit.aes = FALSE,
-                vjust = 0, nudge_y = 40, family = "poppins", size = 2.7, colour = ink,
+  geom_col(position = "fill", width = 0.72, colour = "white", linewidth = 0.25) +
+  geom_richtext(data = tops, aes(decade, 1.02, label = label), inherit.aes = FALSE,
+                vjust = 0, family = "poppins", size = 2.7, colour = ink,
                 fill = NA, label.colour = NA, lineheight = 1.15) +
   scale_fill_manual(values = cols, name = NULL) +
-  scale_y_continuous(breaks = seq(0, 4000, 1000), labels = scales::comma,
-                     expand = c(0, 0), limits = c(0, 4500)) +
+  scale_y_continuous(breaks = seq(0, 1, 0.25), labels = scales::percent,
+                     expand = c(0, 0)) +
+  coord_cartesian(ylim = c(0, 1.17)) +   # room above the bars for the labels
   guides(fill = guide_legend(nrow = 1, keywidth = unit(3, "mm"), keyheight = unit(3, "mm"))) +
   labs(title = tt, subtitle = st, caption = ct, x = NULL, y = NULL) +
   theme_minimal(base_family = "poppins") +
@@ -88,7 +90,7 @@ p <- ggplot(dt, aes(decade, n, fill = group)) +
     plot.title = element_textbox_simple(face = "bold", size = 22, colour = ink,
                                         lineheight = 1.05, margin = margin(b = 12)),
     plot.subtitle = element_textbox_simple(size = 11, colour = muted,
-                                           lineheight = 1.25, margin = margin(b = 10)),
+                                           lineheight = 1.25, margin = margin(b = 12)),
     plot.caption = element_textbox_simple(size = 7, colour = faint,
                                           lineheight = 1.4, margin = margin(t = 16)),
     legend.position = "top",
