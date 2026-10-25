@@ -1,90 +1,110 @@
-#Lisa's Vegetable Garden Data
-#2024: week 22
-#load libraries 
+# Lisa's Vegetable Garden Data
+# TidyTuesday 2024 · Week 22
+# Question: what did Lisa plant in her garden in 2021?
+
+# 1. LIBRARIES -------------------------------------------------------------
 library(tidyverse)
+library(packcircles)
 library(showtext)
 library(ggtext)
-library(tidytuesdayR)
-library(glue)
-library(Cairo)
-library(forcats)
-library(ggrepel)
-library(lubridate)
-library(ggridges)
-library(packcircles)
 
-## Load Google fonts (https://fonts.google.com/)
-font_add_google("Roboto", family = "title")                           
-font_add_google("Lato", family = "subtitle")
-font_add_google("Lato", family = "x")
-showtext::showtext_auto()
-showtext::showtext_opts(dpi = 300) 
+font_add_google("Poppins", family = "poppins")
+showtext_auto()
+showtext_opts(dpi = 288)
 
-#1.DATA LOADING
-tuesdata <- tidytuesdayR::tt_load(2024, week = 22)
-harvest_2020 <- tuesdata$harvest_2020
-harvest_2021 <- tuesdata$harvest_2021
-planting_2020 <- tuesdata$planting_2020
-planting_2021 <- tuesdata$planting_2021
-spending_2020 <- tuesdata$spending_2020
-spending_2021 <- tuesdata$spending_2021
+# 2. DATA ------------------------------------------------------------------
+base <- "https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2024/2024-05-28/"
+planting_2021 <- read_csv(paste0(base, "planting_2021.csv"), show_col_types = FALSE)
+harvest_2021  <- read_csv(paste0(base, "harvest_2021.csv"), show_col_types = FALSE)
 
+# 3. WRANGLING -------------------------------------------------------------
+groups <- list(
+  "Fruiting vegetables" = c("tomatoes", "tomatillos", "peppers", "zucchini", "squash",
+                            "pumpkins", "pumpkin", "cucumbers", "watermelon", "corn",
+                            "melon", "hot peppers"),
+  "Leafy greens"        = c("spinach", "kale", "swiss chard", "lettuce", "cabbage"),
+  "Root vegetables"     = c("beets", "radish", "carrots", "rutabaga", "potatoes", "onions"),
+  "Legumes"             = c("peas", "beans", "edamame"),
+  "Herbs"               = c("dill", "basil", "cilantro"))
+group_of <- function(v) {
+  g <- names(groups)[map_lgl(groups, ~ v %in% .x)]
+  if (length(g) == 0) "Other" else g[1]
+}
 
-#2.DATA WRANGLING
-unique_veg_21<-planting_2021 %>%
-  select(vegetable) %>% 
-  filter(!is.na(vegetable)) %>%  # Exclude NA values
-  distinct() %>%  # Get unique colour values
-  pull(vegetable)  # Pull the colours into a vector
+dt <- planting_2021 |>
+  filter(!is.na(vegetable)) |>
+  count(vegetable, name = "plantings") |>
+  mutate(group = map_chr(vegetable, group_of),
+         group = factor(group, levels = c(names(groups), "Other"))) |>
+  arrange(desc(plantings))
 
-# Define the categories as vectors
-leafy_greens <- c("spinach", "kale", "swiss chard", "lettuce", "cabbage")
-root_vegetables <- c("beets", "radish", "carrots", "rutabaga", "potatoes")
-fruiting_vegetables <- c("tomatoes", "tomatillos", "peppers", "zucchini", "squash", 
-                         "pumpkin", "cucumbers", "watermelon", "corn")
-legumes <- c("peas", "beans", "edamame")
-herbs <- c("dill", "basil", "cilantro")
+# Circle positions (area = number of plantings)
+packing <- circleProgressiveLayout(dt$plantings, sizetype = "area")
+dt <- bind_cols(dt, packing)
+circles <- circleLayoutVertices(packing, npoints = 60) |>
+  left_join(dt |> mutate(id = row_number()) |> select(id, group), by = "id")
 
-#create dt for the plot
-dt<-planting_2021 %>%
-  select(vegetable) %>% 
-  mutate(group = case_when(
-    vegetable %in% leafy_greens ~ "Leafy Greens",
-    vegetable %in% root_vegetables ~ "Root Vegetables",
-    vegetable %in% fruiting_vegetables ~ "Fruiting Vegetables",
-    vegetable %in% legumes ~ "Legumes",
-    vegetable %in% herbs ~ "Herbs",
-    TRUE ~ "Other" # In case there's a vegetable that doesn't fit in any category
-  )) %>% 
-  group_by(group,vegetable) %>% 
-  summarise(n=n())
+n_plantings <- sum(dt$plantings); n_veg <- nrow(dt)
+tom <- dt |> filter(vegetable == "tomatoes")
+harvest_share <- harvest_2021 |>
+  summarise(share = sum(weight[vegetable == "tomatoes"]) / sum(weight)) |> pull(share)
 
-#for the plot
-packing <- circleProgressiveLayout(dt$n, sizetype='area')
-dt <- cbind(dt, packing)
-dat.gg <- circleLayoutVertices(packing, npoints=50)
+# Labels: name + count for circles big enough to hold text
+lab <- dt |> mutate(big = plantings >= 3,
+                    label = if_else(big, paste0("**", str_to_sentence(vegetable), "**<br>", plantings),
+                                    str_to_sentence(vegetable)))
 
+# 4. COLOURS & TEXT --------------------------------------------------------
+cols <- c(`Fruiting vegetables` = "#D1495B", `Leafy greens` = "#66A182",
+          `Root vegetables` = "#C78B4A", Legumes = "#8DA05A", Herbs = "#A3C4A8",
+          Other = "#BDBDBD")
+ink <- "#1A1A1A"; muted <- "#5A5A5A"; faint <- "#7A7A7A"
 
-#3. PLOT VIZUALIZATION 
-##plot
-p<-
-  ggplot() + 
-  geom_polygon(data = dat.gg, aes(x, y, 
-                                  group = id, 
-                                  fill=as.factor(id)), # Make the bubbles
-                                  colour = "black", alpha = 0.6) +
-  geom_text(data = dt, aes(x = x, y = y, size = n, label = vegetable),size=3) +
-  geom_text(data = dt, aes(x = x, y = y, size = n, label = group), size=3,
-            nudge_y = 0.5)+
-  geom_text(data = dt, aes(x = x, y = y, size = n, label = n), size=3,
-            nudge_y = 0.8)+
-  scale_size_continuous(range = c(1,4)) +
-  scale_color_viridis(discrete=TRUE) +
-  theme_void() + 
-  theme(legend.position="none") +
-  coord_equal()
+tt <- "Tomatoes ruled Lisa's vegetable garden in 2021"
 
-#4. SAVE THE PLOT
-ggsave("TT2024Week22.svg", width = 8, height = 6, 
-       dpi = 300, bg = "white") 
+st <- paste0(
+  n_plantings, " plantings of ", n_veg, " vegetables in Lisa Lendway's garden, sized by number ",
+  "of plantings. Tomatoes also gave ", scales::percent(harvest_share, accuracy = 1),
+  " of the harvest by weight. ",
+  "<span style='color:", cols[1], "'>**Fruiting vegetables**</span>, ",
+  "<span style='color:", cols[2], "'>**leafy greens**</span>, ",
+  "<span style='color:", cols[3], "'>**root vegetables**</span>, ",
+  "<span style='color:", cols[4], "'>**legumes**</span>, ",
+  "<span style='color:#6E9A74'>**herbs**</span>.")
 
+ct <- paste0("A planting is one row of seeds or seedlings sown on one date.<br>",
+             "Data source: Lisa Lendway, {gardenR}",
+             " · Creator: Zoi Diamantakou · TidyTuesday 2024 · Week 22")
+
+# 5. PLOT ------------------------------------------------------------------
+p <- ggplot() +
+  geom_polygon(data = circles, aes(x, y, group = id, fill = group),
+               colour = "white", linewidth = 0.6) +
+  geom_richtext(data = filter(lab, big), aes(x, y, label = label),
+                family = "poppins", size = 2.5, colour = "white", lineheight = 1.1,
+                fill = NA, label.colour = NA, label.padding = unit(0, "pt")) +
+  geom_text(data = filter(lab, !big), aes(x, y, label = label),
+            family = "poppins", size = 1.9, colour = ink) +
+  scale_fill_manual(values = cols, guide = "none") +
+  # widen the x range so the panel (and so the title) uses the full canvas width
+  coord_equal(xlim = mean(range(circles$x)) + c(-0.68, 0.68) * diff(range(circles$y)),
+              ylim = range(circles$y)) +
+  labs(title = tt, subtitle = st, caption = ct) +
+  theme_void(base_family = "poppins") +
+  theme(
+    plot.title.position   = "plot",
+    plot.caption.position = "plot",
+    plot.title = element_textbox_simple(face = "bold", size = 22, colour = ink,
+                                        lineheight = 1.05, margin = margin(b = 12)),
+    plot.subtitle = element_textbox_simple(size = 11, colour = muted,
+                                           lineheight = 1.25, margin = margin(b = 18)),
+    plot.caption = element_markdown(size = 7, colour = faint, hjust = 0,
+                                    lineheight = 1.4, margin = margin(t = 18)),
+    plot.background = element_rect(fill = "white", colour = NA),
+    plot.margin = margin(36, 36, 36, 36))
+# coord_equal makes the panel narrower than the canvas; let the text use the full width
+p <- p + theme(plot.title.position = "plot")
+
+# 6. SAVE ------------------------------------------------------------------
+ggsave("TT2024Week22.png", p, width = 7.5, height = 7.5, dpi = 288, bg = "white")
+ggsave("TT2024Week22.svg", p, width = 7.5, height = 7.5, bg = "white")
