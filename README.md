@@ -4,7 +4,7 @@
 
 This repo holds 67 visualizations and the R code behind every one of them, all built in R with ggplot2. Below are the ones I'm proudest of. Every chart, week by week, is in the [chart catalogue](Chart_Catalogue.md).
 
-**2026 revision:** I went back over every chart. Each one now has a headline that states its finding, a consistent layout, and numbers re-checked against the data. That review caught several errors, like duplicated records and mislabelled categories, which are now fixed. Earlier versions were finished by hand in Figma; the revised charts are made fully in code.
+**2026 revision:** I went back over every chart. Each one now has a headline that states its finding, a consistent layout, and numbers re-checked against the data. That review caught some errors, like duplicated records and mislabelled categories, which are now fixed. Earlier versions were finished by hand in Figma; the revised charts are made fully in code.
 
 ## Featured charts
 
