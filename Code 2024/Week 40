@@ -1,132 +1,95 @@
-#Chess Game Dataset (Lichess)
-#2024: week 40 
-#load libraries 
+# Chess Game Dataset (Lichess)
+# TidyTuesday 2024 · Week 40
+# Question: which popular openings favour white, and which favour black?
+
+# 1. LIBRARIES -------------------------------------------------------------
 library(tidyverse)
 library(showtext)
 library(ggtext)
-library(tidytuesdayR)
-library(glue)
-library(Cairo)
-library(forcats)
-library(ggrepel)
-library(lubridate)
-library(ggridges)
 
+font_add_google("Poppins", family = "poppins")
+showtext_auto()
+showtext_opts(dpi = 288)
 
+# 2. DATA ------------------------------------------------------------------
+chess <- read_csv(
+  "https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2024/2024-10-01/chess.csv",
+  show_col_types = FALSE)
 
+# 3. WRANGLING -------------------------------------------------------------
+# The 15 most-played openings (by name, which is easier to read than the ECO code)
+top_15 <- chess |> count(opening_name, sort = TRUE) |> slice_head(n = 15) |> pull(opening_name)
 
-#1.DATA LOADING
-tuesdata <- tidytuesdayR::tt_load(2024, week = 40)
-chess <- tuesdata$chess
+dt <- chess |>
+  filter(opening_name %in% top_15) |>
+  group_by(opening_name) |>
+  summarise(games = n(),
+            white = mean(winner == "white") * 100,
+            black = mean(winner == "black") * 100,
+            .groups = "drop") |>
+  mutate(gap = white - black,
+         label = paste0(opening_name, " <span style='color:#7A7A7A'>(", games, ")</span>"),
+         label = fct_reorder(label, gap))
 
-#2.DATA WRANGLING
-dt<-chess %>% 
-  select(winner,opening_eco) %>% 
-  group_by(winner,opening_eco) %>% 
-  summarise(n=n()) 
+long <- dt |> pivot_longer(c(white, black), names_to = "side", values_to = "pct")
 
-#most popular opening_eco moves
-top_50_opening_eco <- chess%>%
-  select(opening_eco,winner) %>% 
-  group_by(opening_eco) %>% 
-  summarise(n=n()) %>% 
-  arrange(desc(n)) %>% 
-  slice_head(n = 50) %>% 
-  pull(opening_eco) 
+best_w <- dt |> slice_max(white, n = 1)
+best_b <- dt |> slice_max(black, n = 1)
+n_games <- sum(dt$games)
 
-#the dataset for the plot
-dt_top_50 <- dt %>% 
-  filter(winner%in%c("black","white")) %>% 
-  mutate(winner = factor(paste0(winner, " wins"), levels = c("black wins", "white wins"))) %>% 
-  filter(opening_eco %in% top_50_opening_eco) %>% 
-  arrange(winner, desc(n)) %>%         
-  group_by(winner) %>%                           
-  mutate(rank = row_number()) %>%             
-  ungroup()
+# 4. COLOURS & TEXT --------------------------------------------------------
+bg <- "#F2E0D5"; dark <- "#252940"; rose <- "#A66F6F"
+ink <- "#1A1A1A"; muted <- "#5A5A5A"; faint <- "#7A7A7A"
 
+tt <- paste0("White wins ", round(best_w$white), "% after the ", best_w$opening_name,
+             ", but only ", round(dt$white[dt$opening_name == best_b$opening_name]), "% after ",
+             str_remove(best_b$opening_name, " Opening"))
 
-#3. PLOT VIZUALIZATION 
-## Load Google fonts (https://fonts.google.com/)
-font_add_google("Arvo", family = "title")                           
-font_add_google("Open Sans", family = "subtitle")
-font_add_google("Lato", family = "x")
-showtext::showtext_auto()
-showtext::showtext_opts(dpi = 300) 
+st <- paste0(
+  "Share of games won by **white** (open dots) and by ",
+  "<span style='color:", dark, "'>**black**</span> (filled dots) in the 15 most-played openings on Lichess ",
+  "(", scales::comma(n_games), " games; number of games in brackets). ",
+  "Openings with a <span style='color:", rose, "'>**pink bar**</span> favour white, ",
+  "those with a <span style='color:#6E6E78'>**grey bar**</span> favour black.")
 
-##Title,subtitle & caption 
-tt <- str_glue(stringr::str_wrap("Top 50 opening moves in chess for White and 
-                                 Black",width=40))
-st <- str_glue(stringr::str_wrap("The graph shows the top 50 opening moves in chess, 
-                                  ranked by the number of wins for both Black 
-                                 and White, based on standardized ECO codes.",
-                                 width=70))
-ct  <- str_glue(stringr::str_wrap("Data Source: Lichess.org via Kaggle/Mitchell J. | 
-                                  Creator:Zoi Diamantakou | tidytuesday | 2024, 
-                                  week 40",width=120))
+ct <- paste0("Draws (about 4% of games) make up the rest. Casual and rated games, all ratings.<br>",
+             "Data source: Lichess.org via Kaggle (Mitchell J.) · Creator: Zoi Diamantakou · ",
+             "TidyTuesday 2024 · Week 40")
 
-##plot
-cols<-c("black wins"="#252940","white wins"="#A66F6F")
-p<-
-  ggplot(data = dt_top_50,
-         aes(x = winner,
-             y = rank,
-             color=winner,
-             group = opening_eco)) +
-  geom_line(size = 0.8,
-            alpha = 0.5,
-            colour="black") +
-  geom_point(size = 7) +
-  scale_color_manual(values = cols)+
-  scale_y_reverse(breaks = 1:50) +
-  scale_x_discrete(position = "top")+
-  labs(x="",
-       y="Rank",
-       title = tt,
-       subtitle =st ,
-       caption = ct,
-       col="")+
-  # Add geom_text for 'black' winner, ensuring we are using proper x and no numeric adjustments
-  geom_text(data = dt_top_50 %>% filter(winner == "black wins"),
-            aes(x = winner, label = opening_eco),
-            size = 5, hjust = 1, colour = "black",
-            position = position_nudge(x = -0.1))+# Nudge left without numeric adjustment+
-  geom_text(data = dt_top_50 %>% filter(winner == "white wins"),
-            aes(x = winner, label = opening_eco),
-            size = 5, hjust = 0,  colour = "black",
-            position = position_nudge(x = 0.1)) +  
-  theme_minimal()
+# 5. PLOT ------------------------------------------------------------------
+p <- ggplot(long, aes(pct, label)) +
+  geom_vline(xintercept = 50, colour = muted, linewidth = 0.3, linetype = "dashed") +
+  geom_segment(data = dt, aes(x = black, xend = white, y = label, yend = label,
+                              colour = gap > 0), linewidth = 1.6, alpha = 0.6) +
+  geom_point(aes(fill = side), shape = 21, size = 4, stroke = 0.9, colour = dark) +
+  geom_text(data = long |> filter(label == levels(dt$label)[15]),
+            aes(label = paste0(round(pct), "%")),
+            nudge_y = 0.55, family = "poppins", size = 2.5, colour = muted) +
+  annotate("text", x = 50.5, y = 0.4, label = "50%", hjust = 0, family = "poppins",
+           size = 2.4, colour = muted) +
+  scale_fill_manual(values = c(white = "white", black = dark), guide = "none") +
+  scale_colour_manual(values = c(`TRUE` = rose, `FALSE` = dark), guide = "none") +
+  scale_x_continuous(limits = c(30, 68), breaks = seq(30, 65, 5),
+                     labels = \(x) paste0(x, "%"), position = "top") +
+  coord_cartesian(clip = "off") +
+  labs(title = tt, subtitle = st, caption = ct, x = NULL, y = NULL) +
+  theme_minimal(base_family = "poppins") +
+  theme(
+    plot.title.position   = "plot",
+    plot.caption.position = "plot",
+    plot.title = element_textbox_simple(face = "bold", size = 22, colour = ink,
+                                        lineheight = 1.05, margin = margin(b = 12)),
+    plot.subtitle = element_textbox_simple(size = 11, colour = muted,
+                                           lineheight = 1.25, margin = margin(b = 14)),
+    plot.caption = element_textbox_simple(size = 7, colour = faint,
+                                          lineheight = 1.4, margin = margin(t = 16)),
+    axis.text.y = element_markdown(size = 8, colour = ink),
+    axis.text.x = element_text(size = 7.5, colour = faint),
+    panel.grid  = element_blank(),
+    panel.grid.major.y = element_line(colour = "#E6CFC1", linewidth = 0.3),
+    plot.background = element_rect(fill = bg, colour = NA),
+    plot.margin = margin(36, 36, 36, 36))
 
-p+theme_minimal()+
-  theme(plot.margin           = margin(t = 2, r = 15, b = 10, l = 25),
-        plot.title            = element_text(
-          family= 'title',face= "bold",size= 30,hjust = 0,
-          colour="#19201D",
-          margin= margin(t = 16, b = 5)),
-        plot.subtitle = element_text(
-          family= 'subtitle', hjust = 0,
-          lineheight= 0.9,size  = 20,colour="black",
-          margin= margin(t = 5, b = 10)),
-        plot.caption = element_text(colour="black"),
-        plot.caption.position = "plot",
-        #axis
-        axis.title.x = element_text(size=14,family="x"),
-        axis.title.y = element_text(size=14,family="x",vjust = 1.5),
-        axis.text.x = element_text(size=12,family="x"),
-        axis.text.y =element_text(size=12,family="x"),
-        #legend
-        legend.position = "none",
-        #background
-        panel.grid.major = element_blank(), 
-        panel.grid.minor= element_blank(),
-        panel.grid.major.y = element_line(color = "black",
-                                          linewidth = 0.1,
-                                          linetype = 2),
-        plot.background = element_rect(fill = "#F2E0D5", color = NA))
-
-
-#4. SAVE THE PLOT
-ggsave("TT2024Week40.png", width = 10, height = 14, 
-       type = "Cairo",dpi = 300, bg = "white") 
-ggsave("TT2024Week40.svg", width = 10, height = 14, 
-       dpi = 300, bg = "white") 
-
+# 6. SAVE ------------------------------------------------------------------
+ggsave("TT2024Week40.png", p, width = 7.5, height = 7.5, dpi = 288, bg = bg)
+ggsave("TT2024Week40.svg", p, width = 7.5, height = 7.5, bg = bg)
