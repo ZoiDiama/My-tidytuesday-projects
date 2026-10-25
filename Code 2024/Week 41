@@ -1,133 +1,112 @@
-#National Park Species
-#2024: week 41
+# National Park Species
+# TidyTuesday 2024 · Week 41
+# Question: what kinds of species live in the 15 most-visited US national parks?
 
-
-#load key libraries 
-library(tidytuesdayR)# Access data for the #TidyTuesday project.
-library(dplyr)
-library(ggplot2)
-library(tidyverse) # Collection of tools for data manipulation and visualization.
-library(showtext) #Easily use custom fonts in plots.Allows the use of google fonts
-library(glue)#Simple string formatting and interpolation.
-library(Cairo) #High-quality graphics rendering for plots.
-
-#additional libraries
-library(ggtext) #Allows rich text formatting (Markdown/HTML) in ggplot.
-library(forcats) #Tools for handling categorical variables (factors).
-library(ggrepel) #Avoids overlapping labels in ggplot2.
-library(lubridate)#Simplifies working with dates and times.
-library(ggridges) #Create ridge/joy plots for visualizing distributions.
+# 1. LIBRARIES -------------------------------------------------------------
+library(tidyverse)
 library(treemapify)
+library(showtext)
+library(ggtext)
 
-## Load Google fonts (https://fonts.google.com/)
-font_add_google("Lato", family = "title")                           
-font_add_google("Lato", family = "subtitle")
-font_add_google("Lato", family = "x")
-showtext::showtext_auto()
-showtext::showtext_opts(dpi = 300) 
+font_add_google("Poppins", family = "poppins")
+showtext_auto()
+showtext_opts(dpi = 288)
 
-#1.DATA LOADING
-tuesdata <- tidytuesdayR::tt_load(2024, week = 41)
-most_visited_nps_species_data <- tuesdata$most_visited_nps_species_data
+# 2. DATA ------------------------------------------------------------------
+species <- read_csv(
+  "https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2024/2024-10-08/most_visited_nps_species_data.csv",
+  show_col_types = FALSE)
 
-#2.DATA WRANGLING
-dt <- most_visited_nps_species_data %>% 
-  filter(TaxonRecordStatus == "Active",
-         ParkAccepted == "TRUE", 
-         Occurrence == "Present") %>% 
-  select(ParkName, CategoryName, Abundance) %>% 
-  drop_na() %>% 
+# 3. WRANGLING -------------------------------------------------------------
+# All species confirmed present in each park. (The earlier version also dropped
+# species with no "Abundance" value, which removed over a quarter of the records.)
+groups <- c("Plants", "Invertebrates", "Vertebrates", "Microorganisms")
+
+dt <- species |>
+  filter(TaxonRecordStatus == "Active", ParkAccepted == TRUE, Occurrence == "Present") |>
   mutate(group = case_when(
-    CategoryName %in% c("Mammal", "Bird", "Reptile", "Amphibian", "Fish") ~ "Vertebrates",
-    CategoryName %in% c("Crab/Lobster/Shrimp", "Slug/Snail", "Spider/Scorpion", "Insect", "Other Non-vertebrates") ~ "Invertebrates",
-    CategoryName %in% c("Vascular Plant", "Non-vascular Plant") ~ "Plants",
-    CategoryName %in% c("Fungi", "Chromista", "Protozoa", "Bacteria") ~ "Microorganisms",
-    TRUE ~ CategoryName  # Keep original category if not grouped
-  )) %>% 
-  group_by(ParkName, group) %>%
-  summarise(species_count = n()) %>%
-  mutate(Percent = species_count / sum(species_count) * 100) %>%  
-  ungroup() %>% 
-  mutate(ParkName = str_replace_all(ParkName, 
-                                    c("Acadia National Park" = "Acadia\nNational Park",
-                                      "Bryce Canyon National Park" = "Bryce Canyon\nNational Park",
-                                      "Cuyahoga Valley National Park" = "Cuyahoga Valley\nNational Park",
-                                      "Glacier National Park" = "Glacier\nNational Park",
-                                      "Grand Canyon National Park" = "Grand Canyon\nNational Park",
-                                      "Grand Teton National Park" = "Grand Teton\nNational Park",
-                                      "Great Smoky Mountains National Park" = "Great Smoky \nMountains National Park",
-                                      "Hot Springs National Park" = "Hot Springs\nNational Park",
-                                      "Indiana Dunes National Park" = "Indiana Dunes\nNational Park",
-                                      "Joshua Tree National Park" = "Joshua Tree\nNational Park",
-                                      "Olympic National Park" = "Olympic\nNational Park",
-                                      "Rocky Mountain National Park" = "Rocky Mountain\nNational Park",
-                                      "Yellowstone National Park" = "Yellowstone\nNational Park",
-                                      "Yosemite National Park" = "Yosemite\nNational Park",
-                                      "Zion National Park" = "Zion\nNational Park")))
+    CategoryName %in% c("Vascular Plant", "Non-vascular Plant")                     ~ "Plants",
+    CategoryName %in% c("Mammal", "Bird", "Reptile", "Amphibian", "Fish")           ~ "Vertebrates",
+    CategoryName %in% c("Fungi", "Chromista", "Protozoa", "Bacteria")               ~ "Microorganisms",
+    TRUE                                                                           ~ "Invertebrates")) |>
+  count(ParkName, group, name = "n") |>
+  group_by(ParkName) |>
+  mutate(total = sum(n), pct = n / total) |>
+  ungroup() |>
+  mutate(group = factor(group, levels = groups),
+         park  = str_remove(ParkName, " National Park") |>
+                 str_replace("Great Smoky Mountains", "Great Smoky Mtns"))
 
-#3. PLOT VIZUALIZATION 
-##Title,subtitle & caption 
-tt <- str_glue(stringr::str_wrap("Wildlife diversity in the 15 most-visited US parks",
-                                 width=60))
-st <- str_glue(stringr::str_wrap("Distribution of NPSpecies across four categories—vertebrates, invertebrates, 
-                                 plants, and microorganisms—in 15 U.S. parks ",
-                                 width=70))
-ct  <- str_glue(stringr::str_wrap("Data source:National Parks Service (NPS) | 
-                                  Creator:Zoi Diamantakou | 
-                                  Tidytuesday:2024, week 41",width=100))
+# Parks ordered by number of species, with the count in the facet title
+parks <- dt |> distinct(park, total) |> arrange(desc(total)) |>
+  mutate(strip = paste0(park, "  ", scales::comma(total)))
+dt <- dt |> left_join(parks |> select(park, strip), by = "park") |>
+  mutate(strip = factor(strip, levels = parks$strip))
 
-##plot
+smoky <- parks |> slice(1); second <- parks |> slice(2)
+n_plant_majority <- dt |> filter(group == "Plants", pct > 0.5) |> nrow()
 
-cols=c("#BF9663","#02734A","#61A64E","#F2B705")
-p<-
-  ggplot(dt, aes(area = species_count, fill = group,
-                 label = paste(sprintf("%.1f%%", Percent), sep = "\n"))) +
-  geom_treemap()+
-  facet_wrap(~ParkName)+
-  geom_treemap_text(colour = "black",
-                    place = "centre",
-                    size = 14)+
-  scale_fill_manual(values=cols)+
-  labs(x="",
-       y="",
-       fill="Category of NPSpecies",
-       title = tt,
-       subtitle =st ,
-       caption = ct,
-       col="")+
-  theme_minimal()+
-  theme(plot.margin           = margin(t = 20, r = 20, b = 20, l = 20),
-        plot.title            = element_text(
-          family= 'title',face= "bold",size= 24,hjust = 0,
-          colour="#19201D",
-          margin= margin(t = 22, b = 5)),
-        plot.subtitle = element_text(
-          family= 'subtitle', hjust = 0,
-          lineheight= 0.9,size  = 18,colour="black",
-          margin= margin(t = 5, b = 10)),
-        plot.caption = element_text(colour="black",size=12,family="x",hjust = 0),
-        plot.caption.position = "plot",
-        #axis
-        axis.title.x = element_blank(),
-        axis.text.x = element_blank(),
-        axis.text.y = element_blank(),
-        #panel
-        strip.text.x = element_text(
-          size = 12,hjust = 0.5, family = 'x', colour = "black"
-        ),
-        #legend
-        legend.position = "top",
-        legend.justification = "left",
-        legend.text = element_text(family="x",color = "black",size = 12),
-        legend.title = element_text(family="x",color = "black",size = 12),
-        #background
-        plot.background = element_rect(fill = "#eff3eb", color = NA))
+boxes <- dt |>
+  arrange(strip, group) |>
+  group_by(strip) |>
+  group_modify(~ treemapify(as.data.frame(mutate(.x, group = as.character(group))),
+                            area = "n", layout = "fixed",
+                            xlim = c(0, 1), ylim = c(0, 1)) |> as_tibble()) |>
+  ungroup() |>
+  mutate(group = factor(group, levels = groups),
+         label = if_else(pct >= 0.12, scales::percent(pct, accuracy = 1), ""))
 
+# 4. COLOURS & TEXT --------------------------------------------------------
+cols <- c(Plants = "#5E9C5A", Invertebrates = "#E3B23C", Vertebrates = "#A8743F",
+          Microorganisms = "#C9C3B6")
+text_col <- c(Plants = "white", Invertebrates = "#1A1A1A", Vertebrates = "white",
+              Microorganisms = "#1A1A1A")
+ink <- "#1A1A1A"; muted <- "#5A5A5A"; faint <- "#7A7A7A"
 
-#4. SAVE THE PLOT
-ggsave("TT2024Week_41.png", width = 10, height = 8,type = "Cairo",dpi = 300, bg = "white") 
-ggsave("TT2024Week_41.svg", width = 10, height = 8,dpi = 300, bg = "white")
-browseURL("TT2024Week_41.svg")
+tt <- paste0("In ", n_plant_majority, " of the 15 most-visited US parks, most known species are plants")
 
+st <- paste0(
+  "Species recorded in each park, by type: ",
+  "<span style='color:", cols["Plants"], "'>**plants**</span>, ",
+  "<span style='color:#B8891A'>**invertebrates**</span>, ",
+  "<span style='color:", cols["Vertebrates"], "'>**vertebrates**</span> and ",
+  "<span style='color:#9A9384'>**microorganisms**</span>. Parks are ranked by number of species. ",
+  smoky$park, " stands out with ", scales::comma(smoky$total), ", eight times more than ",
+  second$park, ".")
 
+ct <- paste0("Great Smoky Mountains has run an all-species survey since 1998, so its insects, fungi and other small species are far better recorded.<br>",
+             "Data source: National Park Service, NPSpecies",
+             " · Creator: Zoi Diamantakou · TidyTuesday 2024 · Week 41")
 
+# 5. PLOT ------------------------------------------------------------------
+p <- ggplot(boxes) +
+  geom_rect(aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, fill = group),
+            colour = "white", linewidth = 0.5) +
+  geom_text(aes(x = (xmin + xmax) / 2, y = (ymin + ymax) / 2, label = label, colour = group),
+            family = "poppins", fontface = "bold", size = 2.3) +
+  facet_wrap(~ strip, ncol = 5) +
+  scale_fill_manual(values = cols, guide = "none") +
+  scale_colour_manual(values = text_col, guide = "none") +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  coord_equal() +
+  labs(title = tt, subtitle = st, caption = ct) +
+  theme_void(base_family = "poppins") +
+  theme(
+    plot.title.position   = "plot",
+    plot.caption.position = "plot",
+    plot.title = element_textbox_simple(face = "bold", size = 22, colour = ink,
+                                        lineheight = 1.05, margin = margin(b = 12)),
+    plot.subtitle = element_textbox_simple(size = 10.5, colour = muted,
+                                           lineheight = 1.25, margin = margin(b = 16)),
+    plot.caption = element_textbox_simple(size = 7, colour = faint,
+                                          lineheight = 1.4, margin = margin(t = 16)),
+    strip.text = element_text(size = 6.5, colour = ink, hjust = 0, margin = margin(b = 3)),
+    panel.spacing.x = unit(3, "mm"),
+    panel.spacing.y = unit(4, "mm"),
+    plot.background = element_rect(fill = "white", colour = NA),
+    plot.margin = margin(36, 36, 36, 36))
+
+# 6. SAVE ------------------------------------------------------------------
+ggsave("TT2024Week_41.png", p, width = 7.5, height = 7.5, dpi = 288, bg = "white")
+ggsave("TT2024Week_41.svg", p, width = 7.5, height = 7.5, bg = "white")
