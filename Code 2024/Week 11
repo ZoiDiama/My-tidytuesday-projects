@@ -1,106 +1,89 @@
-#Fiscal Sponsors
-#2024: week 11
-#load libraries 
+# Fiscal Sponsors
+# TidyTuesday 2024 · Week 11
+# Question: how many projects does a typical fiscal sponsor support?
+
+# 1. LIBRARIES -------------------------------------------------------------
 library(tidyverse)
+library(treemapify)
 library(showtext)
 library(ggtext)
-library(tidytuesdayR)
-library(glue)
-library(Cairo)
-library(forcats)
-library(ggrepel)
-library(lubridate)
-library(treemapify)
-library(ggplot2)
 
+font_add_google("Poppins", family = "poppins")
+showtext_auto()
+showtext_opts(dpi = 288)
 
+# 2. DATA ------------------------------------------------------------------
+fiscal_sponsor_directory <- read_csv(
+  "https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2024/2024-03-12/fiscal_sponsor_directory.csv",
+  show_col_types = FALSE)
 
-#1.DATA LOADING
-tuesdata <- tidytuesdayR::tt_load(2024, week = 11)
+# 3. WRANGLING -------------------------------------------------------------
+sponsors <- fiscal_sponsor_directory |>
+  filter(!is.na(n_sponsored), n_sponsored > 0)
 
-fiscal_sponsor_directory <- tuesdata$fiscal_sponsor_directory
+groups <- c("1–5 projects", "6–10 projects", "11–25 projects",
+            "26–100 projects", "101+ projects")
 
+dt <- sponsors |>
+  mutate(group = cut(n_sponsored, c(0, 5, 10, 25, 100, Inf), labels = groups)) |>
+  group_by(group) |>
+  summarise(n = n(), projects = sum(n_sponsored), .groups = "drop") |>
+  mutate(pct  = n / sum(n),
+         label = paste0("<span style='font-size:22pt'>**",
+                        scales::percent(pct, accuracy = 1), "**</span><br>",
+                        group, "<br><span style='font-size:7pt'>",
+                        n, " sponsors</span>"))
 
-#2.DATA WRANGLING
-dt<-fiscal_sponsor_directory %>% 
-  select(name,n_sponsored) %>% 
-  filter(!is.na(n_sponsored)) %>% 
-  filter(n_sponsored>0) %>% 
-  mutate(group=case_when(
-    n_sponsored<=5~"1 to 5 projects",
-    n_sponsored>=6&n_sponsored<=10~"6-10 projects",
-    n_sponsored>=11&n_sponsored<=25~"11-25 projects",
-    n_sponsored>=26&n_sponsored<=100~"26-100 projects",
-    n_sponsored>=101~"101 projects and above")) %>% 
-  group_by(group) %>% 
-  summarise(n=n()) %>% 
-  mutate(Percent = round(n/sum(n)*100, 1))
-  
+n_sponsors <- nrow(sponsors)
+big        <- dt |> filter(group == "101+ projects")
+big_share  <- big$projects / sum(dt$projects)
 
+# 4. COLOURS & TEXT --------------------------------------------------------
+# One colour scale, light (small sponsors) to dark (large sponsors)
+cols <- setNames(c("#CFE3F1", "#9CC5E3", "#5E9DCB", "#2F6FA6", "#123F6B"), groups)
+text_col <- setNames(c("#1A1A1A", "#1A1A1A", "white", "white", "white"), groups)
+ink <- "#1A1A1A"; muted <- "#5A5A5A"; faint <- "#7A7A7A"
 
-dt$group <- factor(dt$group, levels = c("1 to 5 projects","26-100 projects",
-                                        "11-25 projects",
-                                        "6-10 projects","101 projects and above"))  # Specify the desired order
+tt <- "One in three fiscal sponsors supports five projects or fewer"
 
+st <- paste0(
+  n_sponsors, " US fiscal sponsors, grouped by how many projects they support (May 2024). ",
+  "Each box is sized by the number of sponsors. At the other end, just ", big$n,
+  " large sponsors run ", scales::percent(big_share, accuracy = 1),
+  " of all ", scales::comma(sum(dt$projects)), " sponsored projects.")
 
+ct <- paste0("Data source: Fiscal Sponsor Directory",
+             " · Creator: Zoi Diamantakou · TidyTuesday 2024 · Week 11")
 
-#3. PLOT VIZUALIZATION 
-## Load Google fonts (https://fonts.google.com/)
-font_add_google("Montserrat", family = "title")                           
-font_add_google("Open Sans", family = "subtitle")
-font_add_google("Caveat", family = "x")
-showtext::showtext_auto()
-showtext::showtext_opts(dpi = 300) 
+# 5. PLOT ------------------------------------------------------------------
+# Box positions from treemapify, so the labels can use rich text
+boxes <- treemapify(dt, area = "n", layout = "squarified",
+                    xlim = c(0, 1), ylim = c(0, 1))
 
-##Title,subtitle & caption 
-tt <- str_glue(stringr::str_wrap("Fiscal Sponsor Directory"),width=100)
-st <- str_glue(stringr::str_wrap("Breakdown of directory sponsors by number of projects served (Updated May 2024)",
-                                 width=80))
-ct  <- str_glue(stringr::str_wrap("Data Source: Fiscal Sponsor Directory| 
-                                  Creator:Zoi Diamantakou | tidytuesday | 2024, 
-                                  week 11",width=100))
+p <- ggplot(boxes) +
+  geom_rect(aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, fill = group),
+            colour = "white", linewidth = 1.5) +
+  geom_richtext(aes(x = xmin + 0.025, y = ymax - 0.025, label = label, colour = group),
+                hjust = 0, vjust = 1, family = "poppins", size = 3.2, lineheight = 1.15,
+                fill = NA, label.colour = NA, label.padding = unit(0, "pt")) +
+  scale_fill_manual(values = cols, guide = "none") +
+  scale_colour_manual(values = text_col, guide = "none") +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  labs(title = tt, subtitle = st, caption = ct) +
+  theme_void(base_family = "poppins") +
+  theme(
+    plot.title.position   = "plot",
+    plot.caption.position = "plot",
+    plot.title = element_textbox_simple(face = "bold", size = 22, colour = ink,
+                                        lineheight = 1.05, margin = margin(b = 12)),
+    plot.subtitle = element_textbox_simple(size = 11, colour = muted,
+                                           lineheight = 1.25, margin = margin(b = 20)),
+    plot.caption = element_text(size = 7, colour = faint, hjust = 0,
+                                margin = margin(t = 18)),
+    plot.background = element_rect(fill = "white", colour = NA),
+    plot.margin = margin(36, 36, 36, 36))
 
-##plot
-cols=c("#7ABC9C","#4BA7E6","#F7EE4E",
-       "#575859","#D73D82")
-p<-
-  ggplot(dt, aes(area = n, fill = group,
-                 label = paste(group, sprintf("%.1f%%", Percent), sep = "\n"))) +
-  geom_treemap()+
-  geom_treemap_text(colour = "black",
-                    place = "centre",
-                    size = 14)+
-  scale_fill_manual(values=cols)+
-  labs(x="",
-       y="",
-       title = tt,
-       subtitle =st ,
-       caption = ct,
-       col="")+
-  theme_minimal()+
-  theme(plot.margin           = margin(t = 50, r = 200, b = 50, l = 100),
-        plot.title            = element_text(
-          family= 'title',face= "bold",size= 30,hjust = 0,
-          colour="#19201D",
-          margin= margin(t = 16, b = 5)),
-        plot.subtitle = element_text(
-          family= 'subtitle', hjust = 0,
-          lineheight= 0.9,size  = 18,colour="black",
-          margin= margin(t = 5, b = 10)),
-        plot.caption = element_text(colour="black",size=12,family="x"),
-        plot.caption.position = "plot",
-        #axis
-        axis.title.x = element_blank(),
-        axis.text.x = element_blank(),
-        axis.text.y = element_blank(),
-        #legend
-        legend.position = "none",
-        #background
-        plot.background = element_rect(fill = "#F8FAF9", color = NA))
-  
-#4. SAVE THE PLOT
-ggsave("TT2024Week11.png", width = 12, height = 8, 
-       type = "Cairo",dpi = 300, bg = "white") 
-ggsave("TT2024Week11.svg", width = 12, height = 8, 
-       dpi = 300, bg = "white") 
-
+# 6. SAVE ------------------------------------------------------------------
+ggsave("TT2024Week11.png", p, width = 7.5, height = 7.5, dpi = 288, bg = "white")
+ggsave("TT2024Week11.svg", p, width = 7.5, height = 7.5, bg = "white")
