@@ -1,33 +1,94 @@
-library(hrbrthemes)
-library(viridis)
-library(tidyverse)
-library(ggtext)
-library(forcats)
-library(grid)
-detectors <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2023/2023-07-18/detectors.csv')
+# GPT Detectors
+# TidyTuesday 2023 · Week 29
+# Question: are GPT detectors fair to non-native English writers?
 
-detectors %>%
-  filter(!is.na(native)) %>%
-  mutate(native = ifelse(native == 'No',"Non-native \nEnglish writers","Native \nEnglish writers")) %>% 
-  ggplot() +
-  aes(x = detector, y = .pred_AI, fill = detector,color=detector) +
-  geom_violin(bw = .05) +
-  labs(
-    title="GPT detectors are biased against non-native English writers", 
-    subtitle=stringr::str_wrap("The chart displays the predicted probability of identifying AI-generated text by multiple commonly used GPT detectors, after testing writing samples from both native and non-native English writers. The results suggest that GPT detectors are inclined to recognize writing by non-native speakers with limited language skills as AI-generated.",width = 95),
-    x = " ",
-    y = "Predicted probability that\nsample was written by AI") +
-  coord_flip() +
-  facet_grid(~`native`)+
-  scale_y_continuous(breaks=seq(0,1,0.25))+
-  scale_fill_viridis(discrete=TRUE) +
-  scale_color_viridis(discrete=TRUE) +
-  theme_ipsum() +
-  theme(plot.margin = unit(c(1,2,1,1), "cm"),
-        plot.title.position = "plot",
-        axis.text.x = element_text(angle = 0, vjust = 0.5, hjust =0.5 ,size=9),
-        panel.grid.major.y = element_blank(),
-        legend.position = "none",
-    plot.title = element_text(size = 16, vjust = 0, hjust =0 ,face = "bold"),
-    plot.subtitle = element_text(size = 11),
-    strip.text.x = element_text(size = 9))
+# 1. LIBRARIES -------------------------------------------------------------
+library(tidyverse)
+library(viridis)
+library(showtext)
+library(ggtext)
+
+font_add_google("Poppins", family = "poppins")
+showtext_auto()
+showtext_opts(dpi = 288)
+
+# 2. DATA ------------------------------------------------------------------
+detectors <- read_csv(
+  "https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2023/2023-07-18/detectors.csv",
+  show_col_types = FALSE)
+
+# 3. WRANGLING -------------------------------------------------------------
+# Only essays written by people have a native / non-native label, so every
+# "AI" verdict below is a mistake.
+human <- detectors |>
+  filter(!is.na(native)) |>
+  mutate(writer = factor(if_else(native == "No", "Non-native English writers", "Native English writers"),
+                         levels = c("Non-native English writers", "Native English writers")))
+
+flag <- human |>
+  group_by(detector, writer) |>
+  summarise(flagged = mean(.pred_class == "AI"), .groups = "drop")
+
+# Detectors sorted by how often they wrongly flag non-native writers
+det_order <- flag |> filter(writer == "Non-native English writers") |> arrange(flagged) |> pull(detector)
+human <- human |> mutate(detector = factor(detector, levels = det_order))
+flag  <- flag  |> mutate(detector = factor(detector, levels = det_order))
+
+overall <- human |> group_by(writer) |> summarise(flagged = mean(.pred_class == "AI"), n = n())
+non <- overall |> filter(writer == "Non-native English writers")
+nat <- overall |> filter(writer == "Native English writers")
+rng <- flag |> filter(writer == "Non-native English writers") |> summarise(lo = min(flagged), hi = max(flagged))
+
+# 4. COLOURS & TEXT --------------------------------------------------------
+ink <- "#1A1A1A"; muted <- "#5A5A5A"; faint <- "#7A7A7A"
+
+tt <- paste0("GPT detectors flag ", round(non$flagged * 100), "% of non-native English essays as AI, ",
+             "against ", round(nat$flagged * 100), "% of native ones")
+
+st <- paste0(
+  "How likely seven GPT detectors think each essay is to be AI-written, though ",
+  "<b>every essay was written by a person</b>. The wider the shape, the more essays got that score; ",
+  "the % on the right is the share the detector labelled as AI. For non-native writers ",
+  "this ranges from ", round(rng$lo * 100), "% to ", round(rng$hi * 100), "%.")
+
+ct <- paste0("Non-native essays: TOEFL test essays. Native essays: essays by US students. ",
+             "Each essay was checked by every detector.<br>",
+             "Data source: Liang et al. (2023), GPT detectors are biased against non-native English writers, ",
+             "via the detectors R package · Creator: Zoi Diamantakou · TidyTuesday 2023 · Week 29")
+
+# 5. PLOT ------------------------------------------------------------------
+p <- ggplot(human, aes(x = detector, y = .pred_AI, fill = detector, colour = detector)) +
+  geom_violin(bw = 0.05, scale = "width", width = 0.85, alpha = 0.9) +
+  geom_text(data = flag, aes(x = detector, y = 1.06, label = paste0(round(flagged * 100), "%")),
+            inherit.aes = FALSE, hjust = 0, family = "poppins", fontface = "bold", size = 2.8, colour = ink) +
+  coord_flip(clip = "off") +
+  facet_grid(~writer) +
+  scale_y_continuous(limits = c(0, 1.15), breaks = seq(0, 1, 0.25),
+                     labels = c("0", "0.25", "0.5", "0.75", "1\n(AI)")) +
+  scale_fill_viridis(discrete = TRUE, guide = "none") +
+  scale_colour_viridis(discrete = TRUE, guide = "none") +
+  labs(title = tt, subtitle = st, caption = ct, x = NULL,
+       y = "Predicted probability that the essay was written by AI") +
+  theme_minimal(base_family = "poppins") +
+  theme(
+    plot.title.position   = "plot",
+    plot.caption.position = "plot",
+    plot.title = element_textbox_simple(face = "bold", size = 20, colour = ink,
+                                        lineheight = 1.05, margin = margin(b = 12)),
+    plot.subtitle = element_textbox_simple(size = 10.5, colour = muted,
+                                           lineheight = 1.25, margin = margin(b = 14)),
+    plot.caption = element_textbox_simple(size = 7, colour = faint,
+                                          lineheight = 1.4, margin = margin(t = 14)),
+    strip.text  = element_text(size = 10, colour = ink, face = "bold", hjust = 0),
+    axis.title.x = element_text(size = 7.5, colour = faint, hjust = 0, margin = margin(t = 6)),
+    axis.text.x = element_text(size = 7, colour = faint),
+    axis.text.y = element_text(size = 9, colour = ink),
+    panel.grid  = element_blank(),
+    panel.grid.major.x = element_line(colour = "#ECECEC", linewidth = 0.3),
+    panel.spacing.x = unit(24, "pt"),
+    plot.background = element_rect(fill = "white", colour = NA),
+    plot.margin = margin(36, 36, 36, 36))
+
+# 6. SAVE ------------------------------------------------------------------
+ggsave("TT2023Week29.png", p, width = 7.5, height = 7.5, dpi = 288, bg = "white")
+ggsave("TT2023Week29.svg", p, width = 7.5, height = 7.5, bg = "white")
