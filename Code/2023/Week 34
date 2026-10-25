@@ -1,114 +1,122 @@
-tuesdata <- tidytuesdayR::tt_load('2023-08-22')
-
+# TidyTuesday 2023 · Week 34 · Refugees -------------------------------------
+# Question: how many people have been forced from their homes, and when did it grow?
 library(tidyverse)
 library(refugees)
-library(ggplot2)
-library(dplyr)
-library(tidyr)
 library(scales)
+library(patchwork)   # stacks the conflict timeline under the bar chart
+source("tt_style.R")
 
-populations <- refugees::population
+# DATA ------------------------------------------------------------------------
+dt <- refugees::population |>
+  filter(year >= 2010, year <= 2022) |>
+  select(year, refugees, asylum_seekers, idps, ooc, oip) |>
+  pivot_longer(refugees:oip, names_to = "type", values_to = "total") |>
+  group_by(year, type) |>
+  summarise(total = sum(total, na.rm = TRUE) / 1e6, .groups = "drop") |>
+  mutate(type = factor(type,
+    levels = c("oip", "ooc", "asylum_seekers", "refugees", "idps"),
+    labels = c("Others in need",
+               "Others of concern", "Asylum-seekers",
+               "Refugees", "Internally displaced")))
 
-# Get just the years from 2010 to 2022
+yearly <- dt |> group_by(year) |> summarise(total = sum(total)) |>
+  mutate(change = total - lag(total))
+first  <- yearly$total[yearly$year == 2010]
+last   <- yearly$total[yearly$year == 2022]
+jump22 <- yearly$change[yearly$year == 2022]
+jump13 <- yearly$total[yearly$year == 2015] - yearly$total[yearly$year == 2012]
+idp22  <- dt$total[dt$year == 2022 & dt$type == "Internally displaced"]
 
-populations2010 <- filter(populations, year >= 2010)
+# Direct labels at the right of the 2022 bar, stacked in the same order
+lab <- dt |> filter(year == 2022) |> arrange(desc(type)) |>
+  mutate(top = cumsum(total), mid = top - total / 2,
+         label = paste0("**", number(total, accuracy = 0.1), "m** ", type))
 
-write_csv(populations2010, "population.csv")
+# Major conflicts that drove displacement (year the crisis began or escalated)
+conflicts <- tribble(
+  ~year, ~label,                          ~side,
+  2011,  "Syria\ncivil war",               1,
+  2013,  "South Sudan\ncivil war",        -1,
+  2014,  "ISIS takes\nnorthern Iraq",      1,
+  2015,  "Venezuela\nexodus begins",      -1,
+  2017,  "Rohingya flee\nMyanmar",         1,
+  2020,  "Tigray war,\nEthiopia",         -1,
+  2021,  "Taliban take\nAfghanistan",      1,
+  2022,  "Russia invades\nUkraine",       -1)
 
-dt<-populations2010 %>% 
-  select(year,coo_name,refugees,asylum_seekers,idps,ooc,oip) %>% 
-  pivot_longer(cols = refugees:oip,
-               names_to ="population_type",
-               values_to = "total") %>% 
-  
-  mutate(population_type=factor(population_type, 
-                                levels=c("oip", "ooc","asylum_seekers", "refugees","idps")), 
-         population_type=recode(population_type,
-                                refugees="Refugees under UNHCR’s mandate",
-                                asylum_seekers="Asylum-seekers",
-                                oip="Other people in need of international protection",
-                                idps="Internally displaced persons",
-                                ooc="Other people of concern to UNHCR")) %>% 
-  arrange(year, population_type) %>% 
-  filter(!is.na(total)) %>% 
-  group_by(year,population_type) %>% 
-  summarise(total=sum(total)) %>% 
-  mutate(rounded=round(total/1000000,2))
+cols <- c("#EF4A60", "#8EBEFF", "#18375F", "#0072BC", "#00B398")
+ink <- tt_col("ink"); muted <- tt_col("muted"); faint <- tt_col("faint")
 
-plot<- 
-  ggplot(dt, aes(x = year, y=rounded,fill = population_type))+
-  geom_bar(position="stack",stat = "identity")+
-  labs(title="People forced to flee | 2010 - 2022",
-       subtitle=stringr::str_wrap("By the end of 2022, 108.4 million people were forcibly displaced worldwide as a result of persecution, conflict, violence or human rights violations.",width = 95),
-       fill="",
-       caption = "Data source: UNHCR Refugee Data Finder| Creator:Zoi Diamantakou | tidytuesday | 2023, week 34",
-       x="",
-       y="Number of people (in million)")+
-  scale_fill_manual(values = c("#EF4A60","#8EBEFF","#18375F",
-                               "#0072BC",'#00B398'))+
-  scale_x_continuous(breaks = seq(2010,2022,1)) +
-  scale_y_continuous(expand = expansion(c(0, 0.1)), 
-                     breaks= pretty_breaks(n = 5), 
-                     labels = label_number(scale_cut = cut_long_scale()))+
-  theme(
-  plot.margin = unit(c(1,3,1,1), "cm"),
-  plot.title = element_text(size = 22, face = "bold",hjust = 0.5),
-  plot.subtitle = element_text(size = 10,hjust = 0.5),
-  plot.caption = element_text(size = 8,hjust = 0.5),
-  axis.title.x = element_text(size = 8),
-  axis.title.y= element_text(size = 8),
-  axis.text.x = element_text(size=8),
-  axis.text.y = element_text(size=10),
-  strip.text.x = element_text(size = 10,colour="white",face="bold"),
-  strip.text.y = element_text(size = 10,angle = 0), 
-  legend.position="bottom",
-  legend.title = element_text(size = 10),
-  legend.key = element_blank(),
-  panel.background = element_rect(fill = "white"),
-  panel.grid.major.y = element_line(color = "#e8e7da",
-                                    size = 0.5),
-  panel.grid = element_blank())+
-  guides(fill=guide_legend(nrow=2, byrow=TRUE,
-                           override.aes = list(size = 0.01)))+
-annotate(geom = "curve", x = 2023, y = 45, xend = 2022, yend = 44,
-      curvature = .3, arrow = arrow(length = unit(2, "mm"))) +
-    annotate(geom = "text", x = 2023, y = 44, 
-             label = "57 million \ninternally displaced \npeople", 
-             colour = '#00B398',hjust = "left")+
-    coord_cartesian(clip = 'off') +
-    annotate(geom = "curve", x = 2023, y = 70, xend = 2022, yend = 69,
-             curvature = .3, arrow = arrow(length = unit(2, "mm"))) +
-    annotate(geom = "text", x = 2023, y = 70, 
-             label = "35.3 million \nrefugees", 
-             colour = '#0072BC',hjust = "left")
+# MAIN CHART ------------------------------------------------------------------
+p_bars <- ggplot(dt, aes(year, total, fill = type)) +
+  geom_col(width = 0.72) +
+  geom_richtext(data = lab, aes(x = 2022.5, y = mid, label = label, colour = type),
+                inherit.aes = FALSE, hjust = 0, family = tt_font, size = 2.7,
+                fill = NA, label.colour = NA, label.padding = unit(0, "pt")) +
+  # total on top of each bar
+  geom_text(data = yearly, aes(year, total, label = number(total, accuracy = 1)),
+            inherit.aes = FALSE, vjust = -0.5, family = tt_font, size = 2.3, colour = faint) +
+  # the two big jumps
+  annotate("segment", x = 2012.6, xend = 2015.4, y = 66, yend = 66, colour = ink, linewidth = 0.3) +
+  annotate("text", x = 2014, y = 68, vjust = 0, family = tt_font, size = 2.6, colour = ink,
+           lineheight = 1, label = paste0("+", round(jump13), "m in three years\n(Syria, South Sudan, Iraq)")) +
+  annotate("text", x = 2021.6, y = last + 7, hjust = 1, vjust = 0, family = tt_font, size = 2.6,
+           colour = ink, lineheight = 1,
+           label = paste0("+", round(jump22), "m in 2022 alone\n(war in Ukraine)")) +
+  scale_fill_manual(values = cols) +
+  scale_colour_manual(values = cols) +
+  # dotted guides at the conflict years, continuing into the timeline below
+  geom_segment(data = conflicts, aes(x = year, xend = year, y = -4, yend = 0), inherit.aes = FALSE,
+               linetype = "dotted", colour = muted, linewidth = 0.35) +
+  scale_x_continuous(breaks = 2010:2022, labels = NULL,
+                     expand = expansion(add = c(0.4, 0))) +
+  scale_y_continuous(labels = \(x) paste0(x, "m"), breaks = seq(0, 100, 25),
+                     expand = expansion(c(0, 0.04))) +
+  coord_cartesian(xlim = c(2009.6, 2025.6), ylim = c(0, 120), clip = "off") +
+  theme_tt(grid = "y") +
+  theme(plot.margin = margin(0, 0, 0, 0))
 
-plot+annotate(geom = "text", x = 2011, y = 50, 
-         label ="2011: Syrian refugee \ncrisis erupts, \none of the largest \nhumanitarian ordeal.", 
-         hjust = "right",size=2.5)+
-  annotate("segment", x = 2011, xend = 2011, 
-           y = 40, yend = 30, colour = "grey")+
-  annotate(geom = "text", x = 2023, y = 100, 
-           label = "2022: Russia invades Ukraine, \ntriggering mass exodus, \n8.2 million refugees seek \nrefuge in Europe.", 
-           hjust = "left",size=2.5)+
-  annotate(geom = "text", x = 2021, y = 100, 
-           label = "2021: Afghan refugee \ncrisis.", 
-           hjust = "right",size=2.5)+
-  annotate("segment", x = 2021, xend = 2021, 
-           y = 95, yend = 88, colour = "grey")+
-  annotate(geom = "text", x = 2017, y = 80, 
-           label = "2017: Rohingya\ncrisis.", 
-           hjust = "right",size=2.5)+
-  annotate("segment", x = 2017, xend = 2017, 
-           y = 75, yend = 65, colour = "grey")+
-  annotate(geom = "text", x = 2013, y = 70, 
-           label = "2013:South Sudan and \nUganda refugee crisis", 
-           hjust = "right",size=2.5)+
-  annotate("segment", x = 2013, xend = 2013, 
-           y = 65, yend = 40, colour = "grey")+
-  annotate(geom = "text", x = 2014, y = 80, 
-           label = "2014:Venezuelan migration \nand refugee crisis", 
-           hjust = "right",size=2.5)+
-  annotate("segment", x = 2014, xend = 2014, 
-           y = 75, yend = 50, colour = "grey")
- 
-ggsave("TT2023Week34.png", width = 12, height = 6, dpi = 300, bg = "white")                            
+# TIMELINE --------------------------------------------------------------------
+# The timeline is the year axis of the bar chart: each year sits right under its bar,
+# and a dotted line runs up from every conflict to its bar.
+yr <- tibble(year = 2010:2022)
+p_time <- ggplot(conflicts, aes(year, 0)) +
+  geom_segment(aes(xend = year, y = 0, yend = 1.25), linetype = "dotted",
+               colour = muted, linewidth = 0.35) +
+  annotate("segment", x = 2009.6, xend = 2022.4, y = 0, yend = 0, colour = muted, linewidth = 0.5) +
+  geom_point(data = yr, aes(year, 0), size = 0.9, colour = muted) +
+  geom_text(data = yr, aes(year, 0.55, label = year,
+                           fontface = if_else(year %in% conflicts$year, "bold", "plain"),
+                           colour = if_else(year %in% conflicts$year, ink, faint)),
+            family = tt_font, size = 2.5) +
+  scale_colour_identity() +
+  geom_point(size = 2.4, colour = ink) +
+  geom_text(aes(y = if_else(side > 0, -0.35, -1.25), label = label), vjust = 1,
+            family = tt_font, size = 2.2, colour = ink, lineheight = 0.95) +
+  geom_segment(data = filter(conflicts, side < 0), aes(xend = year, y = -0.15, yend = -1.15),
+               colour = muted, linewidth = 0.3) +
+  annotate("text", x = 2022.7, y = 0, label = "Major conflicts", hjust = 0,
+           family = tt_font, fontface = "bold", size = 2.4, colour = faint) +
+  scale_x_continuous(expand = expansion(add = c(0.4, 0))) +
+  coord_cartesian(xlim = c(2009.6, 2025.6), ylim = c(-2.1, 1.25), clip = "off") +   # same x range as the bars
+  theme_void() +
+  theme(plot.margin = margin(0, 0, 0, 0))
+
+# COMBINE ---------------------------------------------------------------------
+p <- p_bars / p_time + plot_layout(heights = c(1, 0.36)) +
+  plot_annotation(
+    title = paste0("Forced displacement almost quadrupled in 12 years, to ",
+                   number(last, accuracy = 1), " million people"),
+    subtitle = paste0(
+      "People forced from their homes by conflict, persecution or violence, by year (",
+      number(first, accuracy = 1), " million in 2010). Each colour is a type of displacement. ",
+      "More than half, <span style='color:#00B398'>**", number(idp22, accuracy = 1),
+      " million**</span>, are internally displaced: they never left their own country. ",
+      "The timeline under the bars marks the conflicts behind the biggest increases."),
+    caption = paste0("Others of concern and others in need are UNHCR groups that do not fit the other ",
+                     "categories; 'others in need' is counted from 2018.<br>",
+                     tt_caption("UNHCR Refugee Data Finder ({refugees} R package)", 2023, 34)),
+    theme = theme_tt() + theme(plot.caption = element_markdown(
+      family = tt_font, size = 7, colour = faint, hjust = 0, lineheight = 1.5, margin = margin(t = 14))))
+
+tt_save(p, "out/2023_w34.png")
