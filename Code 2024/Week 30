@@ -1,114 +1,83 @@
-#American Idol data
-#2024: week 30 
-#load libraries 
+# American Idol
+# TidyTuesday 2024 · Week 30
+# Question: how has American Idol's audience changed over the seasons?
+
+# 1. LIBRARIES -------------------------------------------------------------
 library(tidyverse)
 library(showtext)
-library(sysfonts)
-
 library(ggtext)
-library(tidytuesdayR)
-library(glue)
-library(Cairo)
-library(forcats)
-library(ggrepel)
-library(lubridate)
-library(ggridges)
 
-## Load Google fonts (https://fonts.google.com/)
-font_add_google("Pacifico", family = "title")                           
-font_add_google("Lato", family = "subtitle")
-font_add_google("Lato", family = "x")
-showtext::showtext_auto()
-showtext::showtext_opts(dpi = 300) 
+font_add_google("Poppins", family = "poppins")
+showtext_auto()
+showtext_opts(dpi = 288)
 
-#1.DATA LOADING
-tuesdata <- tidytuesdayR::tt_load(2024, week = 30)
+# 2. DATA ------------------------------------------------------------------
+ratings <- read_csv(
+  "https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2024/2024-07-23/ratings.csv",
+  show_col_types = FALSE)
 
-auditions <- tuesdata$auditions
-eliminations <- tuesdata$eliminations
-finalists <- tuesdata$finalists
-ratings <- tuesdata$ratings
-seasons <- tuesdata$seasons
-songs <- tuesdata$songs
+# 3. WRANGLING -------------------------------------------------------------
+dt <- ratings |>
+  filter(!is.na(viewers_in_millions)) |>
+  select(season, show_number, viewers = viewers_in_millions)
 
-#2.DATA WRANGLING
-dt<-ratings %>% 
-  select(season,show_number,airdate,viewers_in_millions) %>% 
-  mutate(airdate = as.Date(airdate, format="%B %d, %Y")) %>% 
-  mutate(group=case_when(
-    show_number>=1 & show_number<=10~"1-10",
-    show_number>=11 & show_number<=20~"11-20",
-    show_number>=21 & show_number<=30~"21-30",
-    show_number>=31 & show_number<=40~"31-40",
-    show_number>=41 ~">40")) %>% 
-    mutate(group = factor(group,level = c("1-10","11-20", "21-30","31-40",">40")))
-              
+seasons <- dt |> group_by(season) |>
+  summarise(avg = mean(viewers), .groups = "drop") |>
+  mutate(label = paste0("Season ", season, "  <span style='color:#7A7A7A'>",
+                        round(avg, 1), "m</span>"))
+peak <- seasons |> slice_max(avg, n = 1)
+last <- seasons |> slice_max(season, n = 1)
+drop <- 1 - last$avg / peak$avg
 
+dt <- dt |> left_join(seasons |> select(season, label, avg), by = "season") |>
+  mutate(label = factor(label, levels = seasons$label),
+         is_peak = season == peak$season)
 
-#3. PLOT VIZUALIZATION 
-##Title,subtitle & caption 
-tt <- str_glue(stringr::str_wrap("American Idol lost its popularity over time"),width=100)
-st <- str_glue(stringr::str_wrap("Number of viewers per episode and season (in millions)",
-                                 width=100))
-ct  <- str_glue(stringr::str_wrap("Data Source:https://github.com/kkakey/American_Idol/tree/main | 
-                                  Creator:Zoi Diamantakou | tidytuesday | 2024, 
-                                  week 30",width=120))
+# 4. COLOURS & TEXT --------------------------------------------------------
+blue <- "#2B6CB0"; light <- "#A9C4E2"
+ink <- "#1A1A1A"; muted <- "#5A5A5A"; faint <- "#7A7A7A"
 
-##plot
-p<-
-  ggplot(dt, aes(x=show_number, y=viewers_in_millions)) +
-  geom_bar(stat = "identity",fill="#40cbfa") +
-  facet_wrap(~season,scale="free")+
-  labs(
-    x = "Episode number",
-    y = "Viewers (in millions)",
-    title=tt,
-    subtitle=st,
-    caption = ct)+
-  #scale_fill_brewer(palette = "YlGnBu")+
-  scale_x_continuous(limits = c(1, 45), breaks = seq(0, 45, by = 10),
-                     labels=c('', '10', '20','30','40')) +  
-  scale_y_continuous(limits=c(0,50),breaks = seq(0, 50, by = 20))
+tt <- paste0("American Idol has lost ", round(drop * 100), "% of its audience since its peak")
 
-p + theme_minimal() +
+st <- paste0(
+  "US viewers per episode, in millions, by season. Each bar is one episode; the grey number is ",
+  "the season average. Viewing peaked in <span style='color:", blue, "'>**season ",
+  peak$season, "**</span> at ", round(peak$avg, 1), " million and fell to ",
+  round(last$avg, 1), " million by season ", last$season, ".")
+
+ct <- paste0("Season 14 has no viewing data. Season averages are per episode.<br>",
+             "Data source: Wikipedia, via kkakey/American_Idol",
+             " · Creator: Zoi Diamantakou · TidyTuesday 2024 · Week 30")
+
+# 5. PLOT ------------------------------------------------------------------
+p <- ggplot(dt, aes(show_number, viewers, fill = is_peak)) +
+  geom_col(width = 0.8) +
+  geom_hline(aes(yintercept = avg), colour = ink, linewidth = 0.3, linetype = "22") +
+  facet_wrap(~ label, ncol = 4) +
+  scale_fill_manual(values = c(`TRUE` = blue, `FALSE` = light), guide = "none") +
+  scale_x_continuous(breaks = c(1, 20, 40), expand = c(0, 0.5)) +
+  scale_y_continuous(breaks = c(0, 20, 40), expand = c(0, 0)) +
+  coord_cartesian(ylim = c(0, 45)) +
+  labs(title = tt, subtitle = st, caption = ct, x = "Episode", y = NULL) +
+  theme_minimal(base_family = "poppins") +
   theme(
-    plot.margin = margin(t = 20, r = 25, b = 20, l = 25),
-    plot.title = element_text(
-      family = 'title', face = "bold", size = 35, hjust = 0.5,
-      colour = "white", margin = margin(t = 16, b = 5)
-    ),
-    plot.subtitle = element_text(
-      family = 'subtitle', hjust = 0.5, lineheight = 0.9,
-      size = 18, colour = "white", margin = margin(t = 5, b = 10)
-    ),
-    plot.caption = element_text(colour = "white"),
+    plot.title.position   = "plot",
     plot.caption.position = "plot",
-    # Axis
-    axis.title.x = element_text(family = "x", colour = "white", hjust = 0),
-    axis.title.y = element_text(family = "x", colour = "white", hjust = 0.5),
-    axis.text.x = element_text(size = 12, colour = "white", hjust = 0.5),
-    axis.text.y = element_text(size = 12, colour = "white"),
-    # Panel
-    panel.spacing = unit(1.5, "cm"),
-    strip.text.x = element_text(
-      size = 20, face = "bold", hjust = 0, family = 'x', colour = "white"
-    ),
-    panel.background = element_blank(),
-    panel.grid = element_blank(),
-    # Set Y-axis grid lines
-    panel.grid.major.y = element_line(colour = "#dedddd", linewidth = 0.1), 
-    # X-axis line
-    axis.line.x = element_line(color = "#dedddd", linewidth =0.5, linetype = 1),
-    axis.ticks = element_blank(),
-    axis.ticks.x = element_line(color = "#dedddd",linewidth = 0.5),
-        # Background
-    plot.background = element_rect(fill = "#00196d", color = NA)
-  ) 
+    plot.title = element_textbox_simple(face = "bold", size = 22, colour = ink,
+                                        lineheight = 1.05, margin = margin(b = 12)),
+    plot.subtitle = element_textbox_simple(size = 11, colour = muted,
+                                           lineheight = 1.25, margin = margin(b = 18)),
+    plot.caption = element_markdown(size = 7, colour = faint, hjust = 0,
+                                    lineheight = 1.4, margin = margin(t = 16)),
+    strip.text  = element_markdown(size = 7.5, colour = ink, hjust = 0),
+    axis.title.x = element_text(size = 7, colour = faint, hjust = 0),
+    axis.text   = element_text(size = 6, colour = faint),
+    panel.grid  = element_blank(),
+    panel.grid.major.y = element_line(colour = "#ECECEC", linewidth = 0.3),
+    panel.spacing.x = unit(4, "mm"),
+    plot.background = element_rect(fill = "white", colour = NA),
+    plot.margin = margin(36, 36, 36, 36))
 
-
-
-#4. SAVE THE PLOT
-ggsave("TT2024Week30.png", width = 12, height = 9, 
-       type = "Cairo",dpi = 300, bg = "white") 
-ggsave("TT2024Week30.svg", width = 12, height = 9, 
-       dpi = 300, bg = "white") 
+# 6. SAVE ------------------------------------------------------------------
+ggsave("TT2024Week30.png", p, width = 7.5, height = 7.5, dpi = 288, bg = "white")
+ggsave("TT2024Week30.svg", p, width = 7.5, height = 7.5, bg = "white")
