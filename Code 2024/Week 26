@@ -1,138 +1,108 @@
-#tidyRainbow Datasets
+# tidyRainbow Datasets: LGBTQ movies
+# TidyTuesday 2024 · Week 26
+# Question: when were LGBTQ films made, and in which languages?
 
-#2024: week 26
-#load libraries 
+# 1. LIBRARIES -------------------------------------------------------------
 library(tidyverse)
 library(showtext)
 library(ggtext)
-library(tidytuesdayR)
-library(glue)
-library(Cairo)
-library(forcats)
-library(ggrepel)
-library(lubridate)
-library(ggridges)
 
+font_add_google("Poppins", family = "poppins")
+showtext_auto()
+showtext_opts(dpi = 288)
 
+# 2. DATA ------------------------------------------------------------------
+lgbtq_movies <- read_csv(
+  "https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2024/2024-06-25/lgbtq_movies.csv",
+  show_col_types = FALSE)
 
-#1.DATA LOADING
-tuesdata <- tidytuesdayR::tt_load(2024, week = 26)
+# 3. WRANGLING -------------------------------------------------------------
+langs <- c(en = "English", es = "Spanish", fr = "French", de = "German",
+           pt = "Portuguese", ja = "Japanese")
 
-lgbtq_movies <- tuesdata$lgbtq_movies
+films <- lgbtq_movies |>
+  mutate(year = year(as.Date(release_date))) |>
+  filter(!is.na(year)) |>
+  mutate(group = factor(coalesce(langs[original_language], "Other"),
+                        levels = c(langs, "Other")))
 
-#2.DATA WRANGLING
- top_10_lag <-lgbtq_movies %>% 
-  group_by(original_language) %>% 
-  summarise(n=n()) %>% 
-  arrange(desc(n)) %>% 
-  slice_head(n = 10) %>%         
-  pull(original_language) 
+# One bar per decade; the few films before 1970 are grouped together
+dec_lab <- c("Before 1970", "1970s", "1980s", "1990s", "2000s", "2010s", "2020–22")
+films <- films |>
+  mutate(decade = factor(dec_lab[pmin(6, pmax(0, (year %/% 10) - 196)) + 1],
+                         levels = dec_lab))
 
+dt <- films |> count(decade, group)
+tops <- films |> group_by(decade) |>
+  summarise(n = n(), en = mean(group == "English"),
+            langs = n_distinct(original_language)) |>
+  mutate(label = paste0("**", scales::comma(n), "**<br><span style='color:#0072B2'>",
+                        round((1 - en) * 100), "% other<br>languages</span>"))
+d10 <- tops |> filter(decade == "2010s")
+d90 <- tops |> filter(decade == "1990s")
+d20 <- tops |> filter(decade == "2020–22")
 
- dt <- lgbtq_movies %>% 
-   select(original_language, release_date) %>% 
-   mutate(release_date = as.Date(release_date)) %>%
-   mutate(year = year(release_date)) %>% 
-   filter(!is.na(year)) %>% 
-   group_by(year, original_language) %>% 
-   summarise(n = n()) %>% 
-   mutate(group = case_when(
-     original_language == "en" ~ "English",
-     original_language == "es" ~ "Spanish",
-     original_language == "fr" ~ "French",
-     original_language == "de" ~ "German",
-     original_language == "pt" ~ "Portuguese",
-     original_language == "ja" ~ "Japanese",
-     #original_language == "it" ~ "Italian",
-     #original_language == "ko" ~ "Korean",
-     #original_language == "zh" ~ "Chinese",
-     TRUE ~ "Other")) %>% 
-   mutate(group = factor(group,
-                         levels = c("English",
-                                    "Spanish",
-                                    "French",
-                                    "German",
-                                    "Portuguese",
-                                    "Japanese",
-                                    "Other")))
- 
+n_films   <- nrow(films)
+share_en  <- mean(films$group == "English")
+share_new <- mean(films$year >= 2010)
+peak      <- films |> count(year) |> slice_max(n, n = 1)
+last_year <- max(films$year)
 
- 
-#3. PLOT VIZUALIZATION 
-## Load Google fonts (https://fonts.google.com/)
-font_add_google("Roboto", family = "title")                           
-font_add_google("Lato", family = "subtitle")
-font_add_google("Lato", family = "x")
-showtext::showtext_auto()
-showtext::showtext_opts(dpi = 300) 
+# 4. COLOURS & TEXT --------------------------------------------------------
+# English in light grey so the other languages stand out (Okabe-Ito colours, colour-blind safe)
+cols <- c(English = "#DADADA", Spanish = "#E69F00", French = "#56B4E9", German = "#009E73",
+          Portuguese = "#0072B2", Japanese = "#CC79A7", Other = "#7F6A93")
+ink <- "#1A1A1A"; muted <- "#5A5A5A"; faint <- "#7A7A7A"
 
-##Title,subtitle & caption 
-tt <- str_glue(stringr::str_wrap("LGBTQ movies most common languages"),width=80)
-st <- str_glue(stringr::str_wrap("The graph shows the frequency of original languages in LGBTQ movies from 1900 to 2022",width=100))
-ct  <- str_glue(stringr::str_wrap("Data Source: tidyRainbow,  | 
-                                  Creator:Zoi Diamantakou | tidytuesday | 2024, 
-                                  week 26",width=100))
+tt <- paste0("Since the 1990s, LGBTQ films in languages other than English rose from ",
+             round((1 - d90$en) * 100), "% to ", round((1 - d20$en) * 100), "%")
 
-##plot
+st <- paste0(
+  "LGBTQ films on The Movie Database by decade of release and original language (",
+  scales::comma(n_films), " films). <span style='color:#8A8A8A'>**English**</span> took over ",
+  "in the 1990s, as the number of films grew; since then other languages have caught up, ",
+  "and the number of languages went from ", d90$langs, " to ", tops$langs[tops$decade == "2010s"],
+  " in the 2010s.")
 
-p<-
-  ggplot(
-  dt, aes(x = year, y=n,fill=group)  ) + 
-  geom_bar(position="stack", stat="identity")+
-  scale_x_continuous(breaks =seq(1900,2022,10))+
-  scale_y_continuous(breaks =seq(0,600,100),limits=c(0,600))+
-  labs(
-    x = "",
-    y = "Number of movies",
-    fill = " ",
-    title=tt,
-    subtitle=st,
-    caption = ct)+
-  scale_fill_manual(values=c("#FF0018",
-                             "#FFA52C",
-                             "#FFFF41",
-                             "#008018",
-                             "#0000F9",
-                             "#86007D",
-                             "grey"))
+ct <- paste0("Films are tagged LGBTQ by TMDB users; tagging may be less complete for non-English films. ",
+             "The data runs to ", last_year, ", so the last bar covers ",
+             "only three years.<br>",
+             "Data source: tidyRainbow, from TMDB · Creator: Zoi Diamantakou · ",
+             "TidyTuesday 2024 · Week 26")
 
-p+theme_minimal()+
-  theme(plot.margin           = margin(t = 10, r = 25, b = 10, l = 25),
-        plot.title            = element_text(
-          family= 'title',face= "bold",size= 35,hjust = 0,
-          colour="#19201D",
-          margin= margin(t = 16, b = 5)),
-        plot.subtitle = element_text(
-          family= 'subtitle', hjust = 0,
-          lineheight= 0.9,size  = 18,colour="black",
-          margin= margin(t = 5, b = 10)),
-        plot.caption = element_text(colour="black"),
-        plot.caption.position = "plot",
-        #axis
-        axis.text.x = element_text(size=12),
-        axis.text.y = element_text(size=12),
-        #legend
-        legend.position = "bottom",
-        legend.text = element_text(color = "grey40", size = 10),
-        legend.box.margin = margin(t = 30),
-        legend.background = element_rect(color = "grey40",
-                                         size = .3,
-                                         fill = "grey95"),
-        legend.key.height = unit(.25, "lines"),
-        legend.key.width = unit(2.5, "lines"),
-        #background
-        panel.grid.major = element_blank(), 
-        panel.grid.minor= element_blank(),
-        panel.grid.major.y = element_line(color = "black",
-                                          linewidth = 0.1,
-                                          linetype = 1),
-        plot.background = element_rect(fill = "white", color = NA))
+# 5. PLOT ------------------------------------------------------------------
+p <- ggplot(dt, aes(decade, n, fill = group)) +
+  geom_col(width = 0.72, colour = "white", linewidth = 0.25) +
+  geom_richtext(data = tops, aes(decade, n, label = label), inherit.aes = FALSE,
+                vjust = 0, nudge_y = 40, family = "poppins", size = 2.7, colour = ink,
+                fill = NA, label.colour = NA, lineheight = 1.15) +
+  scale_fill_manual(values = cols, name = NULL) +
+  scale_y_continuous(breaks = seq(0, 4000, 1000), labels = scales::comma,
+                     expand = c(0, 0), limits = c(0, 4500)) +
+  guides(fill = guide_legend(nrow = 1, keywidth = unit(3, "mm"), keyheight = unit(3, "mm"))) +
+  labs(title = tt, subtitle = st, caption = ct, x = NULL, y = NULL) +
+  theme_minimal(base_family = "poppins") +
+  theme(
+    plot.title.position   = "plot",
+    plot.caption.position = "plot",
+    plot.title = element_textbox_simple(face = "bold", size = 22, colour = ink,
+                                        lineheight = 1.05, margin = margin(b = 12)),
+    plot.subtitle = element_textbox_simple(size = 11, colour = muted,
+                                           lineheight = 1.25, margin = margin(b = 10)),
+    plot.caption = element_textbox_simple(size = 7, colour = faint,
+                                          lineheight = 1.4, margin = margin(t = 16)),
+    legend.position = "top",
+    legend.justification = "left",
+    legend.location = "plot",
+    legend.text = element_text(size = 7.5, colour = muted),
+    legend.margin = margin(b = 10),
+    axis.text.y = element_text(size = 7.5, colour = faint),
+    axis.text.x = element_text(size = 8.5, colour = ink, face = "bold"),
+    panel.grid = element_blank(),
+    panel.grid.major.y = element_line(colour = "#EFEFEF", linewidth = 0.3),
+    plot.background = element_rect(fill = "white", colour = NA),
+    plot.margin = margin(36, 36, 36, 36))
 
-
-#4. SAVE THE PLOT
-ggsave("TT2024Week26.svg", width = 12, height = 8, 
-       dpi = 300, bg = "white") 
-ggsave("TT2024Week26.png", width = 12, height = 8, 
-       dpi = 300, bg = "white") 
-
-
+# 6. SAVE ------------------------------------------------------------------
+ggsave("TT2024Week26.png", p, width = 7.5, height = 7.5, dpi = 288, bg = "white")
+ggsave("TT2024Week26.svg", p, width = 7.5, height = 7.5, bg = "white")
