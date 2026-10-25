@@ -1,121 +1,94 @@
-#load libraries 
+# Roy Kent's swear count (Ted Lasso)
+# TidyTuesday 2023 · Week 39
+# Question: did Roy Kent swear more over the seasons, and did ratings follow?
+
+# 1. LIBRARIES -------------------------------------------------------------
 library(tidyverse)
 library(showtext)
 library(ggtext)
-library(tidytuesdayR)
-library(glue)
-library(Cairo)
 
+font_add_google("Poppins", family = "poppins")
+showtext_auto()
+showtext_opts(dpi = 288)
 
+# 2. DATA ------------------------------------------------------------------
+richmondway <- read_csv(
+  "https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2023/2023-09-26/richmondway.csv",
+  show_col_types = FALSE)
 
+# 3. WRANGLING -------------------------------------------------------------
+dt <- richmondway |>
+  select(Season, Episode, F_count_RK, Imdb_rating)
 
-#1.DATA LOADING
-tuesdata <- tidytuesdayR::tt_load('2023-09-26')
-richmondway <- tuesdata$richmondway
+by_season <- dt |> group_by(Season) |>
+  summarise(per_ep = mean(F_count_RK), imdb = mean(Imdb_rating), total = sum(F_count_RK),
+            .groups = "drop") |>
+  mutate(strip = paste0("**Season ", Season, "**  ",
+                        "<span style='color:#F2E9D8'>", round(per_ep, 1),
+                        " per episode · IMDb ", sprintf("%.1f", imdb), "</span>"))
 
-#2.DATA WRANGLING
-dt <- richmondway %>% 
-  select(Season,Episode,F_count_RK, Imdb_rating) %>% 
-  mutate(Season=as.character(Season),
-           Season=recode(Season,
-                       "1"="Season 1",
-                       "2"="Season 2",
-                       "3"="Season 3"))
+s1 <- by_season |> filter(Season == 1); s3 <- by_season |> filter(Season == 3)
 
-dat_text <- data.frame(
-  label = c("Each number represents \nthe episode number.", "", ""),
-  Season   = c("Season 1", "Season 2", "Season 3"),
-  x     = c(8.5, 6, 6),
-  y     = c(20, 0, 0))
+dt <- dt |> left_join(by_season |> select(Season, strip), by = "Season") |>
+  mutate(strip = factor(strip, levels = by_season$strip))
 
-dat_text0 <- data.frame(
-  label = c("This part shows episodes \nwith IMDb score 8 and below.", "", ""),
-  Season   = c("Season 1", "Season 2", "Season 3"),
-  x     = c(6, 6, 6),
-  y     = c(22, 0, 0))
+# Note in season 1 only, explaining how to read the chart
+note <- tibble(strip = factor(by_season$strip[1], levels = by_season$strip),
+               x = 6.1, y = 22, label = "Each label is the episode number.\nShaded: episodes rated 8 or below.")
 
-#3. PLOT VIZUALIZATION 
+# 4. COLOURS & TEXT --------------------------------------------------------
+brown <- "#8C4F2B"; gold <- "#E0A84F"; shade <- "#F2762E"
+ink <- "#1A1A1A"; muted <- "#5A5A5A"; faint <- "#7A7A7A"
 
-## Load Google fonts (https://fonts.google.com/)
-font_add_google("Titillium Web", family = "title")                           
-font_add_google("Dosis", family = "subtitle")  
-showtext::showtext_auto()
-showtext::showtext_opts(dpi = 300)
+top2 <- dt |> slice_max(F_count_RK, n = 2, with_ties = FALSE)
 
+tt <- "Roy Kent's sweariest episodes were among Ted Lasso's best rated"
 
-##Title,subtitle & caption 
+st <- paste0(
+  "Roy Kent's F-words per episode against the episode's IMDb rating, by season. ",
+  "His swearing doubled from ", round(s1$per_ep, 1), " to ", round(s3$per_ep, 1),
+  " per episode, but episodes with more swearing didn't score lower. The two with the most (",
+  top2$F_count_RK[1], " each) were rated ", sprintf("%.1f", top2$Imdb_rating[1]), " and ",
+  sprintf("%.1f", top2$Imdb_rating[2]), ".")
 
-tt <- str_glue("Tracking Roy Kent's F**ks and IMDb")
-st <- str_glue(stringr::str_wrap("Today we explore how Roy Kent's swearing habits 
-                                 evolve over three seasons.\nWhile he swears 
-                                 more over time, most episodes still score above 8 on IMDb.
-                                 A slight increase in episodes scoring 8 or below is observed,
-                                 but it's unclear if it's due to his language choice.",
-                                 width=60))
-ct  <- str_glue(stringr::str_wrap("Source Created by Deepsha Menghani 
-                                  by watching the show and counting the number 
-                                  of F-cks used in sentences and as gestures. | 
-                                  Creator:Zoi Diamantakou | tidytuesday | 2023, 
-                                  week 39",width=100))
+ct <- paste0("Counts by Deepsha Menghani, from watching the show (spoken and gestured).<br>",
+             "Data source: {richmondway} R package",
+             " · Creator: Zoi Diamantakou · TidyTuesday 2023 · Week 39")
 
-
-## Plot
-plot<-
-  ggplot(dt, aes(x=Imdb_rating, y=F_count_RK,
-                 label=Episode)) + 
-  geom_point(size=3)+
-  geom_label(aes(fill = Season,
-             color=Season,
-             group=Season),
-             show.legend = FALSE)+
-  facet_wrap(~Season,ncol = 1)+
-  scale_x_continuous(breaks = seq(6,10,0.5))+
-  scale_y_continuous(breaks = seq(0,30,5),limits=c(0,25))+
-  scale_fill_manual(values = c("#F2C572", "#F2C572","#F2C572"))+
-  scale_colour_manual(values = c("white", "white","white"))+
-  labs(title=tt,
-       subtitle=st,
-        caption = ct,
-       x="IMDb rating",
-       y="Count of F--K words")+
-    #geom_hline(yintercept=10,color="#dedede", linetype="dashed")+
-  #geom_vline(xintercept = 8,color="#dedede", linetype="dashed")+
-  annotate('rect', xmin=6, xmax=8, ymin=0, ymax=25, alpha=.2, fill='#F2762E')+
-  
-  
-  #annotate(geom="text", x=6, y=23, label="Episodes with IMDB score below 8",
-           #color="#F2762E",hjust=0,size=3) + 
-  geom_text(
-    data    = dat_text0,
-    mapping = aes(x = x, y = y, label = label),
-    size = 3,colour="#F2762E",hjust   = 0,)+
-  geom_text(
-  data    = dat_text,
-  mapping = aes(x = x, y = y, label = label),
-  size = 3,colour="#d9b166",hjust   = 0.5,)
-
-
-## theme
-plot+theme_minimal()+
+# 5. PLOT ------------------------------------------------------------------
+p <- ggplot(dt, aes(Imdb_rating, F_count_RK)) +
+  annotate("rect", xmin = 6, xmax = 8, ymin = 0, ymax = 25, alpha = 0.15, fill = shade) +
+  geom_label(aes(label = Episode), fill = gold, colour = "white", family = "poppins",
+             fontface = "bold", size = 2.6, label.size = 0,
+             label.padding = unit(1.6, "pt")) +
+  geom_text(data = note, aes(x, y, label = label), hjust = 0, vjust = 1,
+            family = "poppins", size = 2.3, colour = "#B8622A", lineheight = 1) +
+  facet_wrap(~ strip, ncol = 1) +
+  scale_x_continuous(breaks = seq(6, 10, 0.5), limits = c(6, 10), expand = c(0, 0.05)) +
+  scale_y_continuous(breaks = seq(0, 25, 5), limits = c(0, 25), expand = c(0, 0)) +
+  labs(title = tt, subtitle = st, caption = ct,
+       x = "IMDb rating", y = "Roy Kent's F-words") +
+  theme_minimal(base_family = "poppins") +
   theme(
-    plot.margin           = margin(t = 10, r = 15, b = 10, l = 25),
     plot.title.position   = "plot",
     plot.caption.position = "plot",
-    legend.position       = 'bottom',
-    plot.title            = element_text(
-      family= 'title',face= "bold",size= 22,colour="#BF834E",
-      margin= margin(t = 10, b = 5)),
-    plot.subtitle = element_text(
-      family= 'subtitle', lineheight= 0.9,size  = 16,margin= margin(t = 5, b = 10)),
-    strip.text.x = element_text(size = 12,colour="white",face="bold",hjust=0),
-    legend.key = element_blank(),
-    panel.background = element_rect(fill = "#F2E9D8"),
-    panel.grid.major.y = element_blank(),
+    plot.title = element_textbox_simple(face = "bold", size = 22, colour = ink,
+                                        lineheight = 1.05, margin = margin(b = 12)),
+    plot.subtitle = element_textbox_simple(size = 11, colour = muted,
+                                           lineheight = 1.25, margin = margin(b = 16)),
+    plot.caption = element_markdown(size = 7, colour = faint, hjust = 0,
+                                    lineheight = 1.4, margin = margin(t = 16)),
+    strip.text = element_markdown(size = 8.5, colour = "white", hjust = 0,
+                                  margin = margin(4, 6, 4, 6)),
+    strip.background = element_rect(fill = brown, colour = NA),
+    panel.background = element_rect(fill = "#F7F0E3", colour = NA),
     panel.grid = element_blank(),
-    strip.background=element_rect(colour="white",
-                                  fill="#8C4F2B"))
-  
+    panel.spacing.y = unit(4, "mm"),
+    axis.title = element_text(size = 7.5, colour = faint),
+    axis.text  = element_text(size = 7, colour = faint),
+    plot.background = element_rect(fill = "white", colour = NA),
+    plot.margin = margin(36, 36, 36, 36))
 
-#save the plot
-ggsave("TT2023Week39.png", width = 6, height = 8, 
-       type = "Cairo",dpi = 300, bg = "white")            
+# 6. SAVE ------------------------------------------------------------------
+ggsave("TT2023Week39.png", p, width = 7.5, height = 7.5, dpi = 288, bg = "white")
+ggsave("TT2023Week39.svg", p, width = 7.5, height = 7.5, bg = "white")
