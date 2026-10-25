@@ -1,139 +1,116 @@
-#Trash Wheel Collection Data
-#2024: week 10
-#load libraries 
+# Trash Wheel Collection Data
+# TidyTuesday 2024 · Week 10
+# Question: what do Baltimore's Trash Wheels pull out of the water?
+
+# 1. LIBRARIES -------------------------------------------------------------
 library(tidyverse)
+library(waffle)
 library(showtext)
 library(ggtext)
-library(tidytuesdayR)
-library(glue)
-library(Cairo)
-library(forcats)
-library(ggrepel)
-library(lubridate)
-library(waffle)
 
+font_add_google("Poppins", family = "poppins")
+showtext_auto()
+showtext_opts(dpi = 288)
 
-#1.DATA LOADING
-tuesdata <- tidytuesdayR::tt_load(2024, week = 10)
-trashwheel <- tuesdata$trashwheel
+# 2. DATA ------------------------------------------------------------------
+trashwheel <- read_csv(
+  "https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2024/2024-03-05/trashwheel.csv",
+  show_col_types = FALSE)
 
-#2.DATA WRANGLING
-dt <-trashwheel %>% 
-  select(ID,Name,PlasticBottles,
-         Polystyrene,
-         CigaretteButts,	
-         GlassBottles,	
-         PlasticBags,	
-         Wrappers,	
-         SportsBalls) %>% 
-  pivot_longer(cols = PlasticBottles:SportsBalls,
-               names_to = "Trash",values_to = "value") %>%
-  group_by(Name,Trash) %>% 
-  summarise(total=sum(value, na.rm = TRUE)) %>% 
-  mutate(Percent = round(total/sum(total)*100, 0)) %>% 
-  arrange(-Percent)
+# 3. WRANGLING -------------------------------------------------------------
+items <- c(CigaretteButts = "Cigarette butts", PlasticBottles = "Plastic bottles",
+           Wrappers = "Wrappers", Polystyrene = "Polystyrene",
+           PlasticBags = "Plastic bags", Other = "Glass bottles & balls")
 
+long <- trashwheel |>
+  select(Name, PlasticBottles:SportsBalls) |>
+  pivot_longer(-Name, names_to = "item", values_to = "count") |>
+  mutate(item = if_else(item %in% c("GlassBottles", "SportsBalls"), "Other", item),
+         item = factor(item, levels = names(items), labels = items))
 
+# Share of counted items, per wheel (waffle = 100 squares)
+dt <- long |>
+  group_by(Name, item) |>
+  summarise(count = sum(count, na.rm = TRUE), .groups = "drop") |>
+  group_by(Name) |>
+  mutate(pct = count / sum(count)) |>
+  ungroup()
 
+wheels <- trashwheel |>
+  group_by(Name) |>
+  summarise(tons = sum(Weight, na.rm = TRUE), from = min(Year), .groups = "drop") |>
+  left_join(dt |> filter(item == "Cigarette butts") |> select(Name, pct), by = "Name") |>
+  arrange(desc(tons)) |>
+  mutate(label = paste0("**", str_remove(Name, " Trash Wheel"), "**  ",
+                        "<span style='color:#7A7A7A'>since ", from, " · ",
+                        scales::comma(tons), " tons</span>"))
 
+dt <- dt |> left_join(wheels |> select(Name, label), by = "Name") |>
+  mutate(label = factor(label, levels = wheels$label))
 
-dt2 <-trashwheel %>% 
-  select(ID,Name,PlasticBottles,
-         Polystyrene,
-         CigaretteButts,	
-         GlassBottles,	
-         PlasticBags,	
-         Wrappers,	
-         SportsBalls) %>% 
-  pivot_longer(cols = PlasticBottles:SportsBalls,
-               names_to = "Trash",values_to = "value") %>%
-  group_by(Trash) %>% 
-  summarise(total=sum(value, na.rm = TRUE)) %>% 
-  mutate(Percent = round(total/sum(total)*100, 0)) 
-         
-#3. PLOT VIZUALIZATION 
-## Load Google fonts (https://fonts.google.com/)
-font_add_google("Rozha One", family = "title")                           
-font_add_google("Lato", family = "subtitle")  
-font_add_google("Homemade Apple", family = "x")
-font_add_google("Roboto", family = "l")
+all_items <- long |> group_by(item) |> summarise(count = sum(count, na.rm = TRUE)) |>
+  mutate(pct = count / sum(count))
+butts <- all_items |> filter(item == "Cigarette butts")
+years <- range(trashwheel$Year)
 
-showtext::showtext_auto()
-showtext::showtext_opts(dpi = 300) 
+# Percentage labels: cigarette butts share for each wheel
+pct_lab <- wheels |>
+  mutate(label = factor(label, levels = wheels$label),
+         txt = scales::percent(pct, accuracy = 1))
 
-##Title,subtitle & caption 
-tt <- str_wrap("The Trash Wheel Family collected 
-               2,362.23 tons of trash, half in cigarette butts!",50)
-st <- str_glue(stringr::str_wrap("Trash Wheel Family's trash collection percentage breakdown: 2014-2022",
-                                 width=100))
-ct  <- str_glue(stringr::str_wrap("Data Source:  Trash Wheel Collection Data  | 
-                                  Creator:Zoi Diamantakou | tidytuesday | 2024, 
-                                  week 10",width=100))
+# 4. COLOURS & TEXT --------------------------------------------------------
+cols <- setNames(c("#C8553D", "#5E8C8C", "#9DB8B8", "#C5D4D4", "#E0E8E8", "#EEF2F2"), items)
+ink <- "#1A1A1A"; muted <- "#5A5A5A"; faint <- "#7A7A7A"
 
-##plot
-p<- ggplot(data = dt,aes(fill = Trash, values = total)) +
-  geom_waffle(na.rm = TRUE,
-              color = "white", 
-              size = 0.5, 
-              n_rows = 10, 
-              make_proportional = TRUE,
-              flip = TRUE,
-              height = 1, width = 1,
-              radius = unit(2, "pt")) +
-  facet_wrap(
-    ~Name, 
-    ncol = 4, 
-    strip.position = "top"
-  ) +
-  labs(x="",
-       y="",
-       title = tt,
-       subtitle =st ,
-       caption = ct,
-       col="",
-       fill="")+
-  
-  scale_fill_manual(
-                   values =c("#FA7E70",
-                             alpha("#609696",1/2),
-                             alpha("#F6D1C5",1/2),
-                             alpha("#F1BD68",1/2),
-                             alpha("#C6D7D2",1/2)
-                                     ))
-  
+tt <- "Most of the trash in Baltimore's harbour is cigarette butts"
 
-p+theme_minimal()+
-  theme(plot.margin           = margin(t = 10, r = 25, b = 10, l = 25),
-        plot.title            = element_text(
-          family= 'title',face= "bold",size= 30,hjust = 0,
-          colour="black",lineheight= 0.9,
-          margin= margin(t = 16, b = 5)),
-        plot.subtitle = element_text(
-          family= 'subtitle', hjust = 0,
-          lineheight= 0.9,size  = 18,colour="black",
-          margin= margin(t = 5, b = 10)),
-        plot.caption = element_text(colour="black"),
-        plot.caption.position = "plot",
-        #axis
-        axis.title.x = element_blank(),
-        axis.text.x = element_blank(),
-        axis.text.y =  element_blank(),
-        axis.ticks.x =element_blank(),
-        #legend
-        legend.position = "top",
-        legend.title=element_blank(),
-        legend.justification='left',
-        legend.text = element_text(color = "grey40", size = 10),
-        strip.text.x = element_text(size = 16,colour="black",hjust=0.5),
-        #background
-        panel.grid.major = element_blank(), 
-        panel.grid.minor= element_blank(),
-        panel.grid.major.x = element_blank(),
-        plot.background = element_rect(fill = "white", color = NA)) 
- 
+st <- paste0(
+  "Items collected by the four Trash Wheels, ", years[1], "–", years[2], ": ",
+  scales::comma(round(butts$count / 1e6, 1)), " million ",
+  "<span style='color:", cols[1], "'>**cigarette butts**</span>, then plastic bottles, ",
+  "wrappers, polystyrene and plastic bags. Each grid is 100 items.")
 
-#4. SAVE THE PLOT
-ggsave("TT2024Week10.png", width = 12, height = 5, 
-       type = "Cairo",dpi = 300, bg = "white") 
-ggsave("TT2024Week10.svg", width = 12, height = 5, 
-       dpi = 300, bg = "white") 
+ct <- paste0("Shares are of items counted, not weight. Wheels are ordered by tonnage collected.<br>",
+             "Data source: Mr. Trash Wheel Baltimore Healthy Harbor",
+             " · Creator: Zoi Diamantakou · TidyTuesday 2024 · Week 10")
+
+# 5. PLOT ------------------------------------------------------------------
+p <- ggplot(dt, aes(fill = item, values = pct * 100)) +
+  geom_waffle(colour = "white", size = 0.6, n_rows = 10, flip = TRUE,
+              make_proportional = TRUE, na.rm = TRUE) +
+  geom_text(data = pct_lab, aes(x = 11, y = 9.5, label = txt), inherit.aes = FALSE,
+            hjust = 0, family = "poppins", fontface = "bold", size = 5, colour = cols[1]) +
+  geom_text(data = pct_lab, aes(x = 11, y = 8.2, label = "cigarette\nbutts"),
+            inherit.aes = FALSE, hjust = 0, vjust = 1, family = "poppins", size = 2.4,
+            colour = faint, lineheight = 0.95) +
+  facet_wrap(~ label, ncol = 2) +
+  scale_fill_manual(values = cols, name = NULL) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  coord_equal(xlim = c(0.5, 15), clip = "off") +
+  labs(title = tt, subtitle = st, caption = ct, x = NULL, y = NULL) +
+  guides(fill = guide_legend(nrow = 1, keywidth = unit(3, "mm"), keyheight = unit(3, "mm"))) +
+  theme_void(base_family = "poppins") +
+  theme(
+    plot.title.position   = "plot",
+    plot.caption.position = "plot",
+    plot.title = element_textbox_simple(face = "bold", size = 22, colour = ink,
+                                        lineheight = 1.05, margin = margin(b = 12)),
+    plot.subtitle = element_textbox_simple(size = 11, colour = muted,
+                                           lineheight = 1.25, margin = margin(b = 10)),
+    plot.caption = element_markdown(size = 7, colour = faint, hjust = 0,
+                                    lineheight = 1.4, margin = margin(t = 18)),
+    legend.position = "top",
+    legend.justification = "left",
+    legend.location = "plot",
+    legend.text = element_text(size = 7, colour = muted),
+    legend.margin = margin(b = 12),
+    strip.text = element_markdown(size = 8, colour = ink, hjust = 0, margin = margin(b = 4)),
+    panel.spacing.y = unit(6, "mm"),
+    panel.spacing.x = unit(4, "mm"),
+    plot.background = element_rect(fill = "white", colour = NA),
+    plot.margin = margin(36, 36, 36, 36))
+
+# 6. SAVE ------------------------------------------------------------------
+ggsave("TT2024Week10.png", p, width = 7.5, height = 7.5, dpi = 288, bg = "white")
+ggsave("TT2024Week10.svg", p, width = 7.5, height = 7.5, bg = "white")
