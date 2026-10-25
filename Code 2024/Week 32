@@ -1,120 +1,95 @@
-#Olympic Medals
-#2024: week 32 
+# Olympic Medals
+# TidyTuesday 2024 · Week 32
+# Question: which countries have won the most Olympic medals?
 
+# 1. LIBRARIES -------------------------------------------------------------
+library(tidyverse)
+library(showtext)
+library(ggtext)
 
-#load basic libraries 
-library(tidytuesdayR)# Access data for the #TidyTuesday project.
-library(tidyverse) # Collection of tools for data manipulation and visualization.
-library(showtext) #Easily use custom fonts in plots.Allows the use of google fonts
-library(glue)#Simple string formatting and interpolation.
-library(Cairo) #High-quality graphics rendering for plots.
+font_add_google("Poppins", family = "poppins")
+showtext_auto()
+showtext_opts(dpi = 288)
 
-#additional libraries
-library(ggtext) #Allows rich text formatting (Markdown/HTML) in ggplot.
-library(forcats) #Tools for handling categorical variables (factors).
-library(ggrepel) #Avoids overlapping labels in ggplot2.
-library(lubridate)#Simplifies working with dates and times.
-library(ggridges) #Create ridge/joy plots for visualizing distributions.
-#for this chart
-library(ggalluvial)
+# 2. DATA ------------------------------------------------------------------
+olympics <- read_csv(
+  "https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2024/2024-08-06/olympics.csv",
+  show_col_types = FALSE)
 
-## Load Google fonts (https://fonts.google.com/)
-font_add_google("Oswald", family = "title")                           
-font_add_google("Lato", family = "subtitle")
-font_add_google("Lato", family = "x")
-showtext::showtext_auto()
-showtext::showtext_opts(dpi = 300) 
+# 3. WRANGLING -------------------------------------------------------------
+# The data has one row per athlete, so a team gold (e.g. basketball) appears once
+# per player. Keep each medal once: one per Games, event, country and medal.
+medals <- olympics |>
+  filter(!is.na(medal)) |>
+  distinct(games, season, event, noc, medal)
 
-#1.DATA LOADING
-tuesdata <- tidytuesdayR::tt_load(2024, week = 32)
-olympics <- tuesdata$olympics
+names_noc <- c(USA = "United States", URS = "Soviet Union", GER = "Germany",
+               GBR = "Great Britain", FRA = "France", ITA = "Italy", SWE = "Sweden",
+               CHN = "China", RUS = "Russia", AUS = "Australia", CAN = "Canada",
+               HUN = "Hungary", NOR = "Norway", JPN = "Japan")
 
-#2.DATA WRANGLING
-top_10_countries<-olympics %>% 
-  filter(medal%in%c("Gold","Silver","Bronze")) %>% 
-  group_by(team) %>% 
-  summarise(n=n()) %>% 
-  arrange(-n) %>% 
-  slice_head(n = 10) %>%
-  pull(team)
+top_10 <- medals |> count(noc, sort = TRUE) |> slice_head(n = 10)
 
-dt<-olympics %>% 
-  filter(team %in% top_10_countries) %>%
-  select(team,season,sex,medal)%>%
-  filter(medal%in%c("Gold","Silver","Bronze")) %>% 
-  group_by(team,season,sex,medal) %>% 
-  summarise(n=n()) %>% 
-  mutate(team=factor(team,levels=c("United States","Soviet Union","Germany","Great Britain",
-                                   "France","Italy","Sweden","Australia","Canada","Hungary"))) %>% 
-  mutate(medal=factor(medal,levels=c("Gold","Silver","Bronze")))
+dt <- medals |>
+  filter(noc %in% top_10$noc) |>
+  count(noc, medal) |>
+  mutate(country = factor(names_noc[noc], levels = rev(names_noc[top_10$noc])),
+         medal   = factor(medal, levels = c("Bronze", "Silver", "Gold")))
 
+totals <- dt |> group_by(country) |> summarise(n = sum(n), .groups = "drop")
 
+usa   <- top_10$n[top_10$noc == "USA"]
+urs   <- top_10$n[top_10$noc == "URS"]
+gold_usa <- dt |> filter(noc == "USA", medal == "Gold") |> pull(n) |> sum()
+years <- range(olympics$year)
+n_rows_raw <- olympics |> filter(!is.na(medal)) |> nrow()
 
-#3. PLOT VIZUALIZATION 
-##Title,subtitle & caption 
-tt <- str_glue(stringr::str_wrap("120 Years of Olympic Glory: Top 10 medal-winning countries",
-                                 width=80))
-st <- str_glue(stringr::str_wrap("Medal counts of the top 10 countries by season, sex, 
-                                  and type from Athens 1896 to Rio 2016",
-                                 width=70))
-ct  <- str_glue(stringr::str_wrap("Data source: RGriffin Kaggle dataset | 
-                                  Creator:Zoi Diamantakou | 
-                                  tidytuesday | 
-                                  2024,week 32",width=100))
+# 4. COLOURS & TEXT --------------------------------------------------------
+cols <- c(Gold = "#D6AF36", Silver = "#A7A7AD", Bronze = "#824A02")
+ink <- "#1A1A1A"; muted <- "#5A5A5A"; faint <- "#7A7A7A"
 
-##plot
-p<-
-  ggplot(data = dt,
-         aes(axis1 = team, axis2 = season,axis3=sex, axis4=medal,y = n)) +
-  geom_alluvium(aes(fill = medal),curve_type = "cubic") +
-  geom_stratum() +
-  geom_text(stat = "stratum",
-            aes(label = stringr::str_wrap(after_stat(stratum), width = 10))) +
-  scale_fill_manual(values=c("#D6AF36","#A7A7AD","#824A02"))+
-  labs(title=tt,subtitle = st,caption = ct,
-       x="",y="",fill="Medals")+
-  theme_void()
-  
+tt <- paste0("The US has won ", scales::comma(usa),
+             " Olympic medals, more than twice any other country")
 
+st <- paste0(
+  "Medals won by the 10 most successful countries at the Summer and Winter Olympics combined, ",
+  years[1], "–", years[2], ", split into <span style='color:#B8922A'>**gold**</span>, ",
+  "<span style='color:#8A8A92'>**silver**</span> and <span style='color:", cols["Bronze"],
+  "'>**bronze**</span>. ", scales::comma(gold_usa), " of the US medals are gold; ",
+  "the Soviet Union, second, won ", scales::comma(urs), " medals in all.")
 
+ct <- paste0("Team medals counted once, not once per athlete. Germany excludes East and West Germany (1968–1988), ",
+             "which competed separately.<br>",
+             "Data source: 120 years of Olympic history (Kaggle, RGriffin) · Creator: Zoi Diamantakou · ",
+             "TidyTuesday 2024 · Week 32")
 
-p+theme_minimal()+
-  theme(plot.margin= margin(t = 20, r = 25, b = 20, l = 25),
-        plot.title= element_text(family= 'title',face= "bold",size= 20,hjust = 0,colour="#19201D"),
-        plot.subtitle = element_text(family= 'subtitle', hjust = 0,
-                                     lineheight= 0.9,size  = 16,colour="black"),
-        plot.caption = element_text(colour="black",size=11, hjust = 0.5,family='x'),
-        plot.caption.position = "plot",
-        #axis text
-        axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
-        axis.text.x = element_blank(),
-        axis.text.y = element_blank(),
-        #legend
-        legend.position = "top",
-        legend.justification='left',
-        legend.text = element_text(family="x",color = "black",size = 14),
-        legend.title = element_text(family="x",color = "black",size = 14),
-        #panel
-        panel.spacing = unit(1.5, "cm"),
-        strip.text.x = element_text(size = 20,face="bold",hjust=0,family= 'x'),
-        panel.background = element_blank(),
-        #grid
-        panel.grid = element_blank(),
-        #panel.grid.major.y = element_line(color = "#dedddd", linewidth = 1, linetype = 1),  # Corrected to element_line
-        #panel.grid.major.x = element_blank(),
-        #axis.line.x = element_line(color = "black", linewidth = 1, linetype = 1),  
-        #axis.line.y = element_line(color = "black", linewidth = 1, linetype = 1), 
-        axis.ticks= element_blank(), 
-        #axis.ticks.x = element_line(color = "white",linewidth = 1),
-        #background
-        plot.background = element_rect(fill = "white", color = NA))
+# 5. PLOT ------------------------------------------------------------------
+p <- ggplot(dt, aes(n, country, fill = medal)) +
+  geom_col(width = 0.68, colour = "white", linewidth = 0.3) +
+  geom_text(data = totals, aes(n, country, label = scales::comma(n)), inherit.aes = FALSE,
+            hjust = 0, nudge_x = 30, family = "poppins", size = 2.7, colour = ink) +
+  scale_fill_manual(values = cols, guide = "none") +
+  scale_x_continuous(expand = expansion(mult = c(0, 0.1)), labels = scales::comma) +
+  labs(title = tt, subtitle = st, caption = ct, x = NULL, y = NULL) +
+  theme_minimal(base_family = "poppins") +
+  theme(
+    plot.title.position   = "plot",
+    plot.caption.position = "plot",
+    plot.title = element_textbox_simple(face = "bold", size = 22, colour = ink,
+                                        lineheight = 1.05, margin = margin(b = 12)),
+    plot.subtitle = element_textbox_simple(size = 11, colour = muted,
+                                           lineheight = 1.25, margin = margin(b = 16)),
+    plot.caption = element_textbox_simple(size = 7, colour = faint,
+                                          lineheight = 1.4, margin = margin(t = 16)),
+    strip.text  = element_text(size = 10, colour = ink, face = "bold", hjust = 0),
+    axis.text.y = element_text(size = 8.5, colour = ink),
+    axis.text.x = element_text(size = 7, colour = faint),
+    panel.grid  = element_blank(),
+    panel.grid.major.x = element_line(colour = "#EFEFEF", linewidth = 0.3),
+    panel.spacing.x = unit(20, "pt"),
+    plot.background = element_rect(fill = "white", colour = NA),
+    plot.margin = margin(36, 36, 36, 36))
 
-
-#4. SAVE THE PLOT
-#ggsave("TT2024Week_32.png", width = 12, height = 8,type = "Cairo",dpi = 300, bg = "white") 
-ggsave("TT2024Week_32.svg", width = 8, height = 9,dpi = 300, bg = "white")
-browseURL("TT2024Week_32.svg")
-
-
-
+# 6. SAVE ------------------------------------------------------------------
+ggsave("TT2024Week32.png", p, width = 7.5, height = 7.5, dpi = 288, bg = "white")
+ggsave("TT2024Week32.svg", p, width = 7.5, height = 7.5, bg = "white")
