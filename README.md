@@ -25,7 +25,7 @@ This repo holds 67 visualizations and the R code behind every one of them, all b
 1. **Start with one question.** Not "what's in this data?" but "what would someone want to know?"
 2. **Clean and check.** Every dataset has quirks: missing values, odd categories, duplicates.
 3. **Break it down.** The story is usually in the split (by gender, country, year), not the total.
-4. **Pick the simplest chart that answers it.**
+4. **Pick the simplest chart that answers it (unless you want to be creative).**
 5. **Write the headline last.** It should state the finding, not the topic.
 
 ## What's in this repo
