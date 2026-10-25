@@ -1,53 +1,96 @@
+# Spam E-mail
+# TidyTuesday 2023 · Week 33
+# Question: what gives spam emails away?
+
+# 1. LIBRARIES -------------------------------------------------------------
 library(tidyverse)
-library(dplyr)
-library(ggplot2)
+library(showtext)
+library(ggtext)
 
+font_add_google("Poppins", family = "poppins")
+showtext_auto()
+showtext_opts(dpi = 288)
 
-tuesdata <- tidytuesdayR::tt_load(2023, week = 33)
+# 2. DATA ------------------------------------------------------------------
+spam <- read_csv(
+  "https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2023/2023-08-15/spam.csv",
+  show_col_types = FALSE)
 
-spam <- tuesdata$spam
+# 3. WRANGLING -------------------------------------------------------------
+# Share of emails that contain each word or character at least once.
+# (Capital letters are left out: every email has some.)
+vars <- c(money = "The word “money”", n000 = "The string “000”",
+          dollar = "Dollar signs ($)", bang = "Exclamation marks (!)", make = "The word “make”")
 
-spam_pivot<-spam %>%
-  pivot_longer(
-    cols = "crl.tot":"make",
-    names_to ="var",
-    values_to = "value")
+dt <- spam |>
+  pivot_longer(c(money, n000, dollar, bang, make), names_to = "var", values_to = "value") |>
+  group_by(var) |>
+  summarise(spam  = mean(value[yesno == "y"] > 0) * 100,
+            other = mean(value[yesno == "n"] > 0) * 100) |>
+  mutate(ratio = spam / other,
+         label = factor(vars[var], levels = vars[var[order(ratio)]]))   # biggest giveaway at the top
 
-p<-ggplot(spam_pivot, aes(x = log10(value), fill = yesno)) +
-  geom_histogram(position = "identity", alpha = 0.5, bins = 15)+
-  facet_wrap(~var,
-             labeller = as_labeller(
-               c(bang= "Bang (!)", 
-                 crl.tot="Capital sequences \nlength",
-                 dollar="Dollar ($)",
-                 make="Make",
-                 money="Money",
-                 n000="String 000")))+
-labs(title="Insights from 6 Key Variables in Spam Email Dataset:\nSpam vs Non-Spam",
-     fill="Emails",
-     caption = "Data source:  Spam Email Rdatasets| Creator:Zoi Diamantakou | tidytuesday | 2023, week 33",
-     x="log(observations)",
-     y="")+
-  scale_fill_manual(labels=c("Not spam","Spam"),
-                    values = c('#ece581','#BF6F6F'))
-p
+long <- dt |> pivot_longer(c(spam, other), names_to = "type", values_to = "pct")
 
+money <- dt |> filter(var == "money")
+bang  <- dt |> filter(var == "bang")
+caps  <- spam |> group_by(yesno) |> summarise(med = median(crl.tot))
+n_spam <- sum(spam$yesno == "y"); n_ok <- sum(spam$yesno == "n")
 
-p+theme_minimal() +
-  theme(plot.margin = unit(c(1,2,1,1), "cm"),
-        plot.title = element_text(size = 22, face = "bold", hjust = 0.5,color="#dcc7c0"),
-        plot.subtitle = element_text(size = 10,hjust = 0,colour = "#ffffff"),
-        plot.caption = element_text(size = 10,hjust = 0.5,color='#dcc7c0'),
-        axis.title.x = element_text(size = 8,hjust = 0.5,colour = "#ffffff"),
-        axis.title.y= element_text(size = 8,hjust = 0.5,colour = "#ffffff"),
-        axis.text.x = element_text(size = 8,hjust = 0,colour = "#ffffff"),
-        axis.text.y = element_text(size = 8,hjust = 0,colour = "#ffffff"),
-        strip.text.x = element_text(size = 12,colour="#f1e8e5",face="bold"),
-        legend.position='bottom',
-        legend.text = element_text(color = "#f1e8e5",size=12),
-        legend.title = element_text(color = "#ffffff"),
-        panel.grid = element_blank(),
-        panel.spacing = unit(2, "lines"),
-        plot.background = element_rect(fill="#330C59"))
+# 4. COLOURS & TEXT --------------------------------------------------------
+cols <- c(spam = "#A8484C", other = "#F4EE9A")
+bg <- "#8FAFAC"; txt <- "#1A1A1A"; soft <- "#2F3B3A"
 
-ggsave("TT2023Week33.png", width = 12, height = 9, dpi = 300, bg = "white")
+tt <- paste0(round(money$spam), "% of spam emails say \u201cmoney\u201d; only ",
+             round(money$other), "% of other emails do")
+
+st <- paste0(
+  "Share of ", scales::comma(n_spam), " <span style='color:#7A2E2E'>**spam**</span> and ",
+  scales::comma(n_ok), " <span style='color:#6E6400'>**other**</span> emails that contain each word or character, ",
+  "sorted by how much more likely it is in spam. Money words almost never appear in normal emails; ",
+  "exclamation marks are common in both. Spam also shouts: a median of ",
+  caps$med[caps$yesno == "y"], " capital letters per email, against ", caps$med[caps$yesno == "n"], ".")
+
+ct <- paste0("Emails collected at Hewlett-Packard Labs in 1999.<br>",
+             "Data source: Spam E-mail Database (UCI), via Rdatasets · Creator: Zoi Diamantakou · ",
+             "TidyTuesday 2023 · Week 33")
+
+# 5. PLOT ------------------------------------------------------------------
+p <- ggplot(long, aes(pct, label)) +
+  geom_segment(data = dt, aes(x = other, xend = spam, y = label, yend = label),
+               colour = "#E9EFEE", linewidth = 2, alpha = 0.7) +
+  geom_point(aes(fill = type), shape = 21, size = 6, stroke = 0.6, colour = "white") +
+  geom_text(data = long, aes(label = paste0(round(pct), "%"),
+                             vjust = if_else(type == "spam", -1.6, -1.6)),
+            family = "poppins", size = 2.7, colour = txt) +
+  geom_text(data = dt, aes(x = 100, label = paste0(round(ratio), "×")), hjust = 1,
+            family = "poppins", fontface = "bold", size = 4, colour = txt) +
+  annotate("text", x = 100, y = 5.55, label = "more likely\nin spam", hjust = 1, vjust = 0,
+           family = "poppins", size = 2.4, colour = soft, lineheight = 0.95) +
+  scale_fill_manual(values = cols, guide = "none") +
+  scale_x_continuous(limits = c(0, 100), breaks = seq(0, 80, 20), labels = \(x) paste0(x, "%"),
+                     expand = c(0.01, 0)) +
+  scale_y_discrete(expand = expansion(add = c(0.6, 0.9))) +
+  coord_cartesian(clip = "off") +
+  labs(title = tt, subtitle = st, caption = ct, x = "Emails that contain it", y = NULL) +
+  theme_minimal(base_family = "poppins") +
+  theme(
+    plot.title.position   = "plot",
+    plot.caption.position = "plot",
+    plot.title = element_textbox_simple(face = "bold", size = 22, colour = txt,
+                                        lineheight = 1.05, margin = margin(b = 12)),
+    plot.subtitle = element_textbox_simple(size = 11, colour = soft,
+                                           lineheight = 1.25, margin = margin(b = 14)),
+    plot.caption = element_textbox_simple(size = 7, colour = soft,
+                                          lineheight = 1.4, margin = margin(t = 14)),
+    axis.title.x = element_text(size = 7.5, colour = soft, hjust = 0, margin = margin(t = 6)),
+    axis.text.x  = element_text(size = 7.5, colour = soft),
+    axis.text.y  = element_text(size = 9.5, colour = txt, face = "bold"),
+    panel.grid = element_blank(),
+    panel.grid.major.x = element_line(colour = "#A3C0BD", linewidth = 0.3),
+    plot.background = element_rect(fill = bg, colour = NA),
+    plot.margin = margin(36, 36, 36, 36))
+
+# 6. SAVE ------------------------------------------------------------------
+ggsave("TT2023Week33.png", p, width = 7.5, height = 7.5, dpi = 288, bg = bg)
+ggsave("TT2023Week33.svg", p, width = 7.5, height = 7.5, bg = bg)
