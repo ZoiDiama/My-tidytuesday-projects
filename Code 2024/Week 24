@@ -1,106 +1,81 @@
-# English Women's Football
-# TidyTuesday 2024 · Week 29
-# Question: which top-flight clubs score more goals than they concede?
+# R Consortium ISC Grants
+# TidyTuesday 2024 · Week 8
+# Question: do spring or fall grants get more money?
 
 # 1. LIBRARIES -------------------------------------------------------------
 library(tidyverse)
 library(showtext)
 library(ggtext)
 
-# Poppins, the font used across all featured charts
 font_add_google("Poppins", family = "poppins")
 showtext_auto()
 showtext_opts(dpi = 288)
 
 # 2. DATA ------------------------------------------------------------------
-# Read straight from GitHub
-ewf_standings <- read_csv(
-  "https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2024/2024-07-16/ewf_standings.csv",
+isc_grants <- read_csv(
+  "https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2024/2024-02-20/isc_grants.csv",
   show_col_types = FALSE)
 
 # 3. WRANGLING -------------------------------------------------------------
-clubs <- ewf_standings |>
-  # Top flight only: tier 2 goals came against weaker opposition
-  filter(tier == 1) |>
-  # Many clubs renamed from "Ladies" to "Women" around 2018.
-  # Strip the suffix so each club is counted once.
-  mutate(club = team_name |>
-           str_remove(" (Women|Ladies|Lionesses|Belles)$") |>
-           str_replace("^Spurs$", "Tottenham Hotspur") |>
-           str_replace("^Bristol Academy$", "Bristol City")) |>
-  group_by(club) |>
-  summarise(goals_for     = sum(goals_for, na.rm = TRUE),
-            goals_against = sum(goals_against, na.rm = TRUE),
-            seasons       = n(),
-            titles        = sum(position == 1),
-            .groups = "drop") |>
-  mutate(goal_diff = goals_for - goals_against,
-         positive  = goal_diff > 0,
-         club      = fct_reorder(club, goal_diff))
+# group: 1 = spring cycle, 2 = fall cycle
+dt <- isc_grants |>
+  mutate(cycle = if_else(group == 1, "Spring", "Fall")) |>
+  group_by(year, cycle) |>
+  summarise(n = n(), mean = mean(funded), .groups = "drop") |>
+  mutate(year = factor(year),
+         label = paste0("$", round(mean / 1000, 1), "k<br><span style='color:#7A7A7A'>",
+                        n, if_else(n == 1, " grant", " grants"), "</span>"))
 
-n_clubs    <- nrow(clubs)
-n_positive <- sum(clubs$positive)
-first_season <- str_sub(min(ewf_standings$season), 1, 4)
-last_season  <- str_replace(max(ewf_standings$season), "^(\\d{4})-\\d{2}(\\d{2})$", "\\1–\\2")
+overall <- isc_grants |>
+  mutate(cycle = if_else(group == 1, "Spring", "Fall")) |>
+  group_by(cycle) |>
+  summarise(n = n(), mean = mean(funded), median = median(funded))
+fall   <- overall |> filter(cycle == "Fall")
+spring <- overall |> filter(cycle == "Spring")
 
-# Club labels: bold for the clubs in the black, muted for the rest
-clubs <- clubs |>
-  mutate(label = if_else(
-    positive,
-    paste0("<span style='color:#1A1A1A'>**", club, "**</span>"),
-    paste0("<span style='color:#5A5A5A'>", club, "</span>")),
-    gd_label = if_else(positive, paste0("+", goal_diff), as.character(goal_diff)))
+fall_wins <- dt |> select(year, cycle, mean) |> pivot_wider(names_from = cycle, values_from = mean) |>
+  filter(!is.na(Fall), !is.na(Spring))
+n_fall_higher <- sum(fall_wins$Fall > fall_wins$Spring)
 
 # 4. COLOURS & TEXT --------------------------------------------------------
-col_for     <- "#5B98A6"   # goals scored
-col_against <- "#D94A4A"   # goals conceded
-ink   <- "#1A1A1A"
-muted <- "#5A5A5A"
-faint <- "#7A7A7A"
+cols <- c(Spring = "#6393A6", Fall = "#733B36")
+bg <- "#FBEFEB"; ink <- "#1A1A1A"; muted <- "#5A5A5A"; faint <- "#7A7A7A"
 
-tt <- paste0("Only ", n_positive, " of ", n_clubs,
-             " top-flight clubs have scored more than they've conceded")
+tt <- paste0("Fall grants average $", scales::comma(round(fall$mean, -2)), ", spring grants $",
+             scales::comma(round(spring$mean, -2)), ": timing barely matters")
 
 st <- paste0(
-  "Total goals <span style='color:", col_for, "'>**scored**</span> and ",
-  "<span style='color:", col_against, "'>**conceded**</span> by each club in ",
-  "England's women's top flight, ", first_season, " to ", last_season, ". ",
-  "Clubs renamed from \"Ladies\" to \"Women\" are counted once.")
+  "Average amount awarded per project by the R Consortium's ISC grant programme, ",
+  "by year and cycle. The bigger the circle, the bigger the average grant. ",
+  "<span style='color:", cols["Fall"], "'>**Fall**</span> grants were larger in ", n_fall_higher,
+  " of the ", nrow(fall_wins), " years with both cycles; ",
+  "<span style='color:", cols["Spring"], "'>**spring**</span> grants won the rest.")
 
-ct <- paste0("Data source: The English Women's Football (EWF) Database",
-             " · Creator: Zoi Diamantakou · TidyTuesday 2024 · Week 29")
-
-# Where the dividing line between the two groups sits
-split_y <- sum(!clubs$positive) + 0.5
+ct <- paste0("2023 had only a spring cycle. Medians are almost equal: $", scales::comma(round(fall$median)),
+             " in fall and $", scales::comma(round(spring$median)), " in spring.<br>",
+             "Data source: R Consortium Infrastructure Steering Committee (ISC) Grant Program · ",
+             "Creator: Zoi Diamantakou · TidyTuesday 2024 · Week 8")
 
 # 5. PLOT ------------------------------------------------------------------
-p <- ggplot(clubs, aes(y = club)) +
-  # divider between the clubs in the black and the rest
-  geom_hline(yintercept = split_y, colour = "#BDBDBD", linewidth = 0.3,
-             linetype = "dashed") +
-  annotate("text", x = 600, y = split_y + 0.35, label = "Scored more than conceded",
-           family = "poppins", fontface = "bold", size = 2.4, colour = ink, hjust = 1) +
-  annotate("text", x = 600, y = split_y - 0.45, label = "Conceded more than scored",
-           family = "poppins", size = 2.4, colour = muted, hjust = 1) +
-  # dumbbells
-  geom_segment(aes(x = goals_against, xend = goals_for, yend = club,
-                   colour = positive), linewidth = 1.6, alpha = 0.35) +
-  geom_point(aes(x = goals_against), colour = col_against, size = 2.4) +
-  geom_point(aes(x = goals_for), colour = col_for, size = 2.4) +
-  # goal difference, at the right
-  geom_text(aes(x = 660, label = gd_label,
-                colour = positive, fontface = if_else(positive, "bold", "plain")),
-            family = "poppins", size = 2.5, hjust = 1) +
-  annotate("text", x = 660, y = n_clubs + 0.9, label = "Goal\ndifference",
-           family = "poppins", size = 2.2, colour = faint, hjust = 1, lineheight = 0.9) +
-  scale_colour_manual(values = c(`TRUE` = col_for, `FALSE` = col_against),
-                      guide = "none") +
-  scale_y_discrete(labels = setNames(clubs$label, clubs$club),
-                   expand = expansion(add = c(0.6, 1.4))) +
-  scale_x_continuous(breaks = seq(0, 600, 100), limits = c(0, 665),
-                     position = "top", expand = c(0, 0)) +
+p <- ggplot(dt, aes(year, 0, size = mean, colour = cycle)) +
+  geom_vline(xintercept = seq(1.5, nlevels(dt$year) - 0.5, 1), colour = "white", linewidth = 0.8) +
+  geom_hline(yintercept = 0, colour = "#595959", linewidth = 0.6) +
+  geom_point(alpha = 0.5) +
+  # spring labels above the line, fall labels below
+  geom_richtext(data = filter(dt, cycle == "Spring"), aes(y = 0.1, label = label),
+                size = 2.6, family = "poppins", fill = NA, label.colour = NA, lineheight = 1.1,
+                show.legend = FALSE) +
+  geom_richtext(data = filter(dt, cycle == "Fall"), aes(y = -0.1, label = label),
+                size = 2.6, family = "poppins", fill = NA, label.colour = NA, lineheight = 1.1,
+                show.legend = FALSE) +
+  annotate("text", x = 0.45, y = c(0.1, -0.1), label = c("Spring", "Fall"), hjust = 1,
+           family = "poppins", fontface = "bold", size = 3, colour = cols[c("Spring", "Fall")]) +
+  scale_size_continuous(range = c(7, 30), guide = "none") +
+  scale_colour_manual(values = cols, guide = "none") +
+  scale_x_discrete(position = "top", expand = expansion(add = c(0.9, 0.5))) +
+  scale_y_continuous(limits = c(-0.14, 0.14)) +
   coord_cartesian(clip = "off") +
-  labs(title = tt, subtitle = st, caption = ct, x = "Total goals", y = NULL) +
+  labs(title = tt, subtitle = st, caption = ct, x = NULL, y = NULL) +
   theme_minimal(base_family = "poppins") +
   theme(
     plot.title.position   = "plot",
@@ -108,19 +83,16 @@ p <- ggplot(clubs, aes(y = club)) +
     plot.title = element_textbox_simple(face = "bold", size = 22, colour = ink,
                                         lineheight = 1.05, margin = margin(b = 12)),
     plot.subtitle = element_textbox_simple(size = 11, colour = muted,
-                                           lineheight = 1.25, margin = margin(b = 18)),
-    plot.caption = element_text(size = 7, colour = faint, hjust = 0,
-                                margin = margin(t = 18)),
-    axis.title.x = element_text(size = 8, colour = faint, hjust = 0,
-                                margin = margin(b = 4)),
-    axis.text.x  = element_text(size = 8, colour = faint),
-    axis.text.y  = element_markdown(size = 8, hjust = 1),
-    panel.grid   = element_blank(),
-    panel.grid.major.x = element_line(colour = "#EDEDED", linewidth = 0.3),
-    plot.background = element_rect(fill = "white", colour = NA),
+                                           lineheight = 1.25, margin = margin(b = 10)),
+    plot.caption = element_textbox_simple(size = 7, colour = faint,
+                                          lineheight = 1.4, margin = margin(t = 10)),
+    axis.text.x = element_text(size = 9, colour = ink, face = "bold"),
+    axis.text.y = element_blank(),
+    aspect.ratio = 0.55,
+    panel.grid  = element_blank(),
+    plot.background = element_rect(fill = bg, colour = NA),
     plot.margin = margin(36, 36, 36, 36))
 
 # 6. SAVE ------------------------------------------------------------------
-# 1080 x 1080 px, saved at 2x (2160 px) like the featured charts
-ggsave("TT2024Week29_v2.png", p, width = 7.5, height = 7.5, dpi = 288, bg = "white")
-ggsave("TT2024Week29_v2.svg", p, width = 7.5, height = 7.5, bg = "white")
+ggsave("TT2024Week8.png", p, width = 7.5, height = 7.5, dpi = 288, bg = bg)
+ggsave("TT2024Week8.svg", p, width = 7.5, height = 7.5, bg = bg)
