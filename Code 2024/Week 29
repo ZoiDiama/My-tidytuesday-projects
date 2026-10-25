@@ -1,117 +1,126 @@
-#English Women's Football
-#2024: week 29 
-#load libraries 
+# English Women's Football
+# TidyTuesday 2024 · Week 29
+# Question: which top-flight clubs score more goals than they concede?
+
+# 1. LIBRARIES -------------------------------------------------------------
 library(tidyverse)
 library(showtext)
 library(ggtext)
-library(tidytuesdayR)
-library(glue)
-library(Cairo)
-library(forcats)
-library(ggrepel)
-library(lubridate)
-library(ggridges)
-library(forcats)
 
+# Poppins, the font used across all featured charts
+font_add_google("Poppins", family = "poppins")
+showtext_auto()
+showtext_opts(dpi = 288)
 
+# 2. DATA ------------------------------------------------------------------
+# Read straight from GitHub
+ewf_standings <- read_csv(
+  "https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2024/2024-07-16/ewf_standings.csv",
+  show_col_types = FALSE)
 
-## Load Google fonts (https://fonts.google.com/)
-font_add_google("Roboto", family = "title")                           
-font_add_google("Lato", family = "subtitle")
-font_add_google("Lato", family = "x")
-showtext::showtext_auto()
-showtext::showtext_opts(dpi = 300) 
+# 3. WRANGLING -------------------------------------------------------------
+clubs <- ewf_standings |>
+  # Top flight only: tier 2 goals came against weaker opposition
+  filter(tier == 1) |>
+  # Many clubs renamed from "Ladies" to "Women" around 2018.
+  # Strip the suffix so each club is counted once.
+  mutate(club = team_name |>
+           str_remove(" (Women|Ladies|Lionesses|Belles)$") |>
+           str_replace("^Spurs$", "Tottenham Hotspur") |>
+           str_replace("^Bristol Academy$", "Bristol City")) |>
+  group_by(club) |>
+  summarise(goals_for     = sum(goals_for, na.rm = TRUE),
+            goals_against = sum(goals_against, na.rm = TRUE),
+            seasons       = n(),
+            titles        = sum(position == 1),
+            .groups = "drop") |>
+  mutate(goal_diff = goals_for - goals_against,
+         positive  = goal_diff > 0,
+         club      = fct_reorder(club, goal_diff))
 
-#1.DATA LOADING
-tuesdata <- tidytuesdayR::tt_load(2024, week = 29)
-ewf_appearances <- tuesdata$ewf_appearances
-ewf_matches <- tuesdata$ewf_matches
-ewf_standings <- tuesdata$ewf_standings
+n_clubs    <- nrow(clubs)
+n_positive <- sum(clubs$positive)
+first_season <- str_sub(min(ewf_standings$season), 1, 4)
+last_season  <- str_replace(max(ewf_standings$season), "^(\\d{4})-\\d{2}(\\d{2})$", "\\1–\\2")
 
-#2.DATA WRANGLING
-dumbbell_data <- ewf_standings %>%
-  group_by(team_name) %>%
-  summarize(
-    sum_goals_for = sum(goals_for, na.rm = TRUE),
-    sum_goals_against = sum(goals_against, na.rm = TRUE),
-    total_wins = sum(wins, na.rm = TRUE),  # Calculate total wins
-    .groups = 'drop'
-  ) %>%
-  mutate(goal_difference = sum_goals_for - sum_goals_against) %>%
-  arrange(desc(goal_difference)) %>%   # Order by largest goal difference
-  mutate(team_name = fct_reorder(team_name, total_wins)) %>% 
-  mutate(group_col=case_when(
-    goal_difference>0~"positive",
-    goal_difference<0~"negative"))
+# Club labels: bold for the clubs in the black, muted for the rest
+clubs <- clubs |>
+  mutate(label = if_else(
+    positive,
+    paste0("<span style='color:#1A1A1A'>**", club, "**</span>"),
+    paste0("<span style='color:#5A5A5A'>", club, "</span>")),
+    gd_label = if_else(positive, paste0("+", goal_diff), as.character(goal_diff)))
 
-#3. PLOT VIZUALIZATION 
-##Title,subtitle & caption 
-tt <- str_glue(stringr::str_wrap("Title"),width=100)
-st <- str_glue(stringr::str_wrap("Sub",
-                                 width=100))
-ct  <- str_glue(stringr::str_wrap("Data Source: The English Women's Football (EWF) Database | 
-                                  Creator:Zoi Diamantakou | tidytuesday | 2024, 
-                                  week 29",width=100))
+# 4. COLOURS & TEXT --------------------------------------------------------
+col_for     <- "#5B98A6"   # goals scored
+col_against <- "#D94A4A"   # goals conceded
+ink   <- "#1A1A1A"
+muted <- "#5A5A5A"
+faint <- "#7A7A7A"
 
-##plot
-p<-
-  ggplot(dumbbell_data, aes(y = fct_reorder(team_name, 
-                                            desc(total_wins)))) +
-  geom_segment(aes(x = sum_goals_against, xend = sum_goals_for, 
-                   y = team_name, yend = team_name, color = group_col), 
-               size = 3,alpha=0.5) +
-  geom_point(aes(x = sum_goals_against), color = "#D94A4A", size = 5) +
-  geom_point(aes(x = sum_goals_for), color = "#5B98A6", size = 5) +
-  scale_x_continuous(breaks=seq(0,600,50),position="top")+
-    labs(title = tt,
-       subtitle=st,
-       caption=ct,
-       x = "Total goals",
-       y = "") +
-  theme_minimal()+
-  scale_color_manual(values = c("positive" = "#5B98A6", "negative" = "#D94A4A")) +  # Color mapping
-  theme_minimal()
+tt <- paste0("Only ", n_positive, " of ", n_clubs,
+             " top-flight clubs have scored more than they've conceded")
 
-p+  theme(plot.margin= margin(t = 50, r = 80, b = 50, l = 80),
-          plot.title            = element_text(
-            family= 'title',face= "bold",size= 35,hjust = 0,
-            colour="#19201D",
-            margin= margin(t = 16, b = 5)),
-          plot.subtitle = element_text(
-            family= 'subtitle', hjust = 0,
-            lineheight= 0.9,size  = 18,colour="black",
-            margin= margin(t = 5, b = 10)),
-          plot.caption = element_text(colour="black"),
-          plot.caption.position = "plot",
-          #axis
-          axis.title.x = element_text(size=12,family="x",
-                                      hjust=0),
-          axis.title.y = element_text(size=12,family="x",vjust=0),
-          axis.text.x = element_text(size=12,family="x",
-                                     hjust =0.5), 
-          axis.text.y = element_text(size=12,family="x",
-                                     angle = 0, vjust =0.5),
-          #legend
-          legend.text = element_text(color = "black", size = 12),
-          legend.position = "none",
-          legend.justification = c(0, 1),  
-          #background
-          panel.grid = element_blank(),
-          panel.grid.major.y = element_line(color = "grey",
-                                            linewidth = 0.1,
-                                            linetype = 1),
-          panel.grid.major.x = element_line(color = "grey",
-                                            linewidth = 0.1,
-                                            linetype = 1),
-          
-          plot.background = element_rect(fill = "white", color = NA))
+st <- paste0(
+  "Total goals <span style='color:", col_for, "'>**scored**</span> and ",
+  "<span style='color:", col_against, "'>**conceded**</span> by each club in ",
+  "England's women's top flight, ", first_season, " to ", last_season, ". ",
+  "Clubs renamed from \"Ladies\" to \"Women\" are counted once.")
 
+ct <- paste0("Data source: The English Women's Football (EWF) Database",
+             " · Creator: Zoi Diamantakou · TidyTuesday 2024 · Week 29")
 
-#4. SAVE THE PLOT
-ggsave("TT2024Week29.png", width = 14, height = 16, 
-       type = "Cairo",dpi = 300, bg = "white") 
-ggsave("TT2024Week29.svg", width = 14, height = 16, 
-       dpi = 300, bg = "white") 
+# Where the dividing line between the two groups sits
+split_y <- sum(!clubs$positive) + 0.5
 
+# 5. PLOT ------------------------------------------------------------------
+p <- ggplot(clubs, aes(y = club)) +
+  # divider between the clubs in the black and the rest
+  geom_hline(yintercept = split_y, colour = "#BDBDBD", linewidth = 0.3,
+             linetype = "dashed") +
+  annotate("text", x = 600, y = split_y + 0.35, label = "Scored more than conceded",
+           family = "poppins", fontface = "bold", size = 2.4, colour = ink, hjust = 1) +
+  annotate("text", x = 600, y = split_y - 0.45, label = "Conceded more than scored",
+           family = "poppins", size = 2.4, colour = muted, hjust = 1) +
+  # dumbbells
+  geom_segment(aes(x = goals_against, xend = goals_for, yend = club,
+                   colour = positive), linewidth = 1.6, alpha = 0.35) +
+  geom_point(aes(x = goals_against), colour = col_against, size = 2.4) +
+  geom_point(aes(x = goals_for), colour = col_for, size = 2.4) +
+  # goal difference, at the right
+  geom_text(aes(x = 660, label = gd_label,
+                colour = positive, fontface = if_else(positive, "bold", "plain")),
+            family = "poppins", size = 2.5, hjust = 1) +
+  annotate("text", x = 660, y = n_clubs + 0.9, label = "Goal\ndifference",
+           family = "poppins", size = 2.2, colour = faint, hjust = 1, lineheight = 0.9) +
+  scale_colour_manual(values = c(`TRUE` = col_for, `FALSE` = col_against),
+                      guide = "none") +
+  scale_y_discrete(labels = setNames(clubs$label, clubs$club),
+                   expand = expansion(add = c(0.6, 1.4))) +
+  scale_x_continuous(breaks = seq(0, 600, 100), limits = c(0, 665),
+                     position = "top", expand = c(0, 0)) +
+  coord_cartesian(clip = "off") +
+  labs(title = tt, subtitle = st, caption = ct, x = "Total goals", y = NULL) +
+  theme_minimal(base_family = "poppins") +
+  theme(
+    plot.title.position   = "plot",
+    plot.caption.position = "plot",
+    plot.title = element_textbox_simple(face = "bold", size = 22, colour = ink,
+                                        lineheight = 1.05, margin = margin(b = 12)),
+    plot.subtitle = element_textbox_simple(size = 11, colour = muted,
+                                           lineheight = 1.25, margin = margin(b = 18)),
+    plot.caption = element_text(size = 7, colour = faint, hjust = 0,
+                                margin = margin(t = 18)),
+    axis.title.x = element_text(size = 8, colour = faint, hjust = 0,
+                                margin = margin(b = 4)),
+    axis.text.x  = element_text(size = 8, colour = faint),
+    axis.text.y  = element_markdown(size = 8, hjust = 1),
+    panel.grid   = element_blank(),
+    panel.grid.major.x = element_line(colour = "#EDEDED", linewidth = 0.3),
+    plot.background = element_rect(fill = "white", colour = NA),
+    plot.margin = margin(36, 36, 36, 36))
 
-
+# 6. SAVE ------------------------------------------------------------------
+# 1080 x 1080 px, saved at 2x (2160 px) like the featured charts
+ggsave("TT2024Week29_v2.png", p, width = 7.5, height = 7.5, dpi = 288, bg = "white")
+ggsave("TT2024Week29_v2.svg", p, width = 7.5, height = 7.5, bg = "white")
