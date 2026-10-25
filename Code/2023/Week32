@@ -1,77 +1,85 @@
+# Hot Ones Episodes
+# TidyTuesday 2023 · Week 32
+# Question: how hot are the sauces in a Hot Ones lineup?
+
+# 1. LIBRARIES -------------------------------------------------------------
 library(tidyverse)
-library(dplyr)
-library(ggplot2)
+library(showtext)
 library(ggtext)
-library(forcats)
-library(ggrepel)
 
-# Option 2: Read directly from GitHub
+font_add_google("Poppins", family = "poppins")
+showtext_auto()
+showtext_opts(dpi = 288)
 
-episodes <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2023/2023-08-08/episodes.csv')
-sauces <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2023/2023-08-08/sauces.csv')
-seasons <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2023/2023-08-08/seasons.csv')
+# 2. DATA ------------------------------------------------------------------
+sauces <- read_csv(
+  "https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2023/2023-08-08/sauces.csv",
+  show_col_types = FALSE)
 
+# 3. WRANGLING -------------------------------------------------------------
+levels_heat <- c("Mild", "Mild hot", "Hot", "Spicy hot", "Very hot",
+                 "Really hot", "Fiery hot", "Extreme hot")
+ranges <- c("up to 2k", "2k–50k", "50k–100k", "100k–250k", "250k–500k",
+            "500k–1M", "1M–1.5M", "over 1.5M")
 
-dt<-sauces %>% 
-  mutate(sauce_name=recode(sauce_name, "Da' Bomb Beyond Insanity"=
-                             "Da' Bomb – Beyond Insanity"),
-         season=as.character(season)) %>% 
-  mutate(
-    scoville_group = case_when(
-      scoville >1500000 ~ "Extreme hot",
-      scoville >1000000 & scoville <=1500000 ~ "Fiery hot",
-      scoville > 500000 & scoville <=1000000 ~ "Really hot",
-      scoville >250000 & scoville <=500000 ~ "Very hot",
-      scoville >100000 & scoville <=250000 ~ "Spicy hot",
-      scoville >50000 & scoville <=100000 ~ "Hot",
-      scoville >2000 & scoville <=50000 ~ "Mild hot",
-      scoville >0 & scoville <=2000 ~ "Mild"
-    ),
-    # Convert to factor
-    scoville_group = factor(
-      scoville_group,
-      level = c("Extreme hot", "Fiery hot",
-                "Really hot","Very hot","Spicy hot","Hot",
-                "Mild hot","Mild")
-    )
-  )  %>% 
-   group_by(season,scoville_group) %>% 
-summarise(n=n())  
-  
-plot<-ggplot(data = dt, mapping = aes(x = scoville_group, 
-                                y = n,color=scoville_group)) + 
-  # modify jitter geom to look like a bubble plot
-  geom_jitter(alpha=0.5, size=5,position = position_jitter(width = 0.4))+
-  scale_y_continuous(breaks=seq(0,10,1))+
-  
-  geom_vline(
-    xintercept = seq(1.5, length(unique(dt$scoville_group)), by = 1),
-    color = "gray90",
-    size = 1) +
-  labs(
-    title = "Hot ones: distribution of sauces per scoville scale and season",
-    subtitle = "Results grouped per scale and season group",
-    x = "Scoville scale (0-2M)",
-    y = "Frequency",
-    caption = "Data source:Wikipedia articles: Hot Ones and List of Hot Ones episodes. | Creator:Zoi Diamantakou | tidytuesday | 2023, week 32") +
-  scale_color_manual(values = c("#d73027","#fc8d59","#fdae61", "#fee08b",
-                            "#ffffbf","#d9ef8b","#91cf60","#1a9850"))+ 
-  theme_minimal() +
-theme(plot.margin = unit(c(1,2,1,1), "cm"),
-  plot.title = element_text(size = 18, face = "bold",hjust = 0),
-  plot.subtitle = element_text(size = 14,hjust = 0),
-  plot.caption = element_text(size = 8,hjust = 0.5),
-  axis.title.x = element_text(size = 8),
-  axis.title.y= element_text(size = 8),
-  axis.text.x = element_text(size=8),
-  axis.text.y = element_text(size=10),
-  legend.position="none",
-panel.grid = element_blank())+ 
-  annotate("text", x = "Really hot", y = 5, 
-           label = "Each circle represents the \n# of sauces grouped \nper season")
- 
-plot+annotate("segment", x = "Really hot", xend = "Really hot", 
-              y = 4, yend = 1.8, colour = "black")
+dt <- sauces |>
+  mutate(group = cut(scoville, c(0, 2000, 50000, 100000, 250000, 500000,
+                                 1000000, 1500000, Inf), labels = levels_heat)) |>
+  count(season, group)               # sauces per heat group, per season
 
+n_seasons <- n_distinct(sauces$season)
+finale    <- sauces |> filter(sauce_number == 10)
+n_2m      <- sum(finale$scoville >= 2000000)
+mild_mid  <- sauces |> filter(scoville <= 100000) |> nrow()
 
-ggsave("TT2023Week32_Hot.png", width = 12, height = 6, dpi = 300, bg = "white")
+# 4. COLOURS & TEXT --------------------------------------------------------
+cols <- setNames(rev(c("#d73027", "#fc8d59", "#fdae61", "#f6c75c",
+                       "#d8c66a", "#a6cf6b", "#6fbf5c", "#1a9850")), levels_heat)
+ink <- "#1A1A1A"; muted <- "#5A5A5A"; faint <- "#7A7A7A"
+
+tt <- paste0("Every Hot Ones lineup climbs from mild to a 2-million-Scoville finale")
+
+st <- paste0(
+  "The 10 sauces in each of ", n_seasons, " seasons, grouped by Scoville heat. ",
+  "Each circle is one season, placed at how many of its sauces fall in that group. ",
+  n_2m, " of ", n_seasons, " seasons end on a 2-million-Scoville sauce.")
+
+ct <- paste0("Scoville units measure chilli heat; a jalapeño is about 2,500–8,000.<br>",
+             "Data source: Wikipedia, Hot Ones episode lists",
+             " · Creator: Zoi Diamantakou · TidyTuesday 2023 · Week 32")
+
+# 5. PLOT ------------------------------------------------------------------
+set.seed(32)
+p <- ggplot(dt, aes(group, n, colour = group)) +
+  geom_vline(xintercept = seq(1.5, n_distinct(dt$group) - 0.5, 1),
+             colour = "#EFEFEF", linewidth = 0.6) +
+  geom_jitter(alpha = 0.6, size = 3.2, width = 0.32, height = 0.12) +
+  scale_colour_manual(values = cols, guide = "none") +
+  # named labels, so each label always matches its own group
+  scale_x_discrete(labels = setNames(paste0("**", levels_heat, "**<br>",
+                                            "<span style='color:#7A7A7A'>", ranges, "</span>"),
+                                     levels_heat)) +
+  scale_y_continuous(breaks = 0:5, limits = c(0.5, 5.3)) +
+  labs(title = tt, subtitle = st, caption = ct,
+       x = NULL, y = "Sauces per season") +
+  theme_minimal(base_family = "poppins") +
+  theme(
+    plot.title.position   = "plot",
+    plot.caption.position = "plot",
+    plot.title = element_textbox_simple(face = "bold", size = 22, colour = ink,
+                                        lineheight = 1.05, margin = margin(b = 12)),
+    plot.subtitle = element_textbox_simple(size = 11, colour = muted,
+                                           lineheight = 1.25, margin = margin(b = 20)),
+    plot.caption = element_markdown(size = 7, colour = faint, hjust = 0,
+                                    lineheight = 1.4, margin = margin(t = 18)),
+    axis.title.y = element_text(size = 7.5, colour = faint, margin = margin(r = 8)),
+    axis.text.x  = element_markdown(size = 7, colour = ink, lineheight = 1.2),
+    axis.text.y  = element_text(size = 7.5, colour = faint),
+    panel.grid   = element_blank(),
+    panel.grid.major.y = element_line(colour = "#F3F3F3", linewidth = 0.3),
+    plot.background = element_rect(fill = "white", colour = NA),
+    plot.margin = margin(36, 36, 36, 36))
+
+# 6. SAVE ------------------------------------------------------------------
+ggsave("TT2023Week32_Hot.png", p, width = 7.5, height = 7.5, dpi = 288, bg = "white")
+ggsave("TT2023Week32_Hot.svg", p, width = 7.5, height = 7.5, bg = "white")
