@@ -1,100 +1,86 @@
-#TidyTuesday Datasets
-#2024: week 27 
-#load libraries 
+# TidyTuesday Datasets
+# TidyTuesday 2024 · Week 27
+# Question: how big are TidyTuesday datasets, and has that changed?
+
+# 1. LIBRARIES -------------------------------------------------------------
 library(tidyverse)
 library(showtext)
 library(ggtext)
-library(tidytuesdayR)
-library(glue)
-library(Cairo)
-library(forcats)
-library(ggrepel)
-library(lubridate)
-library(ggridges)
 
-## Load Google fonts (https://fonts.google.com/)
-font_add_google("Roboto", family = "title")                           
-font_add_google("Lato", family = "subtitle")
-font_add_google("Lato", family = "x")
-showtext::showtext_auto()
-showtext::showtext_opts(dpi = 300) 
+font_add_google("Poppins", family = "poppins")
+showtext_auto()
+showtext_opts(dpi = 288)
 
-#1.DATA LOADING
-tuesdata <- tidytuesdayR::tt_load(2024, week = 27)
+# 2. DATA ------------------------------------------------------------------
+tt_datasets <- read_csv(
+  "https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2024/2024-07-02/tt_datasets.csv",
+  show_col_types = FALSE)
 
-tt_datasets <- tuesdata$tt_datasets
-tt_summary <- tuesdata$tt_summary
-tt_urls <- tuesdata$tt_urls
-tt_variables <- tuesdata$tt_variables
+# 3. WRANGLING -------------------------------------------------------------
+# Many weeks have several datasets; with one tile per week they would be drawn on top
+# of each other. So each tile shows the week's total number of rows.
+sizes <- c("Under 1,000", "1,000–10,000", "10,000–1 million", "Over 1 million")
 
-#2.DATA WRANGLING
+dt <- tt_datasets |>
+  group_by(year, week) |>
+  summarise(rows = sum(observations), n = n(), .groups = "drop") |>
+  mutate(size = cut(rows, c(0, 1000, 10000, 1e6, Inf), labels = sizes, right = TRUE))
 
-summary(tt_datasets)
+n_weeks <- nrow(dt)
+n_big   <- sum(dt$size == "Over 1 million")
+med     <- median(dt$rows)
+n_multi <- sum(dt$n > 1)
+biggest <- tt_datasets |> slice_max(observations, n = 1)
 
-# Create categories based on quantiles or custom thresholds
-tt_datasets$observation_category <- cut(tt_datasets$observations,
-                                        breaks = c(0, 1000, 10000, 1000000, Inf), 
-                                        labels = c("Low: 0-1,000", "Medium:1,001-10,000", 
-                                                   "High: 10,001-1,000,000", 
-                                                   "Very high: > 1,000,000"))
+# 4. COLOURS & TEXT --------------------------------------------------------
+cols <- setNames(viridisLite::viridis(4, direction = -1), sizes)
+ink <- "#1A1A1A"; muted <- "#5A5A5A"; faint <- "#7A7A7A"
 
+tt <- paste0("Only ", n_big, " of ", n_weeks, " TidyTuesday weeks came with more than a million rows of data")
 
+st <- paste0(
+  "Total rows in the datasets released each TidyTuesday week, 2018–2024. Each square is one week; ",
+  "blank squares are weeks without new data. The typical week has about ",
+  scales::comma(round(med, -2)), " rows. The biggest dataset, ", biggest$dataset_name, " (",
+  biggest$year, "), has ", round(biggest$observations / 1e6, 1), " million.")
 
-#3. PLOT VIZUALIZATION 
-##Title,subtitle & caption 
-tt <- str_glue(stringr::str_wrap("TidyTuesday datasets size over time"),width=100)
-st <- str_glue(stringr::str_wrap("The graph illustrates how the size of 
-                                  TidyTuesday datasets has changed 
-                                  from 2018 to 2024. The size is measured by the 
-                                  number of observations, or rows, 
-                                 in the datasets released each week.",
-                                 width=100))
-ct  <- str_glue(stringr::str_wrap("Data Source: ttmeta R package | 
-                                  Creator:Zoi Diamantakou | tidytuesday | 2024, 
-                                  week 27",width=100))
+ct <- paste0(n_multi, " weeks released more than one dataset; their rows are added together. ",
+             "2024 runs to week 27.<br>",
+             "Data source: ttmeta R package · Creator: Zoi Diamantakou · TidyTuesday 2024 · Week 27")
 
-##plot
-p<-
-ggplot(tt_datasets, aes(x = factor(week), 
-                        y = factor(year, levels = rev(unique(year))), 
-                        fill = observation_category)) +
-  geom_tile(color = "white", size = 0.5) +  
-  scale_fill_viridis_d(option = "viridis", 
-                       direction = -1, na.value = "white")+# Empty tiles appear white
-  labs(title = tt,
-       x = "The week number for each dataset per year", 
-       y = " ",
-       fill="Dataset size: number of observations.",subtitle=st,caption = ct) +
+# 5. PLOT ------------------------------------------------------------------
+p <- ggplot(dt, aes(factor(week, levels = 1:52), factor(year, levels = 2024:2018), fill = size)) +
+  geom_tile(colour = "white", linewidth = 0.6) +
+  scale_fill_manual(values = cols, name = "Rows per week", drop = FALSE) +
+  scale_x_discrete(breaks = c(1, seq(5, 50, 5)), drop = FALSE) +
   coord_equal() +
-  theme_minimal()+
-  theme(plot.margin= margin(t = 15, r = 20, b = 10, l = 20),
-        plot.title            = element_text(
-          family= 'title',face= "bold",size= 35,hjust = 0,
-          colour="#19201D",
-          margin= margin(t = 16, b = 5)),
-        plot.subtitle = element_text(
-          family= 'subtitle', hjust = 0,
-          lineheight= 0.9,size  = 18,colour="black",
-          margin= margin(t = 5, b = 10)),
-        plot.caption = element_text(colour="black"),
-        plot.caption.position = "plot",
-        #axis
-        axis.title.x = element_text(size=12,family="x",hjust=0),
-        axis.title.y = element_text(size=12,family="x",vjust=0),
-        axis.text.x = element_text(size=12,family="x",
-                                   angle = 0, hjust = 1), 
-        axis.text.y = element_text(size=12,family="x",
-                                   angle = 0, hjust = 1),
-        #legend
-        legend.text = element_text(color = "black", size = 12),
-        legend.position = "top",
-        legend.justification = c(0, 1),  
-        #background
-        panel.grid = element_blank(),
-        plot.background = element_rect(fill = "white", color = NA))
+  guides(fill = guide_legend(nrow = 1, title.position = "left",
+                             keywidth = unit(3, "mm"), keyheight = unit(3, "mm"))) +
+  labs(title = tt, subtitle = st, caption = ct, x = "Week of the year", y = NULL) +
+  theme_minimal(base_family = "poppins") +
+  theme(
+    plot.title.position   = "plot",
+    plot.caption.position = "plot",
+    plot.title = element_textbox_simple(face = "bold", size = 22, colour = ink,
+                                        lineheight = 1.05, margin = margin(b = 12)),
+    plot.subtitle = element_textbox_simple(size = 11, colour = muted,
+                                           lineheight = 1.25, margin = margin(b = 12)),
+    plot.caption = element_textbox_simple(size = 7, colour = faint,
+                                          lineheight = 1.4, margin = margin(t = 16)),
+    legend.position = "top",
+    legend.justification = "left",
+    legend.location = "plot",
+    legend.title = element_text(size = 7.5, colour = muted),
+    legend.text  = element_text(size = 7.5, colour = muted),
+    legend.margin = margin(b = 6),
+    axis.title.x = element_text(size = 7.5, colour = faint, hjust = 0, margin = margin(t = 6)),
+    axis.text.x  = element_text(size = 7, colour = faint),
+    axis.text.y  = element_text(size = 8, colour = ink, face = "bold"),
+    panel.grid = element_blank(),
+    plot.background = element_rect(fill = "white", colour = NA),
+    plot.margin = margin(36, 36, 36, 36))
 
-
-#4. SAVE THE PLOT
-ggsave("TT2024Week27.png", width = 16, height = 8, 
-       type = "Cairo",dpi = 300, bg = "white") 
-
+# 6. SAVE ------------------------------------------------------------------
+# Landscape: 52 weeks across need the width
+ggsave("TT2024Week27.png", p, width = 10, height = 4.9, dpi = 288, bg = "white")
+ggsave("TT2024Week27.svg", p, width = 10, height = 4.9, bg = "white")
