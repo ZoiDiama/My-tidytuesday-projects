@@ -1,225 +1,123 @@
-#US Government Grant Opportunities
-#load libraries 
+# US Government Grant Opportunities
+# TidyTuesday 2023 · Week 40
+# Question: which federal departments post the grants, and how has that changed?
+#
+# Note: the earlier version used `grant_opportunity_details`, which holds only
+# 2,000 grants, mostly recent ones. That made 2023 look like a "grant explosion".
+# The full `grants` table (74,669 grants) shows a steady total, so this version
+# uses it instead and splits grants by department.
+
+# 1. LIBRARIES -------------------------------------------------------------
 library(tidyverse)
+library(ggrepel)
 library(showtext)
 library(ggtext)
-library(tidytuesdayR)
-library(glue)
-library(Cairo)
-library(ggstream)
 
+font_add_google("Poppins", family = "poppins")
+showtext_auto()
+showtext_opts(dpi = 288)
 
-#1.DATA LOADING
-tuesdata <- tidytuesdayR::tt_load('2023-10-03')
-grants <- tuesdata$grants
-grant_opportunity_details <- tuesdata$grant_opportunity_details
-glimpse(grants)
-glimpse(grant_opportunity_details)
+# 2. DATA ------------------------------------------------------------------
+grants <- read_csv(
+  "https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2023/2023-10-03/grants.csv",
+  show_col_types = FALSE)
 
+# 3. WRANGLING -------------------------------------------------------------
+# Department = first part of the agency code (HHS-NIH11 -> HHS)
+dept_names <- c(HHS = "Health (HHS)", DOI = "Interior",
+                DOS = "State", DOD = "Defense", USAID = "USAID", Other = "All other")
 
-#2.DATA WRANGLING
-#preparing the dataset
-dt<-grant_opportunity_details %>% 
-  select(opportunity_id,posted_date,agency_name,
-  Agriculture=category_agriculture,
-  Arts=category_arts,
-  Business=category_business,
-  Community_development=category_community_development,
-  consumer_protection=category_consumer_protection,
-  Disaster=category_disaster,
-  Education=category_education,
-  Employment=category_employment,
-  Energy=category_energy,
-  Environment=category_environment,
-  Food=category_food,
-  Health=category_health,
-  Humanities=category_humanities,
-  Iija=category_iija,
-  Income_secutiry=category_income_security,
-  Law=category_law,
-  Natural_resources=category_natural_resources,
-  Regional_devlopment=category_regional_development,
-  Science=category_science,
-  Trasportation=category_transportation,	
-  Other=category_other) %>% 
-  pivot_longer(cols = Agriculture:Other,names_to = "Category",values_to = "Count") %>% 
-  mutate(Count=as.integer(as.logical(Count)),Year=format(posted_date, format="%Y")) %>% 
+dt <- grants |>
+  mutate(year = year(posted_date),
+         dept = str_extract(agency_code, "^[A-Z]+")) |>
+  filter(year >= 2008, year <= 2022) |>          # 2023 is incomplete (data ends in September)
+  mutate(dept = if_else(dept %in% names(dept_names), dept, "Other"),
+         # stacking order, top to bottom
+         dept = factor(dept, levels = c("Other", "HHS", "DOD", "USAID", "DOS", "DOI"))) |>
+  count(year, dept)
+
+yearly <- dt |> group_by(year) |> summarise(n = sum(n))
+doi    <- dt |> filter(dept == "DOI")
+dos    <- dt |> filter(dept == "DOS")
+doi_peak <- doi |> slice_max(n, n = 1)
+doi_last <- doi |> filter(year == 2022)
+dos_first <- dos |> filter(year == 2008); dos_last <- dos |> filter(year == 2022)
+
+# Centred stream: stack the departments and shift each year down by half its total,
+# then smooth every band edge with a spline so the shapes follow the real values.
+bands <- dt |>
+  complete(year, dept, fill = list(n = 0)) |>
+  arrange(year, dept) |>
+  group_by(year) |>
+  mutate(ymax = sum(n) / 2 - lag(cumsum(n), default = 0),
+         ymin = ymax - n) |>
   ungroup()
 
-#Dara for the plot
- dt_areaplot<-dt %>% 
-   mutate(cat=recode(Category,  #creating a new column with the key categories Science,Energy,Education,Income_secutiry,Transportation,Disaster,Food,Community_development,Natural_resources
-   "Arts"="Other","Business"="Other",
-   "Community_development"="Other","Trasportation"="Other",
- "consumer_protection"="Other",
- "Income_security"="Other",
- "Humanities"="Other",
- "Iija"="Other",
- "Law"="Other",
- "Regional_devlopment"="Other"))%>% 
-   group_by(Year,cat) %>% 
-   mutate(Year=as.numeric(Year)) %>% 
-   filter(Year>=2015) %>% 
-  summarise(n=sum(Count)) %>% 
-   #mutate(Percent = round(n/sum(n)*100, 1)) %>%
-   mutate(cat=factor(cat,levels =c("Health","Science",
-                                        "Education","Environment",
-                                        "Income_secutiry",
-                                        "Natural_resources",
-                                        "Food",
-                                        "Energy",
-                                        "Agriculture",
-                                        "Disaster",
-                                        "Employment","Other"))) 
- #3. PLOT VIZUALIZATION 
- ## Load Google fonts (https://fonts.google.com/)
- font_add_google("Titillium Web", family = "title")                           
- font_add_google("Dosis", family = "subtitle")  
- showtext::showtext_auto()
- showtext::showtext_opts(dpi = 300) 
- 
- ##Title,subtitle & caption 
- tt <- str_glue("Grant Explosion: Unveiling the Rise of \nFunding Opportunities in the U.S.")
- st <- str_glue(stringr::str_wrap("Today, we explore the evolution of U.S. federal grant distribution from 2015 to 2023. 
- The graph below showcases the number of grants published across key categories. The analysis uncovers a striking surge in grant numbers, particularly 
- in the areas of health, science,education and enviroment in recent years. Together, these three categories accounted for more than two-thirds of all federal 
-                                  grants posted in 2023.",
-                                  width=100))
- ct  <- str_glue(stringr::str_wrap("Data Source: grant.gov-R4DS Online Learning Community | 
-                                  Creator:Zoi Diamantakou | tidytuesday | 2023, 
-                                  week 40",width=100))
-   
- plot<-
-   ggplot(dt_areaplot, aes(x=Year, y=n, fill=cat)) +
-   geom_stream(extra_span = .05,true_range = "none",bw = .85,size = 1.25) +
-   geom_stream(geom = "contour", color = "white",extra_span = .05,
-               true_range = "none",bw = .85,size = 0.09)+
-   
-   scale_x_continuous(breaks = seq(2015,2023,1))+
-    scale_fill_manual(breaks =c("Health","Science",
-                               "Education","Environment",
-                               "Income_secutiry",
-                               "Natural_resources",
-                               "Food",
-                               "Energy",
-                               "Agriculture",
-                               "Disaster",
-                               "Employment","Other"),
-                     values = c("#a6cee3","#1f78b4","#b2df8a","#33a02c","#fb9a99",
-                                "#e31a1c","#fdbf6f","#ff7f00","#cab2d6",
-                                "#6a3d9a","#b15928","#889197"))+
-   labs(title=tt,
-        subtitle=st,
-        caption = ct,
-        x="",
-        y="",
-        fill="")+
- 
- ## theme
- theme_minimal(base_family = "Reem Kufi")+
-   theme(
-     plot.margin           = margin(t = 10, r = 15, b = 10, l = 25),
-     plot.title.position   = "plot",
-     plot.caption.position = "plot",
-     legend.position       = 'bottom',
-     plot.title            = element_text(
-       family= 'title',face= "bold",size= 30,colour="#707172",
-       margin= margin(t = 10, b = 5)),
-     plot.subtitle = element_text(
-       family= 'subtitle', lineheight= 0.9,size  = 16,margin= margin(t = 5, b = 10)),
-     legend.key = element_blank(),
-     axis.text.y=element_blank(), 
-     plot.background = element_rect(fill = "#e0e3e4", color = NA),
-     panel.background = element_blank(),
-     panel.grid.major.y = element_blank(),
-     panel.grid.major.x = element_line(color = "white",
-                                       size = 0.75,linetype = 2),
-     panel.grid = element_blank(),
-     legend.text = element_text(color = "grey40", size = 10),
-     legend.box.margin = margin(t = 30),
-     legend.background = element_rect(color = "grey40",
-                                      size = .3,
-                                      fill = "grey95"),
-     legend.key.height = unit(.25, "lines"),
-     legend.key.width = unit(2.5, "lines"))
-  
- 
- ##annotate
- plot+
-   geom_label(aes(x = 2022.5, y = 600, 
-                  label = stringr::str_wrap("In 2023, a remarkable surge of 1,480 US federal 
-                                      grants was recorded, marking a 
-                                      remarkable 135% increase from the previous 
-                                      year and a staggering 
-                                      jump compared to 2015,when only 
-                                      22 federal grants were posted. ",width = 32)),
-              inherit.aes = F,
-              family = "Reem Kufi",
-              size = 3.5,
-              color = "#9e146c",
-              lineheight = .85,
-              hjust = 1,
-              fill = "white")+
-   geom_vline(xintercept = 2023,color="#9e146c", linetype="dashed")+
-   annotate(geom = "text", x = 2023.1, y =850,
-            inherit.aes = F,
-            family = "Reem Kufi",
-            size = 3,
-            color = "#9e146c",
-            lineheight = .85,
-            hjust = 0,
-            label = "Number of grants \nTotal:1,480")+
-   annotate(geom = "text", x = 2023.1, y =500,
-            inherit.aes = F,
-            family = "Reem Kufi",
-            size = 3,
-            color = "white",
-            lineheight = .85,
-            hjust = 0,
-            label = "462\n(31%)")+
-   annotate(geom = "text", x = 2023.1, y =150,
-            inherit.aes = F,
-            family = "Reem Kufi",
-            size = 3,
-            color = "white",
-            lineheight = .85,
-            hjust = 0,
-            label = "263\n(18%)")+
-   annotate(geom = "text", x = 2023.1, y =-50,
-            inherit.aes = F,
-            family = "Reem Kufi",
-            size = 3,
-            color = "white",
-            lineheight = .85,
-            hjust = 0,
-            label = "181\n(12%)")+
-   annotate(geom = "text", x = 2023.1, y =-220,
-            inherit.aes = F,
-            family = "Reem Kufi",
-            size = 3,
-            color = "white",
-            lineheight = .85,
-            hjust = 0,
-            label = "131\n(9%)")+
-   geom_segment(aes(x=2023.45,xend=2023.45,y=-300,yend=-730))+
-     annotate(geom = "text", x = 2023.5, y =-500,
-            inherit.aes = F,
-            family = "Reem Kufi",
-            size = 3,
-            color = "black",
-            lineheight = .85,
-            hjust = 0,
-            label = "443\n(30%)")+
-   geom_segment(aes(x=2023.45,xend=2023.45,y=-250,yend=750))+
-   annotate(geom = "text", x = 2023.5, y =200,
-            inherit.aes = F,
-            family = "Reem Kufi",
-            size = 3,
-            color = "black",
-            lineheight = .85,
-            hjust = 0,
-            label = "1,037\n(70%)")
- 
-#save the plot
-ggsave("TT2023Week40.png", width = 12, height = 8, 
-       type = "Cairo",dpi = 300, bg = "white") 
+smooth_band <- function(d) {
+  xs <- seq(min(d$year), max(d$year), length.out = 300)
+  tibble(year = xs,
+         ymin = spline(d$year, d$ymin, xout = xs, method = "natural")$y,
+         ymax = spline(d$year, d$ymax, xout = xs, method = "natural")$y)
+}
+stream <- bands |> group_by(dept) |> group_modify(~ smooth_band(.x)) |> ungroup()
+
+lab <- bands |> filter(year == 2022) |>
+  mutate(y = (ymin + ymax) / 2,
+         label = paste0(dept_names[as.character(dept)], "  ", scales::comma(n)))
+
+# 4. COLOURS & TEXT --------------------------------------------------------
+cols <- c(DOI = "#E07A3F", DOS = "#2A9D8F", HHS = "#9DB4C8", DOD = "#C3D0DB",
+          USAID = "#D6DEE5", Other = "#E6EAEE")
+lab_cols <- c(DOI = "#C4612A", DOS = "#1F7A6F", HHS = "#5A5A5A", DOD = "#5A5A5A",
+              USAID = "#5A5A5A", Other = "#5A5A5A")
+ink <- "#1A1A1A"; muted <- "#5A5A5A"; faint <- "#7A7A7A"
+
+tt <- paste0("The Interior Department posts a sixth of the grants it did in ", doi_peak$year)
+
+st <- paste0(
+  "Federal grant opportunities posted on Grants.gov each year by department. ",
+  "The total held at about 4,000–6,000 a year, but ",
+  "<span style='color:", lab_cols["DOI"], "'>**Interior**</span> fell from ",
+  scales::comma(doi_peak$n), " in ", doi_peak$year, " to ", doi_last$n,
+  ", while the <span style='color:", lab_cols["DOS"], "'>**State Department**</span> ",
+  "rose from ", dos_first$n, " to ", dos_last$n, ".")
+
+ct <- paste0("Data source: Grants.gov, via the R4DS Online Learning Community",
+             " · Creator: Zoi Diamantakou · TidyTuesday 2023 · Week 40")
+
+# 5. PLOT ------------------------------------------------------------------
+p <- ggplot() +
+  geom_vline(xintercept = seq(2008, 2022, 2), colour = "#EFEFEF", linewidth = 0.3) +
+  geom_ribbon(data = stream, aes(year, ymin = ymin, ymax = ymax, fill = dept),
+              colour = "white", linewidth = 0.3) +
+  geom_text_repel(data = lab, aes(x = 2022, y = y, label = label, colour = dept,
+                                  fontface = if_else(dept %in% c("DOI", "DOS"), "bold", "plain")),
+                  family = "poppins", size = 2.5, hjust = 0, direction = "y",
+                  nudge_x = 0.4, xlim = c(2022.3, NA), segment.size = 0.25,
+                  segment.colour = "#B0B0B0", box.padding = 0.15, seed = 40) +
+  annotate("text", x = 2022.4, y = yearly$n[yearly$year == 2022] / 2 + 250, label = "2022",
+           hjust = 0, family = "poppins", fontface = "bold", size = 2.5, colour = muted) +
+  scale_fill_manual(values = cols, guide = "none") +
+  scale_colour_manual(values = lab_cols, guide = "none") +
+  scale_x_continuous(breaks = seq(2008, 2022, 2), expand = c(0, 0)) +
+  scale_y_continuous(breaks = NULL) +
+  coord_cartesian(xlim = c(2008, 2025.6), clip = "off") +
+  labs(title = tt, subtitle = st, caption = ct, x = NULL, y = NULL) +
+  theme_minimal(base_family = "poppins") +
+  theme(
+    plot.title.position   = "plot",
+    plot.caption.position = "plot",
+    plot.title = element_textbox_simple(face = "bold", size = 22, colour = ink,
+                                        lineheight = 1.05, margin = margin(b = 12)),
+    plot.subtitle = element_textbox_simple(size = 11, colour = muted,
+                                           lineheight = 1.25, margin = margin(b = 20)),
+    plot.caption = element_text(size = 7, colour = faint, hjust = 0,
+                                margin = margin(t = 18)),
+    axis.text.x = element_text(size = 7.5, colour = faint),
+    panel.grid  = element_blank(),
+    plot.background = element_rect(fill = "white", colour = NA),
+    plot.margin = margin(36, 36, 36, 36))
+
+# 6. SAVE ------------------------------------------------------------------
+ggsave("TT2023Week40.png", p, width = 7.5, height = 7.5, dpi = 288, bg = "white")
+ggsave("TT2023Week40.svg", p, width = 7.5, height = 7.5, bg = "white")
