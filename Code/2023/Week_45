@@ -1,10 +1,9 @@
-# US House Election Results
-# TidyTuesday 2023 · Week 45
-# Question: how has each state's House vote shifted between the parties since 1976?
+# Educational attainment of young people in English towns
+# TidyTuesday 2024 · Week 4
+# Question: do young people in smaller towns do better at school, and why?
 
 # 1. LIBRARIES -------------------------------------------------------------
 library(tidyverse)
-library(geofacet)
 library(showtext)
 library(ggtext)
 
@@ -13,106 +12,92 @@ showtext_auto()
 showtext_opts(dpi = 288)
 
 # 2. DATA ------------------------------------------------------------------
-house <- read_csv(
-  "https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2023/2023-11-07/house.csv",
+english_education <- read_csv(
+  "https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2024/2024-01-23/english_education.csv",
   show_col_types = FALSE)
 
 # 3. WRANGLING -------------------------------------------------------------
-dt <- house |>
-  filter(stage == "GEN") |>
-  # Minnesota's Democrats run as "Democratic-Farmer-Labor" and North Dakota's as
-  # "Democratic-NPL": count them as Democrats, not as "other"
-  mutate(party = case_when(
-           party %in% c("DEMOCRAT", "DEMOCRATIC", "DEMOCRATIC-FARMER-LABOR",
-                        "DEMOCRATIC-FARM-LABOR", "DEMOCRATIC-NONPARTISAN LEAGUE",
-                        "DEMOCRATIC-NPL")                 ~ "Democrat",
-           party %in% c("REPUBLICAN", "INDEPENDENT-REPUBLICAN") ~ "Republican",
-           TRUE                                         ~ "Other"),
-         party = factor(party, levels = c("Republican", "Other", "Democrat"))) |>
-  group_by(year, state_po, party) |>
-  summarise(votes = sum(candidatevotes), .groups = "drop") |>
-  complete(year, state_po, party, fill = list(votes = 0)) |>
-  group_by(year, state_po) |>
-  mutate(share = votes / sum(votes)) |>
-  ungroup()
+# Keep the four size groups. London and "other" are only 4 places in total,
+# too few to compare, so they are left out (see the footnote).
+sizes <- c("Small Towns", "Medium Towns", "Large Towns", "City")
+size_lab <- c("Small towns", "Medium towns", "Large towns", "Cities\n(excl. London)")
 
-first_year <- min(dt$year); last_year <- max(dt$year)
+dt <- english_education |>
+  filter(size_flag %in% sizes, !is.na(education_score)) |>
+  mutate(size = factor(size_flag, levels = sizes, labels = size_lab),
+         deprivation = case_when(
+           income_flag == "Lower deprivation towns"  ~ "Lower",
+           income_flag == "Mid deprivation towns"    ~ "Mid",
+           income_flag == "Higher deprivation towns" ~ "Higher",
+           TRUE                                      ~ "City"),
+         deprivation = factor(deprivation, levels = c("Lower", "Mid", "Higher", "City")))
 
-# Which party won more House votes in each state, first vs last election
-winner <- dt |>
-  filter(year %in% c(first_year, last_year), party != "Other") |>
-  select(year, state_po, party, votes) |>
-  group_by(year, state_po) |>
-  slice_max(votes, n = 1, with_ties = FALSE) |>
-  ungroup() |>
-  select(year, state_po, party) |>
-  pivot_wider(names_from = year, values_from = party, names_prefix = "y") |>
-  rename(start = 2, end = 3) |>
-  mutate(change = case_when(start == "Democrat"   & end == "Republican" ~ "to_r",
-                            start == "Republican" & end == "Democrat"   ~ "to_d",
-                            TRUE ~ "same"))
+means <- dt |> group_by(size) |> summarise(mean = mean(education_score), n = n())
 
-n_to_r <- sum(winner$change == "to_r")
-n_to_d <- sum(winner$change == "to_d")
+small <- dt |> filter(size == "Small towns") |>
+  group_by(deprivation) |> summarise(mean = mean(education_score))
+gap <- small$mean[small$deprivation == "Lower"] - small$mean[small$deprivation == "Higher"]
 
-codes <- winner |> select(state_po, change)
+n_left_out <- sum(!english_education$size_flag %in% sizes)
 
 # 4. COLOURS & TEXT --------------------------------------------------------
-blue <- "#3A6FB0"; red <- "#C8423B"; other <- "#D5D5D5"
+cols <- c(Lower = "#3A7DBF", Mid = "#BFC7CF", Higher = "#D1495B", City = "#8A8A8A")
 ink <- "#1A1A1A"; muted <- "#5A5A5A"; faint <- "#7A7A7A"
 
-tt <- paste0(n_to_r, " states have swung from Democrats to Republicans in House votes since ",
-             first_year)
+tt <- "Smaller towns score highest, but poverty matters more than size"
 
 st <- paste0(
-  "Share of the House vote won by ",
-  "<span style='color:", blue, "'>**Democrats**</span>, ",
-  "<span style='color:", red, "'>**Republicans**</span> and ",
-  "<span style='color:#9A9A9A'>**others**</span> in each state, ",
-  first_year, "–", last_year, ". ",
-  "<span style='color:", red, "'>**Red state codes**</span> flipped from Democratic to ",
-  "Republican; <span style='color:", blue, "'>**blue**</span> ones (", n_to_d,
-  ") went the other way.")
+  "Educational attainment score of young people in ", scales::comma(nrow(dt)), " English towns and cities ",
+  "(0 = national average). Each dot is a town: ",
+  "<span style='color:", cols["Lower"], "'>**less deprived**</span>, mid, or ",
+  "<span style='color:", cols["Higher"], "'>**more deprived**</span>. ",
+  "In small towns, the gap between them is ", round(gap, 1), " points.")
 
-ct <- paste0("Each tile runs from ", first_year, " (left) to ", last_year,
-             " (right). Majority = more House votes, summed over all districts.<br>",
-             "Data source: MIT Election Data and Science Lab (MEDSL)",
-             " · Creator: Zoi Diamantakou · TidyTuesday 2023 · Week 45")
+ct <- paste0("Black line: average for each group. Cities are grey: they have no deprivation group.<br>",
+             n_left_out, " places are left out: Inner and Outer London, and 2 not classed by size.<br>",
+             "Data source: UK Office for National Statistics",
+             " · Creator: Zoi Diamantakou · TidyTuesday 2024 · Week 4")
 
 # 5. PLOT ------------------------------------------------------------------
-p <- ggplot(dt, aes(year, share, fill = party)) +
-  geom_area(position = "stack", colour = NA) +
-  geom_hline(yintercept = 0.5, colour = "white", linewidth = 0.25, alpha = 0.8) +
-  # state code above each tile, coloured by direction of change
-  geom_text(data = codes,
-            aes(x = first_year, y = 1.03, label = state_po, colour = change,
-                fontface = if_else(change == "same", "plain", "bold")),
-            inherit.aes = FALSE, hjust = 0, vjust = 0, family = "poppins", size = 2.3) +
-  facet_geo(~ state_po, grid = "us_state_grid2") +
-  scale_fill_manual(values = c(Democrat = blue, Other = other, Republican = red),
-                    guide = "none") +
-  scale_colour_manual(values = c(to_r = red, to_d = blue, same = "#8A8A8A"),
-                      guide = "none") +
-  scale_x_continuous(expand = c(0, 0)) +
-  scale_y_continuous(expand = c(0, 0)) +
-  coord_cartesian(ylim = c(0, 1), clip = "off") +
+set.seed(4)
+p <- ggplot(dt, aes(size, education_score)) +
+  geom_hline(yintercept = 0, colour = "#8A8A8A", linewidth = 0.4) +
+  annotate("text", x = 4.6, y = -0.3, label = "National average", hjust = 1,
+           vjust = 1, family = "poppins", size = 2.3, colour = faint) +
+  geom_jitter(aes(colour = deprivation), width = 0.28, height = 0,
+              size = 1.4, alpha = 0.75, shape = 16) +
+  # group averages
+  geom_segment(data = means, aes(x = as.numeric(size) - 0.36, xend = as.numeric(size) + 0.36,
+                                 y = mean, yend = mean), colour = ink, linewidth = 0.9) +
+  geom_text(data = means, aes(x = as.numeric(size) + 0.4, y = mean,
+                              label = sprintf("%+.1f", mean)),
+            hjust = 0, family = "poppins", fontface = "bold", size = 2.5, colour = ink) +
+  # town counts under each label
+  geom_text(data = means, aes(x = size, y = 12.6, label = paste0(n, " places")),
+            family = "poppins", size = 2.2, colour = faint) +
+  scale_colour_manual(values = cols, guide = "none") +
+  scale_x_discrete(position = "top") +
+  scale_y_continuous(limits = c(-11, 13), breaks = seq(-10, 10, 5),
+                     labels = \(x) if_else(x > 0, paste0("+", x), as.character(x))) +
+  coord_cartesian(clip = "off") +
   labs(title = tt, subtitle = st, caption = ct, x = NULL, y = NULL) +
-  theme_void(base_family = "poppins") +
+  theme_minimal(base_family = "poppins") +
   theme(
     plot.title.position   = "plot",
     plot.caption.position = "plot",
     plot.title = element_textbox_simple(face = "bold", size = 22, colour = ink,
                                         lineheight = 1.05, margin = margin(b = 12)),
     plot.subtitle = element_textbox_simple(size = 11, colour = muted,
-                                           lineheight = 1.25, margin = margin(b = 20)),
+                                           lineheight = 1.25, margin = margin(b = 18)),
     plot.caption = element_markdown(size = 7, colour = faint, hjust = 0,
                                     lineheight = 1.4, margin = margin(t = 18)),
-    strip.text = element_blank(),
-    panel.spacing.x = unit(1.5, "mm"),
-    panel.spacing.y = unit(4.5, "mm"),
+    axis.text.x = element_text(size = 9, colour = ink, face = "bold", lineheight = 0.95),
+    axis.text.y = element_text(size = 7.5, colour = faint),
+    panel.grid  = element_blank(),
+    panel.grid.major.y = element_line(colour = "#ECECEC", linewidth = 0.3),
     plot.background = element_rect(fill = "white", colour = NA),
     plot.margin = margin(36, 36, 36, 36))
 
 # 6. SAVE ------------------------------------------------------------------
-ggsave("TT2023Week45.png", p, width = 7.5, height = 7.5, dpi = 288, bg = "white")
-ggsave("TT2023Week45.svg", p, width = 7.5, height = 7.5, bg = "white")
+ggsave("TT2024Week4.png", p, width = 7.5, height = 7.5, dpi = 288, bg = "white")
+ggsave("TT2024Week4.svg", p, width = 7.5, height = 7.5, bg = "white")
