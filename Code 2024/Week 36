@@ -1,132 +1,107 @@
-#Stack Overflow Annual Developer Survey 2024
-#2024: week 36 
+# Stack Overflow Annual Developer Survey 2024
+# TidyTuesday 2024 · Week 36
+# Question: does education or experience matter more for developer pay?
 
+# 1. LIBRARIES -------------------------------------------------------------
+library(tidyverse)
+library(showtext)
+library(ggtext)
 
-#load key libraries 
-library(tidytuesdayR)# Access data for the #TidyTuesday project.
-library(dplyr)
-library(ggplot2)
-library(tidyverse) # Collection of tools for data manipulation and visualization.
-library(showtext) #Easily use custom fonts in plots.Allows the use of google fonts
-library(glue)#Simple string formatting and interpolation.
-library(Cairo) #High-quality graphics rendering for plots.
+font_add_google("Poppins", family = "poppins")
+showtext_auto()
+showtext_opts(dpi = 288)
 
-#additional libraries
-library(ggtext) #Allows rich text formatting (Markdown/HTML) in ggplot.
-library(forcats) #Tools for handling categorical variables (factors).
-library(ggrepel) #Avoids overlapping labels in ggplot2.
-library(lubridate)#Simplifies working with dates and times.
-library(ggridges) #Create ridge/joy plots for visualizing distributions.
+# 2. DATA ------------------------------------------------------------------
+survey <- read_csv(
+  "https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2024/2024-09-03/stackoverflow_survey_single_response.csv",
+  show_col_types = FALSE)
 
-#for the plot
+# 3. WRANGLING -------------------------------------------------------------
+ed_lab <- c("Associate degree", "Bachelor's degree", "Master's degree",
+            "Primary school", "Professional degree (PhD, MD, JD)", "Secondary school",
+            "Some university, no degree", "Something else")
+exp_lab <- c("0–5 years", "6–10 years", "11–20 years", "Over 20 years")
 
+dt <- survey |>
+  select(ed_level, years_code_pro, converted_comp_yearly) |>
+  filter(converted_comp_yearly < 1e6) |>              # drop extreme values
+  na.omit() |>
+  mutate(pay = converted_comp_yearly / 1000,
+         experience = cut(years_code_pro, c(-Inf, 5, 10, 20, Inf), labels = exp_lab),
+         education  = factor(ed_lab[ed_level], levels = ed_lab))
 
-## Load Google fonts (https://fonts.google.com/)
-font_add_google("Lato", family = "title")                           
-font_add_google("Lato", family = "subtitle")
-font_add_google("Lato", family = "x")
-showtext::showtext_auto()
-showtext::showtext_opts(dpi = 300) 
+med_ed  <- dt |> group_by(education) |> summarise(med = median(pay), n = n())
+med_exp <- dt |> group_by(experience) |> summarise(med = median(pay))
+ed_order <- as.character(med_ed$education[order(med_ed$med)])     # lowest median at the bottom
+dt     <- dt |> mutate(education = factor(education, levels = ed_order))
+med_ed <- med_ed |> mutate(education = factor(education, levels = ed_order))
 
-#1.DATA LOADING
-tuesdata <- tidytuesdayR::tt_load(2024, week = 36)
-qname_levels_single_response_crosswalk <- tuesdata$qname_levels_single_response_crosswalk
-stackoverflow_survey_questions <- tuesdata$stackoverflow_survey_questions
-stackoverflow_survey_single_response <- tuesdata$stackoverflow_survey_single_response
+lo <- med_exp |> filter(experience == "0–5 years")
+hi <- med_exp |> filter(experience == "Over 20 years")
+ed_hi <- med_ed |> slice_max(med, n = 1)
+ed_lo <- med_ed |> slice_min(med, n = 1)
 
-#2.DATA WRANGLING
-dt <- stackoverflow_survey_single_response %>%
-  select(ed_level, years_code_pro,dev_type, converted_comp_yearly) %>%
-  filter(converted_comp_yearly<1000000) %>% 
-  na.omit() %>%
-  mutate(converted_comp_yearly_thousands=converted_comp_yearly/1000) %>% 
-  mutate(compensation_level = cut(converted_comp_yearly,
-                                  breaks = c(-Inf, 50000, 100000, 150000, Inf),
-                                  labels = c("Low", "Medium", "High", "Very High"))) %>% 
-  mutate(years_code_category = cut(years_code_pro,
-                                   breaks = c(-Inf, 5, 10, 20, 50, Inf),
-                                   labels = c("0-5", "6-10", 
-                                              "11-20", "21-50", 
-                                              "51+"))) %>% 
-  mutate(ed_level_category = factor(ed_level,
-                                    labels = c("Associate degree",
-                                               "Bachelor’s degree",
-                                               "Master’s degree",
-                                               "Primary/elementary school",
-                                               "Professional degree",
-                                               "Secondary school",
-                                               "Some study without earning a degree",
-                                               "Something else"),
-                                    levels = c(1, 2, 3, 4, 5, 6, 7, 8))) %>% 
-  mutate(comp_cut=as.factor(ifelse(converted_comp_yearly>median(converted_comp_yearly),
-                                   "Above","Below")))
+# 4. COLOURS & TEXT --------------------------------------------------------
+cols <- setNames(c("#66C2A5", "#FC8D62", "#8DA0CB", "#E78AC3"), exp_lab)   # Set2, as before
+ink <- "#1A1A1A"; muted <- "#5A5A5A"; faint <- "#7A7A7A"
 
+k <- \(x) paste0("$", round(x), "k")
 
-#3. PLOT VIZUALIZATION 
-##Title,subtitle & caption 
-tt <- str_glue(stringr::str_wrap("Stack Overflow Annual Developer Survey 2024", width = 80))
-st <- str_glue(stringr::str_wrap("Annual compensation by education level and 
-                                 professional coding experience (N=23,272)", 
-                                 width = 80))
+tt <- paste0("Developers with 20+ years' experience earn ",
+             round(hi$med / lo$med, 1), "× what beginners do")
 
-ct  <- "Data source:2024 Stack Overflow Annual Developer Survey | Creator:Zoi Diamantakou | tidytuesday | 2024,week 36\nNote: Missing and extreme values were excluded from the graph"
+st <- paste0(
+  "Yearly pay of ", scales::comma(nrow(dt)), " developers in the 2024 Stack Overflow survey, by education. ",
+  "Each dot is one developer, coloured by years of professional coding: median pay goes from ",
+  "<span style='color:#3E9C80'>**", k(lo$med), "**</span> (0–5 years) to ",
+  "<span style='color:#C9579E'>**", k(hi$med), "**</span> (over 20 years). ",
+  "By education the gap is smaller: ", k(ed_lo$med), " (primary school) to ", k(ed_hi$med),
+  " (professional degree). The black line is each group's median.")
 
-##plot
-p<-
-  ggplot(dt, aes(x = ed_level_category, 
-                 y = converted_comp_yearly_thousands,
-                 color=years_code_category)) +
-  geom_jitter(width = 0.3, height = 0.1) +
-  scale_y_continuous(labels = scales::dollar_format()) +
-  scale_x_discrete(labels = function(x) str_wrap(x, width = 20),limits=rev)+
-  scale_color_brewer(palette = "Set2")+
-  labs(title=tt,subtitle = st,caption = ct,
-       x="Education level",y="Annual compensation (in thousand $)",
-       color="Years of professional \ncoding experience")+
-  coord_flip()
+ct <- paste0("Pay converted to US dollars. Respondents earning $1 million or more, or with missing answers, ",
+             "are left out. Pay also depends on country, which this chart does not show.<br>",
+             "Data source: 2024 Stack Overflow Annual Developer Survey · Creator: Zoi Diamantakou · ",
+             "TidyTuesday 2024 · Week 36")
 
+# 5. PLOT ------------------------------------------------------------------
+set.seed(36)
+p <- ggplot(dt, aes(pay, education)) +
+  geom_jitter(aes(colour = experience), height = 0.3, width = 0, size = 0.45, alpha = 0.55) +
+  geom_errorbar(data = med_ed, aes(xmin = med, xmax = med, y = education), inherit.aes = FALSE,
+                width = 0.75, linewidth = 0.8, colour = ink) +
+  geom_text(data = med_ed, aes(x = med, y = as.numeric(education) + 0.45, label = k(med)),
+            inherit.aes = FALSE, family = "poppins", size = 2.4, colour = ink, hjust = -0.1) +
+  scale_colour_manual(values = cols, name = "Professional coding experience") +
+  scale_x_continuous(labels = \(x) paste0("$", x, "k"), breaks = seq(0, 1000, 250),
+                     expand = c(0.01, 0)) +
+  scale_y_discrete(labels = \(x) str_wrap(x, 18)) +
+  guides(colour = guide_legend(nrow = 1, title.position = "top",
+                               override.aes = list(size = 2.5, alpha = 1))) +
+  labs(title = tt, subtitle = st, caption = ct, x = "Yearly pay (thousand US$)", y = NULL) +
+  theme_minimal(base_family = "poppins") +
+  theme(
+    plot.title.position   = "plot",
+    plot.caption.position = "plot",
+    plot.title = element_textbox_simple(face = "bold", size = 22, colour = ink,
+                                        lineheight = 1.05, margin = margin(b = 12)),
+    plot.subtitle = element_textbox_simple(size = 10, colour = muted,
+                                           lineheight = 1.25, margin = margin(b = 10)),
+    plot.caption = element_textbox_simple(size = 7, colour = faint,
+                                          lineheight = 1.4, margin = margin(t = 14)),
+    legend.position = "top",
+    legend.justification = "left",
+    legend.location = "plot",
+    legend.title = element_text(size = 7.5, colour = muted),
+    legend.text  = element_text(size = 7.5, colour = muted),
+    legend.margin = margin(b = 6),
+    axis.title.x = element_text(size = 7.5, colour = faint, hjust = 0),
+    axis.text.x  = element_text(size = 7.5, colour = faint),
+    axis.text.y  = element_text(size = 8, colour = ink, lineheight = 1),
+    panel.grid = element_blank(),
+    panel.grid.major.x = element_line(colour = "#ECECEC", linewidth = 0.3),
+    plot.background = element_rect(fill = "white", colour = NA),
+    plot.margin = margin(36, 36, 36, 36))
 
-
-p+theme_minimal()+
-  theme(plot.margin= margin(t = 20, r = 20, b = 20, l = 20),
-        plot.title= element_text(family= 'title',face= "bold",
-                                 size= 20,hjust = 0,colour="#19201D"),
-        plot.subtitle = element_text(family= 'subtitle', hjust = 0,
-                                     lineheight= 0.9,size  = 14,colour="black"),
-        plot.caption = element_text(colour="black",size=10, hjust = 0,family='x'),
-        plot.title.position = "plot", 
-        plot.subtitle.position = "plot", 
-        plot.caption.position = "plot",
-        #axis text
-        axis.title.x = element_text(family="x",size=12,face="italic"),
-        axis.title.y = element_blank(),
-        axis.text.x = element_text(family="x",size=12,vjust =0.5),
-        axis.text.y = element_text(family="x",size=12,vjust =0), #or element_blank()
-        #legend
-        legend.position = "top",
-        legend.justification='left',
-        legend.title = element_text(family = "x", color = "grey40", size = 10, hjust = 0), # Add hjust to left-align the title
-        # bring legend items closer
-        legend.spacing.x = unit(0.1, 'cm'),  
-        legend.key.height = unit(0.25, "lines"),
-        legend.key.width = unit(2, "lines"),
-        #grid
-        panel.grid = element_blank(),
-        panel.grid.major.x = element_line(color = "#dedddd", linewidth = 0.5, linetype = 1),  # Corrected to element_line
-        panel.grid.major.y = element_blank(),
-        axis.line.x = element_line(color = "#dedddd", linewidth = 0.5, linetype = 1),  
-        axis.line.y = element_blank(), 
-        axis.ticks= element_blank(), 
-        axis.ticks.x = element_line(color = "#dedddd",linewidth = 0.5),
-        #background
-        plot.background = element_rect(fill = "white", color = NA))+
-  guides(color = guide_legend(nrow = 2, byrow = TRUE))  # Split legend into 2 rows
-
-
-#4. SAVE THE PLOT
-ggsave("TT2024Week_36.png", width = 8, height = 8,type = "Cairo",dpi = 300, bg = "white") 
-ggsave("TT2024Week_36.svg", width = 8, height = 8,dpi = 300, bg = "white")
-browseURL("TT2024Week_36.svg")
-
-
-
+# 6. SAVE ------------------------------------------------------------------
+ggsave("TT2024Week36.png", p, width = 7.5, height = 7.5, dpi = 288, bg = "white")
+ggsave("TT2024Week36.svg", p, width = 7.5, height = 7.5, bg = "white")
