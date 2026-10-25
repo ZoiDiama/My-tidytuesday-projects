@@ -1,68 +1,91 @@
-#David Robinson's TidyTuesday Functions
-#2024: week 28
+# David Robinson's TidyTuesday Functions
+# TidyTuesday 2024 · Week 28
+# Question: which R functions does David Robinson use most in his TidyTuesday screencasts?
 
-
-#load key libraries 
-library(tidytuesdayR)# Access data for the #TidyTuesday project.
-library(dplyr)
-library(ggplot2)
-library(tidyverse) # Collection of tools for data manipulation and visualization.
-library(showtext) #Easily use custom fonts in plots.Allows the use of google fonts
-library(glue)#Simple string formatting and interpolation.
-library(Cairo) #High-quality graphics rendering for plots.
-
-#additional libraries
-library(ggtext) #Allows rich text formatting (Markdown/HTML) in ggplot.
-library(forcats) #Tools for handling categorical variables (factors).
-library(ggrepel) #Avoids overlapping labels in ggplot2.
+# 1. LIBRARIES -------------------------------------------------------------
+library(tidyverse)
 library(packcircles)
+library(showtext)
+library(ggtext)
+library(patchwork)   # titles span the full width even though the circles keep a fixed aspect
 
+font_add_google("Poppins", family = "poppins")
+showtext_auto()
+showtext_opts(dpi = 288)
 
+# 2. DATA ------------------------------------------------------------------
+drob_funs <- read_csv(
+  "https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2024/2024-07-09/drob_funs.csv",
+  show_col_types = FALSE)
 
-## Load Google fonts (https://fonts.google.com/)
-font_add_google("Lato", family = "title")                           
-font_add_google("Lato", family = "subtitle")
-font_add_google("Lato", family = "x")
-showtext::showtext_auto()
-showtext::showtext_opts(dpi = 300) 
+# 3. WRANGLING -------------------------------------------------------------
+data <- drob_funs |> count(funs, sort = TRUE)
 
-#1.DATA LOADING
-tuesdata <- tidytuesdayR::tt_load(2024, week = 28)
-drob_funs <- tuesdata$drob_funs
+# Circle packing: one circle per function, area = number of calls
+packing <- circleProgressiveLayout(data$n, sizetype = "area")
+data    <- bind_cols(data, packing) |> mutate(id = row_number(), top = id <= 30)
+circles <- circleLayoutVertices(packing, npoints = 60) |>
+  left_join(select(data, id, top), by = "id")
 
-#2.DATA WRANGLING
-data <- drob_funs %>% 
-  group_by(funs) %>% 
-  summarise(n = n(), .groups = 'drop') %>% 
-  arrange(-n)
+lab <- data |> filter(top) |>
+  mutate(size  = pmin(4.2, pmax(0.9, radius / 5.5 / pmax(1, nchar(funs) / 5))),  # long names get smaller
+         label = paste0(funs, "<br><span style='font-size:", round(size * 2.845 * 0.8, 1),
+                        "pt;color:#7A6A55'>", scales::comma(n), "</span>"))
 
-#for the bubble chart
-packing <- circleProgressiveLayout(data$n, sizetype='area')
-data <- cbind(data, packing)
-dat.gg <- circleLayoutVertices(packing, npoints=50)
+n_calls <- nrow(drob_funs)
+n_funs  <- nrow(data)
+n_files <- n_distinct(drob_funs$contents)
+aes_n   <- data$n[data$funs == "aes"]
+aes_f   <- drob_funs |> filter(funs == "aes") |> distinct(contents) |> nrow()
+pkg     <- drob_funs |> count(pkgs) |> mutate(p = n / sum(n))
+p_gg    <- pkg$p[pkg$pkgs == "ggplot"]
+p_dp    <- pkg$p[pkg$pkgs == "dplyr"]
 
-#for the labels
-data_top30 <- data %>%
-  arrange(-n) %>%
-  slice_head(n = 30)
+# 4. COLOURS & TEXT --------------------------------------------------------
+bg <- "#1E1E1E"; light <- "#FFFFFF"; tan <- "#B8AA94"
+txt <- "#F2EEE6"; muted <- "#CFC8BC"; faint <- "#9E978C"
 
+tt <- paste0("David Robinson used aes() ", scales::comma(aes_n),
+             " times in his TidyTuesday code")
 
-#3. PLOT VIZUALIZATION 
-##plot
-  ggplot() + 
-  geom_polygon(data = dat.gg, aes(x, y, 
-                                  group = id, 
-                                  fill=as.factor(id)), # Make the bubbles
-               colour = "black", alpha = 0.6) +
-  geom_text_repel(data = data_top30, aes(x = x, y = y, label = funs), size = 3) +
-  geom_text_repel(data = data_top30, aes(x = x, y = y, label = n), size = 3) +
-  scale_size_continuous(range = c(1,4)) +
-  scale_color_viridis(discrete=TRUE) +
+st <- paste0(
+  "Every R function in the ", n_files, " notebooks from his TidyTuesday screencasts: ",
+  scales::comma(n_calls), " calls of ", n_funs, " different functions. ",
+  "Each circle is one function, sized by how often he used it; the ",
+  "<span style='color:", light, "'>**30 most used**</span> are labelled. ",
+  "aes() appears in ", aes_f, " of the ", n_files, " notebooks. ggplot2 (", round(p_gg * 100),
+  "%) and dplyr (", round(p_dp * 100), "%) supply most of the calls.")
+
+ct <- paste0("Data source: David Robinson's TidyTuesday screencast notebooks, via funspotr ",
+             "(Bryan Shalloway) · Creator: Zoi Diamantakou · TidyTuesday 2024 · Week 28")
+
+# 5. PLOT ------------------------------------------------------------------
+p <- ggplot() +
+  geom_polygon(data = circles, aes(x, y, group = id, fill = top),
+               colour = bg, linewidth = 0.3) +
+  geom_richtext(data = lab, aes(x, y, label = label, size = size), family = "poppins",
+                colour = "#1E1E1E", fill = NA, label.colour = NA, lineheight = 0.9,
+                label.padding = unit(0, "pt")) +
+  scale_fill_manual(values = c(`TRUE` = light, `FALSE` = tan), guide = "none") +
+  scale_size_identity() +
+  coord_equal() +
   theme_void() +
-  coord_equal()
+  theme(plot.margin = margin(0, 0, 0, 0))
 
+p <- wrap_elements(full = p) + plot_annotation(
+  title = tt, subtitle = st, caption = ct,
+  theme = theme(
+    text = element_text(family = "poppins"),
+    plot.title = element_textbox_simple(face = "bold", size = 22, colour = txt,
+                                        lineheight = 1.05, margin = margin(b = 12)),
+    plot.subtitle = element_textbox_simple(size = 11, colour = muted,
+                                           lineheight = 1.25, margin = margin(b = 12)),
+    plot.caption = element_textbox_simple(size = 7, colour = faint,
+                                          lineheight = 1.4, margin = margin(t = 12)),
+    plot.background = element_rect(fill = bg, colour = NA),
+    plot.margin = margin(36, 36, 36, 36)))
+p <- p & theme(plot.background = element_rect(fill = bg, colour = NA))
 
-#4. SAVE THE PLOT
-#ggsave("TT2024Week_X.png", width = 12, height = 8,type = "Cairo",dpi = 300, bg = "white") 
-ggsave("TT2024Week_28.svg", width = 8, height = 8,dpi = 300, bg = "white")
-browseURL("TT2024Week28.svg")
+# 6. SAVE ------------------------------------------------------------------
+ggsave("TT2024Week28.png", p, width = 7.5, height = 7.5, dpi = 288, bg = bg)
+ggsave("TT2024Week28.svg", p, width = 7.5, height = 7.5, bg = bg)
