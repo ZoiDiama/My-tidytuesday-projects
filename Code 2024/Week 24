@@ -13,7 +13,7 @@ showtext_auto()
 showtext_opts(dpi = 288)
 
 # 2. DATA ------------------------------------------------------------------
-# Read straight from GitHub (avoids tidytuesdayR's API rate limit)
+# Read straight from GitHub
 ewf_standings <- read_csv(
   "https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2024/2024-07-16/ewf_standings.csv",
   show_col_types = FALSE)
