@@ -1,113 +1,95 @@
-#2024: week 2: Canadian Hockey Player
-#load libraries 
+# Canadian Hockey Players
+# TidyTuesday 2024 · Week 2
+# Question: are Canadian NHL players shorter or taller than players from elsewhere?
+
+# 1. LIBRARIES -------------------------------------------------------------
 library(tidyverse)
+library(ggridges)
 library(showtext)
 library(ggtext)
-library(tidytuesdayR)
-library(glue)
-library(Cairo)
-library(forcats)
-library(ggrepel)
-library(lubridate)
-library(ggridges)
 
+font_add_google("Poppins", family = "poppins")
+showtext_auto()
+showtext_opts(dpi = 288)
 
+# 2. DATA ------------------------------------------------------------------
+nhl_rosters <- read_csv(
+  "https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2024/2024-01-09/nhl_rosters.csv",
+  show_col_types = FALSE)
 
-#1.DATA LOADING
-tuesdata <- tidytuesdayR::tt_load(2024, week = 2)
-canada_births_1991_2022 <- tuesdata$canada_births_1991_2022
-nhl_player_births <- tuesdata$nhl_player_births
-nhl_rosters <- tuesdata$nhl_rosters
-nhl_teams <- tuesdata$nhl_teams
-#2.DATA WRANGLING
-#preparing the dataset
-dt<-nhl_rosters %>% 
-  select(position_type,birth_country,height_in_centimeters,weight_in_kilograms,birth_date) %>%
-  mutate(Nationality=case_when(birth_country=="CAN"~"Canadians",
-                               TRUE~"International players")) %>%
-  mutate(
-    birth_date = lubridate::ymd(birth_date),
-    birth_year = lubridate::year(birth_date),
-    birth_month = lubridate::month(birth_date))
+# 3. WRANGLING -------------------------------------------------------------
+# The roster has one row per player per season; keep each player once.
+positions <- c(forwards = "Forwards", defensemen = "Defencemen", goalies = "Goalies")
 
+dt <- nhl_rosters |>
+  distinct(player_id, .keep_all = TRUE) |>
+  filter(!is.na(height_in_centimeters), !is.na(birth_country)) |>
+  mutate(origin   = if_else(birth_country == "CAN", "Canadian", "International"),
+         position = factor(positions[position_type], levels = rev(positions)))
 
+avg <- dt |> group_by(position, origin) |>
+  summarise(mean = mean(height_in_centimeters), n = n(), .groups = "drop")
+gap_goalie <- with(avg, mean[position == "Goalies" & origin == "International"] -
+                        mean[position == "Goalies" & origin == "Canadian"])
+n_players <- nrow(dt)
+share_can <- mean(dt$origin == "Canadian")
 
-#Data for the plot
+# Average label at the right of each ridge
+lab <- avg |> mutate(label = paste0(round(mean), " cm"))
 
-#3. PLOT VIZUALIZATION 
-## Load Google fonts (https://fonts.google.com/)
-font_add_google("Racing Sans One", family = "title")                           
-font_add_google("Lato", family = "subtitle")
-font_add_google("Caveat", family = "x")
-showtext::showtext_auto()
-showtext::showtext_opts(dpi = 300) 
+# 4. COLOURS & TEXT --------------------------------------------------------
+cols <- c(Canadian = "#C8102E", International = "#66736E")
+ink <- "#1A1A1A"; muted <- "#5A5A5A"; faint <- "#7A7A7A"
 
-##Title,subtitle & caption 
-tt <- str_glue(stringr::str_wrap("The battle of heights in NHL"),width=100)
-st <- str_glue(stringr::str_wrap("Canadians vs. international players
-                                 by position type",
-                                 width=100))
-ct  <- str_glue(stringr::str_wrap("Data Source:  Statistics Canada | 
-                                  Creator:Zoi Diamantakou | tidytuesday | 2024, 
-                                  week 2",width=100))
+tt <- paste0("International goalies stand ", round(gap_goalie), " cm taller than Canadian ones")
 
-##plot
-p<-
-  ggplot(dt, aes(x = height_in_centimeters, 
-                  y = position_type))+
-  geom_density_ridges(aes(fill = position_type),
-                      scale = 0.8,
-                      quantile_lines = TRUE, 
-                      quantiles = 0.5) +
-  scale_y_discrete(labels=c("Defencemen","Forwards","Goalies")) +
-  scale_fill_manual(labels=c("Defencemen","Forwards","Goalies"),
-    values = c("#66736E", "#F2C763", "#94759D")) +
-  facet_wrap(~Nationality)+
-  labs(x = "Height in centimeters", 
-       y = NULL,
-       title=tt,
-       subtitle = st,
-       caption = ct,
-       fill="Position type"
-  ) 
-  
-p+theme_minimal()+
-  theme(plot.margin           = margin(t = 2, r = 15, b = 10, l = 25),
-        plot.title            = element_text(
-          family= 'title',face= "bold",size= 35,hjust = 0.5,
-          colour="#19201D",
-          margin= margin(t = 16, b = 5)),
-        plot.subtitle = element_text(
-          family= 'subtitle', hjust = 0.5,
-          lineheight= 0.9,size  = 18,colour="black",
-          margin= margin(t = 5, b = 10)),
-        plot.caption = element_text(colour="black"),
-        plot.caption.position = "plot",
-        #axis
-        axis.title.x = element_text(family="x"),
-        axis.text.x = element_text(size=12,vjust =20),
-        axis.text.y = element_blank(),
-        #legend
-        legend.position = "bottom",
-        legend.text = element_text(color = "grey40", size = 10),
-        legend.box.margin = margin(t = 30),
-        legend.background = element_rect(color = "grey40",
-                                         size = .3,
-                                         fill = "grey95"),
-        legend.key.height = unit(.25, "lines"),
-        legend.key.width = unit(2.5, "lines"),
-        #panel
-        panel.spacing = unit(1.5, "cm"),
-        strip.text.x = element_text(size = 20,face="bold",
-                                    hjust=0,family= 'x',),
-        panel.background = element_blank(),
-        panel.grid = element_blank(),
-        axis.ticks= element_blank(), 
-        #background
-        plot.background = element_rect(fill = "#ced8d4", color = NA))
-              
+st <- paste0(
+  "Height of every NHL player since 1917, by position: ",
+  "<span style='color:", cols["Canadian"], "'>**born in Canada**</span> (",
+  scales::percent(share_can, accuracy = 1), ") or ",
+  "<span style='color:", cols["International"], "'>**born elsewhere**</span>. ",
+  "Forwards and defencemen are almost the same height wherever they come from; ",
+  "goalies are the exception. The line marks the median.")
 
-#4. SAVE THE PLOT
-ggsave("TT2024Week2.png", width = 12, height = 8, 
-       type = "Cairo",dpi = 300, bg = "white") 
+ct <- paste0("Each of the ", scales::comma(n_players), " players counted once. International players ",
+             "are more common in recent decades, when players in general got taller.<br>",
+             "Data source: NHL API, via Statistics Canada · Creator: Zoi Diamantakou · ",
+             "TidyTuesday 2024 · Week 2")
 
+# 5. PLOT ------------------------------------------------------------------
+p <- ggplot(dt, aes(height_in_centimeters, position, fill = origin, colour = origin)) +
+  geom_density_ridges(scale = 0.9, alpha = 0.45, linewidth = 0.4,
+                      quantile_lines = TRUE, quantiles = 0.5, bandwidth = 2) +
+  geom_text(data = lab, aes(x = 205, y = as.numeric(position) + 0.25 +
+                              if_else(origin == "Canadian", 0.17, 0), label = label),
+            inherit.aes = FALSE, colour = cols[lab$origin], family = "poppins",
+            fontface = "bold", size = 2.6, hjust = 0) +
+  scale_fill_manual(values = cols, guide = "none") +
+  scale_colour_manual(values = cols, guide = "none") +
+  scale_x_continuous(limits = c(160, 212), breaks = seq(160, 200, 10),
+                     labels = \(x) paste0(x, " cm"), expand = c(0, 0)) +
+  scale_y_discrete(expand = expansion(add = c(0.1, 0.9))) +
+  annotate("text", x = 205, y = 3.95, label = "Average", hjust = 0, family = "poppins",
+           size = 2.4, colour = faint) +
+  coord_cartesian(clip = "off") +
+  labs(title = tt, subtitle = st, caption = ct, x = NULL, y = NULL) +
+  theme_minimal(base_family = "poppins") +
+  theme(
+    plot.title.position   = "plot",
+    plot.caption.position = "plot",
+    plot.title = element_textbox_simple(face = "bold", size = 22, colour = ink,
+                                        lineheight = 1.05, margin = margin(b = 12)),
+    plot.subtitle = element_textbox_simple(size = 11, colour = muted,
+                                           lineheight = 1.25, margin = margin(b = 18)),
+    plot.caption = element_markdown(size = 7, colour = faint, hjust = 0,
+                                    lineheight = 1.4, margin = margin(t = 16)),
+    axis.text.y = element_text(size = 9, colour = ink, face = "bold", vjust = 0),
+    axis.text.x = element_text(size = 7.5, colour = faint),
+    panel.grid  = element_blank(),
+    panel.grid.major.x = element_line(colour = "#ECECEC", linewidth = 0.3),
+    plot.background = element_rect(fill = "white", colour = NA),
+    plot.margin = margin(36, 36, 36, 36))
+
+# 6. SAVE ------------------------------------------------------------------
+ggsave("TT2024Week2.png", p, width = 7.5, height = 7.5, dpi = 288, bg = "white")
+ggsave("TT2024Week2.svg", p, width = 7.5, height = 7.5, bg = "white")
