@@ -36,9 +36,10 @@ dt <- films |> count(decade, group)
 tops <- films |> group_by(decade) |>
   summarise(n = n(), en = mean(group == "English"),
             langs = n_distinct(original_language)) |>
-  mutate(label = paste0("**", scales::comma(n), "**<br><span style='color:#7A7A7A'>",
-                        round((1 - en) * 100), "% other<br>languages</span>"))
-# each bar shows shares (100%), so the label sits just above the top
+  mutate(other = 1 - en,
+         x     = as.numeric(decade),
+         key   = decade %in% c("1990s", "2020–22"),        # the two decades in the title
+         films = paste0(scales::comma(n), " films"))
 d10 <- tops |> filter(decade == "2010s")
 d90 <- tops |> filter(decade == "1990s")
 d20 <- tops |> filter(decade == "2020–22")
@@ -50,18 +51,20 @@ peak      <- films |> count(year) |> slice_max(n, n = 1)
 last_year <- max(films$year)
 
 # 4. COLOURS & TEXT --------------------------------------------------------
-# English in light grey so the other languages stand out (Okabe-Ito colours, colour-blind safe)
-cols <- c(English = "#DADADA", Spanish = "#E69F00", French = "#56B4E9", German = "#009E73",
-          Portuguese = "#0072B2", Japanese = "#CC79A7", Other = "#7F6A93")
+# English in light grey; the other languages in shades of one purple, so together they
+# read as one block whose height is the message
+cols <- c(English = "#E3E3E3", Spanish = "#C9B3D9", French = "#AE8FC6", German = "#8C6BB1",
+          Portuguese = "#6A4C9C", Japanese = "#4B2E83", Other = "#2D1E5F")
+purple <- "#4B2E83"
 ink <- "#1A1A1A"; muted <- "#5A5A5A"; faint <- "#7A7A7A"
 
 tt <- paste0("Since the 1990s, LGBTQ films in languages other than English rose from ",
              round((1 - d90$en) * 100), "% to ", round((1 - d20$en) * 100), "%")
 
 st <- paste0(
-  "Share of LGBTQ films on The Movie Database in each language, by decade of release (",
-  scales::comma(n_films), " films; the number above each bar is the decade's total). <span style='color:#8A8A8A'>**English**</span> ",
-  "took over in the 1990s; since then other languages have caught up, ",
+  "Share of LGBTQ films on The Movie Database by original language and decade (",
+  scales::comma(n_films), " films). The <span style='color:", purple, "'>**purple block**</span> is all ",
+  "languages other than English. It shrank in the 1990s as English-language films boomed, then grew again, ",
   "and the number of languages went from ", d90$langs, " to ", tops$langs[tops$decade == "2010s"],
   " in the 2010s.")
 
@@ -74,13 +77,22 @@ ct <- paste0("Films are tagged LGBTQ by TMDB users; tagging may be less complete
 # 5. PLOT ------------------------------------------------------------------
 p <- ggplot(dt, aes(decade, n, fill = group)) +
   geom_col(position = "fill", width = 0.72, colour = "white", linewidth = 0.25) +
-  geom_richtext(data = tops, aes(decade, 1.02, label = label), inherit.aes = FALSE,
-                vjust = 0, family = "poppins", size = 2.7, colour = ink,
-                fill = NA, label.colour = NA, lineheight = 1.15) +
+  # dashed line along the top of the purple block, and its % above it
+  geom_line(data = tops, aes(x, other), inherit.aes = FALSE, linetype = "dashed",
+            colour = purple, linewidth = 0.5) +
+  geom_point(data = tops, aes(x, other), inherit.aes = FALSE, colour = purple, size = 1.6) +
+  geom_text(data = tops, aes(x, other, label = paste0(round(other * 100), "%"),
+                             size = if_else(key, 4.6, 3.4)),
+            inherit.aes = FALSE, vjust = -0.7, family = "poppins", fontface = "bold",
+            colour = purple) +
+  scale_size_identity() +
+  # number of films above each bar
+  geom_text(data = tops, aes(x, 1.02, label = films), inherit.aes = FALSE, vjust = 0,
+            family = "poppins", size = 2.5, colour = faint) +
   scale_fill_manual(values = cols, name = NULL) +
   scale_y_continuous(breaks = seq(0, 1, 0.25), labels = scales::percent,
                      expand = c(0, 0)) +
-  coord_cartesian(ylim = c(0, 1.17)) +   # room above the bars for the labels
+  coord_cartesian(ylim = c(0, 1.08)) +   # room above the bars for the labels
   guides(fill = guide_legend(nrow = 1, keywidth = unit(3, "mm"), keyheight = unit(3, "mm"))) +
   labs(title = tt, subtitle = st, caption = ct, x = NULL, y = NULL) +
   theme_minimal(base_family = "poppins") +
