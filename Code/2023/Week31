@@ -1,171 +1,91 @@
+# US States
+# TidyTuesday 2023 · Week 31
+# Question: how crowded is each US state?
+
+# 1. LIBRARIES -------------------------------------------------------------
 library(tidyverse)
-library(dplyr)
-library(ggplot2)
-library(ggtext)
-library(forcats)
-library(grid)
-
-
-library(ggrepel)   
-library(urbnmapr)
 library(maps)
-library(stringr)
+library(showtext)
+library(ggtext)
 
+font_add_google("Poppins", family = "poppins")
+showtext_auto()
+showtext_opts(dpi = 288)
 
-# Load basic state data from Wikipedia.
-states <- read_html("https://en.wikipedia.org/wiki/List_of_states_and_territories_of_the_United_States") |> 
-  html_table(header = TRUE) |> 
-  # Try out the new-ish use of _ for subsetting with the base pipe.
-  _[[2]][-1,]
-colnames(states) <- c(
-  "state",
-  "postal_abbreviation",
-  "capital_city",
-  "largest_city",
-  "admission",
-  "population_2020",
-  "total_area_mi2",
-  "total_area_km2",
-  "land_area_mi2",
-  "land_area_km2",
-  "water_area_mi2",
-  "water_area_km2",
-  "n_representatives"
-)
-glimpse(states)
+# 2. DATA ------------------------------------------------------------------
+states <- read_csv(
+  "https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2023/2023-08-01/states.csv",
+  show_col_types = FALSE)
 
-# Clean types.
-states <- states |> 
-  mutate(
-    across(
-      c(population_2020, contains("area"), n_representatives),
-      ~ parse_number(.x) |> as.integer()
-    ),
-    admission = parse_date(admission, format = "%b %d, %Y"),
-    state = str_remove(state, fixed("[B]"))
-  )
+# 3. WRANGLING -------------------------------------------------------------
+bands <- c("Under 10", "10–25", "25–50", "50–100", "100–200", "200+")
 
-state_demonyms <- read_html("https://en.wikipedia.org/wiki/List_of_demonyms_for_US_states_and_territories") |> 
-  html_table() |> 
-  _[[1]][-1,1:2]
-colnames(state_demonyms) <- c("state", "demonym")
-states <- states |> 
-  left_join(state_demonyms, by = "state")
+dt <- states |>
+  mutate(density = population_2020 / land_area_km2,
+         band = cut(density, c(0, 10, 25, 50, 100, 200, Inf), labels = bands, right = FALSE),
+         region = tolower(state))
 
-# Confirm that the join worked!
+map <- map_data("state") |> inner_join(dt, by = "region")
 
-states |> 
-  filter(is.na(demonym))
+top    <- dt |> slice_max(density, n = 1)
+bottom <- dt |> filter(region %in% unique(map$region)) |> slice_min(density, n = 1)
+ratio  <- top$density / bottom$density
+med    <- median(dt$density)
+n_200  <- sum(dt$density >= 200)
 
-state_name_etymology <- read_html("https://en.wikipedia.org/wiki/List_of_state_and_territory_name_etymologies_of_the_United_States") |> 
-  html_table() |> 
-  _[[1]]
-colnames(state_name_etymology) <- c(
-  "state",
-  "date_named",
-  "language",
-  "words_in_original",
-  "meaning"
-)
-state_name_etymology <- state_name_etymology |>
-  mutate(
-    date_named = if_else(
-      date_named == "1743",
-      "January 1, 1743",
-      date_named
-    ) |> 
-      parse_date(format = "%B %d, %Y"),
-    # We remove footnotes, but will reference them in the dictionary.
-    across(
-      c(words_in_original, meaning),
-      ~ str_remove_all(.x, "\\[\\d+\\]")
-    )
-  )
+# Label the 200+ states (small north-eastern states, so labels sit in the Atlantic)
+lab <- dt |> filter(density >= 200) |>
+  mutate(long = -66.5, lat = c(Massachusetts = 42.6, `Rhode Island` = 41.6, Connecticut = 40.6,
+                               `New Jersey` = 39.6, Maryland = 38.6)[state],
+         label = paste0(state, " ", round(density)))
 
-# Confirm that the tables match up.
-states |> 
-  full_join(state_name_etymology, by = "state") |> 
-  filter(is.na(date_named))
-states |> 
-  full_join(state_name_etymology, by = "state") |> 
-  filter(is.na(admission))
+# 4. COLOURS & TEXT --------------------------------------------------------
+cols <- setNames(c("#FDE0DD", "#FCC5C0", "#FA9FB5", "#F768A1", "#AE017E", "#49006A"), bands)
+bg <- "#FFFDF3"; ink <- "#1A1A1A"; muted <- "#5A5A5A"; faint <- "#7A7A7A"
 
-write_csv(
-  states,
-  here(
-    "data",
-    "2023",
-    "2023-08-01",
-    "states.csv"
-  )
-)
-write_csv(
-  state_name_etymology,
-  here(
-    "data",
-    "2023",
-    "2023-08-01",
-    "state_name_etymology.csv"
-  )
-)
+tt <- paste0(top$state, " has ", round(top$density), " people per km², over ",
+             floor(ratio / 100) * 100, " times ", bottom$state)
 
-dt<-states %>% 
-  mutate(population_density=round(population_2020/land_area_km2,2)) %>% 
-  select(region=state,PA=postal_abbreviation,population_density)
+st <- paste0(
+  "Population density of the US states in 2020 (people per km² of land). The typical state ",
+  "has ", round(med), " people per km². The ", n_200, " states in ",
+  "<span style='color:", cols["200+"], "'>**darkest purple**</span>, all on the north-east coast, ",
+  "have more than 200.")
 
+ct <- paste0("Alaska (0.5 per km², the least crowded state) and Hawaii are not shown on the map.<br>",
+             "Data source: Wikipedia, 2020 US Census · Creator: Zoi Diamantakou · ",
+             "TidyTuesday 2023 · Week 31")
 
-MainStates <- map_data("state")
-dt$region<-tolower(dt$region)
+# 5. PLOT ------------------------------------------------------------------
+p <- ggplot(map, aes(long, lat, group = group, fill = band)) +
+  geom_polygon(colour = "white", linewidth = 0.2) +
+  geom_text(data = lab, aes(long, lat, label = label), inherit.aes = FALSE, hjust = 0,
+            family = "poppins", size = 2.3, colour = cols["200+"]) +
+  scale_fill_manual(values = cols, drop = FALSE, name = "People per km²") +
+  coord_quickmap(xlim = c(-125, -60), clip = "off") +
+  guides(fill = guide_legend(nrow = 1, title.position = "top", label.position = "bottom",
+                             keywidth = unit(12, "mm"), keyheight = unit(2.5, "mm"))) +
+  labs(title = tt, subtitle = st, caption = ct, x = NULL, y = NULL) +
+  theme_void(base_family = "poppins") +
+  theme(
+    plot.title.position   = "plot",
+    plot.caption.position = "plot",
+    plot.title = element_textbox_simple(face = "bold", size = 22, colour = ink,
+                                        lineheight = 1.05, margin = margin(b = 12)),
+    plot.subtitle = element_textbox_simple(size = 11, colour = muted,
+                                           lineheight = 1.25, margin = margin(b = 10)),
+    plot.caption = element_textbox_simple(size = 7, colour = faint,
+                                          lineheight = 1.4, margin = margin(t = 16)),
+    legend.position = "top",
+    legend.justification = "left",
+    legend.location = "plot",
+    legend.title = element_text(size = 7.5, colour = muted),
+    legend.text  = element_text(size = 7, colour = muted),
+    legend.spacing.x = unit(0, "pt"),
+    legend.margin = margin(b = 10),
+    plot.background = element_rect(fill = bg, colour = NA),
+    plot.margin = margin(36, 36, 36, 36))
 
-MergedStates <- inner_join(MainStates, dt, by = "region") %>% 
-  mutate(
-    pd = case_when(
-      population_density >90 ~ ">90",
-      population_density > 80 & population_density <=90 ~ "80-90",
-      population_density >70 & population_density <=80 ~ "70-80",
-      population_density >60 & population_density <=70 ~ "60-70",
-      population_density >50 & population_density <=60 ~ "50-60",
-      population_density >40 & population_density <=50 ~ "40-50",
-      population_density >30 & population_density <=40 ~ "30-40",
-      population_density >20 & population_density <=30 ~ "30-40",
-      population_density <=20 ~ "<=20"
-    ),
-    # Convert to factor
-    pd = factor(
-      pd,
-      level = c(">90", "90-100",
-                "80-90","70-80","60-70","50-60",
-                "40-50","30-40","20-30","<=20")
-    )
-  )  
-
-p <- ggplot()+ 
-  geom_polygon( data=MergedStates, 
-                aes(x=long, y=lat, group=group, fill = pd,labels=PA), 
-                color="white", size = 0.2)+
-  labs(title="United States of America\nPopulation density map,2020",
-       fill="Population density \nper KM2",
-       caption = "Data source:  Wikipedia articles| Creator:Zoi Diamantakou | tidytuesday | 2023, week 32",
-       x="",
-       y="")+
-  scale_fill_manual(values = c('#49006a','#7a0177','#ae017e',
-                               '#dd3497','#f768a1',"#fa9fb5","#fcc5c0",
-                               "#fde0dd" , "#fff7f3"))
-p+theme_minimal() +
-  theme(plot.margin = unit(c(1,2,1,1), "cm"),
-        plot.title = element_text(size = 22, face = "bold",
-                                  hjust = 0.5,color="#8C4830"),
-        plot.subtitle = element_text(size = 14,hjust = 0),
-        plot.caption = element_text(size = 8,
-                                    hjust = 0.5,color='#c5a397'),
-        axis.title.x = element_blank(),
-        axis.title.y= element_blank(),
-        axis.text.x = element_blank(),
-        axis.text.y = element_blank(),
-        legend.position="bottom",
-        legend.title = element_text(color = "#ae7e6e", size = 10),
-        legend.text = element_text(color = "#ae7e6e"),
-        panel.grid = element_blank(),
-        plot.background = element_rect(fill="#fffdf3"))
-
-
+# 6. SAVE ------------------------------------------------------------------
+ggsave("TT2023Week31.png", p, width = 7.5, height = 7.5, dpi = 288, bg = bg)
+ggsave("TT2023Week31.svg", p, width = 7.5, height = 7.5, bg = bg)
