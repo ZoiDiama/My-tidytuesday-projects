@@ -1,121 +1,107 @@
-#Worldwide Bureaucracy Indicators
-#2024: week 18
-#load libraries 
+# Worldwide Bureaucracy Indicators
+# TidyTuesday 2024 · Week 18
+# Question: are women better represented in public-sector jobs than in private ones?
+
+# 1. LIBRARIES -------------------------------------------------------------
 library(tidyverse)
 library(showtext)
 library(ggtext)
-library(tidytuesdayR)
-library(glue)
-library(Cairo)
-library(forcats)
 library(ggrepel)
-library(lubridate)
-library(ggridges)
 
+font_add_google("Poppins", family = "poppins")
+showtext_auto()
+showtext_opts(dpi = 288)
 
+# 2. DATA ------------------------------------------------------------------
+base <- "https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2024/2024-04-30/"
+wwbi_data    <- read_csv(paste0(base, "wwbi_data.csv"), show_col_types = FALSE)
+wwbi_country <- read_csv(paste0(base, "wwbi_country.csv"), show_col_types = FALSE)
 
-#1.DATA LOADING
-tuesdata <- tidytuesdayR::tt_load(2024, week = 18)
-wwbi_data <- tuesdata$wwbi_data
-wwbi_series <- tuesdata$wwbi_series
-wwbi_country <- tuesdata$wwbi_country
+# 3. WRANGLING -------------------------------------------------------------
+# Women's share of paid employees in each sector, averaged over 2000-2020
+dt <- wwbi_data |>
+  filter(indicator_code %in% c("BI.PWK.PRVS.FE.ZS", "BI.PWK.PUBS.FE.ZS"),
+         !is.na(value)) |>
+  mutate(sector = if_else(indicator_code == "BI.PWK.PRVS.FE.ZS", "private", "public")) |>
+  group_by(country_code, sector) |>
+  summarise(value = mean(value) * 100, .groups = "drop") |>
+  pivot_wider(names_from = sector, values_from = value) |>
+  filter(!is.na(private), !is.na(public)) |>
+  left_join(wwbi_country |> select(country_code, short_name), by = "country_code") |>
+  mutate(above = public > private,
+         gap   = public - private)
 
-#2.DATA WRANGLING
-#BI.PWK.PRVS.FE.ZS -Females, as a share of private paid employees
-# BI.PWK.PUBS.FE.ZS - Females, as a share of public paid employees
-dt_country<-wwbi_country %>% 
-  select(country_code,short_name,region,income_group)
+n_all   <- nrow(dt)
+n_above <- sum(dt$above)
+years   <- range(wwbi_data$year)
 
-dt<-wwbi_data %>% 
-  filter(indicator_code%in%c("BI.PWK.PRVS.FE.ZS","BI.PWK.PUBS.FE.ZS")) %>% 
-  mutate(indicator_label=case_when(
-    indicator_code=="BI.PWK.PRVS.FE.ZS"~"Private",
-    indicator_code=="BI.PWK.PUBS.FE.ZS"~"Public")) %>% 
-  left_join(dt_country,by="country_code")
+# Label a handful of countries: the biggest gaps either way, plus a few well known ones
+lab <- dt |>
+  filter(gap %in% c(sort(gap, decreasing = TRUE)[1:3], sort(gap)[1:3]) |
+         short_name %in% c("United States", "India", "Brazil", "Germany", "Japan")) |>
+  distinct(country_code, .keep_all = TRUE)
 
-dt_plot<-dt %>% 
-  filter(!is.na(value)) %>% 
-  group_by(region,short_name,indicator_label) %>% 
-  summarise(value=round(mean(value),2)*100) %>% 
-  pivot_wider(names_from = indicator_label,values_from=value)
+# 4. COLOURS & TEXT --------------------------------------------------------
+purple <- "#7A4E9E"; grey <- "#BDBDBD"
+ink <- "#1A1A1A"; muted <- "#5A5A5A"; faint <- "#7A7A7A"
 
-#3. PLOT VIZUALIZATION 
-## Load Google fonts (https://fonts.google.com/)
-font_add_google("Roboto", family = "title")                           
-font_add_google("Lato", family = "subtitle")
-font_add_google("Lato", family = "x")
-showtext::showtext_auto()
-showtext::showtext_opts(dpi = 300) 
+tt <- paste0("In ", n_above, " of ", n_all,
+             " countries, women's share of jobs is higher in the public sector")
 
-##Title,subtitle & caption 
-tt <- str_glue(stringr::str_wrap("More women are in public sector jobs than private"),width=90)
-st <- str_glue(stringr::str_wrap("Proportion of women as a share of
-                                  private paid employees in each sector",
-                                 width=90))
-ct  <- str_glue(stringr::str_wrap("Data Source:World Bank| 
-                                  Creator:Zoi Diamantakou | tidytuesday | 2024, 
-                                  week 18",width=100))
+st <- paste0(
+  "Women's share of paid employees in the public and private sector, average ",
+  years[1], "–", years[2], ". Each dot is a country; ",
+  "<span style='color:", purple, "'>**purple**</span> countries sit above the line, ",
+  "with more women in public jobs.")
 
-##plot
-cols<-c("#E9999C","#C35CA3","#A85DA9",
-        "#BB99E2","#8278CF","#5F8CA9",
-        "#5F8C8C")
-p<- 
-  ggplot(dt_plot, aes(x=Private, y=Public,color=region,label=short_name)) + 
-  geom_point(size=5, alpha = 0.7)+
-  labs(x="Private sector(%)",
-       y="Public sector(%)",
-       title = tt,
-       subtitle =st ,
-       caption = ct,
-       col="")+
-  scale_x_continuous(limits = c(0, 70), breaks = seq(0, 100, 10))+
-  scale_y_continuous(limits = c(0, 80), breaks = seq(0, 100, 10)) +
-  geom_hline(yintercept=50,color="grey40", linetype="dashed")+
-  geom_vline(xintercept =50,color="grey40", linetype="dashed")+
-  geom_text(aes(label = short_name),color="grey40",nudge_x = 1.5, nudge_y = 0,size = 3, check_overlap = FALSE)+
-  scale_colour_manual(values=cols)
- 
+ct <- paste0("Data source: World Bank, Worldwide Bureaucracy Indicators",
+             " · Creator: Zoi Diamantakou · TidyTuesday 2024 · Week 18")
 
- 
+# 5. PLOT ------------------------------------------------------------------
+p <- ggplot(dt, aes(private, public)) +
+  # shaded "more women in public jobs" zone, above the diagonal
+  annotate("polygon", x = c(0, 60, 60, 0), y = c(0, 60, 80, 80), fill = "#F4EFF8") +
+  geom_hline(yintercept = seq(20, 80, 20), colour = "#E4E4E4", linewidth = 0.3) +
+  geom_vline(xintercept = seq(20, 60, 20), colour = "#E4E4E4", linewidth = 0.3) +
+  geom_abline(slope = 1, intercept = 0, colour = "#8A8A8A", linewidth = 0.4) +
+  annotate("text", x = 1.5, y = 62, label = "More women\nin public jobs", lineheight = 0.95,
+           hjust = 0, family = "poppins", fontface = "bold", size = 3, colour = purple) +
+  annotate("text", x = 59, y = 3, label = "More women in private jobs",
+           hjust = 1, family = "poppins", size = 3, colour = faint) +
+  annotate("text", x = 55.5, y = 57.5, label = "Equal share", angle = 34,
+           family = "poppins", size = 2.3, colour = faint) +
+  geom_point(aes(colour = above), size = 2.4, alpha = 0.85) +
+  geom_text_repel(data = lab, aes(label = short_name), family = "poppins",
+                  size = 2.4, colour = ink, min.segment.length = 0,
+                  segment.colour = "#9A9A9A", segment.size = 0.25,
+                  box.padding = 0.4, seed = 18) +
+  scale_colour_manual(values = c(`TRUE` = purple, `FALSE` = grey), guide = "none") +
+  scale_x_continuous(limits = c(0, 60), breaks = seq(0, 60, 20),
+                     labels = \(x) paste0(x, "%"), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0, 80), breaks = seq(0, 80, 20),
+                     labels = \(x) paste0(x, "%"), expand = c(0, 0)) +
+  coord_cartesian(clip = "off") +
+  labs(title = tt, subtitle = st, caption = ct,
+       x = "Women's share of private-sector jobs",
+       y = "Women's share of public-sector jobs") +
+  theme_minimal(base_family = "poppins") +
+  theme(
+    plot.title.position   = "plot",
+    plot.caption.position = "plot",
+    plot.title = element_textbox_simple(face = "bold", size = 22, colour = ink,
+                                        lineheight = 1.05, margin = margin(b = 12)),
+    plot.subtitle = element_textbox_simple(size = 11, colour = muted,
+                                           lineheight = 1.25, margin = margin(b = 18)),
+    plot.caption = element_text(size = 7, colour = faint, hjust = 0,
+                                margin = margin(t = 18)),
+    axis.title   = element_text(size = 8, colour = muted),
+    axis.title.x = element_text(margin = margin(t = 8)),
+    axis.title.y = element_text(margin = margin(r = 8)),
+    axis.text    = element_text(size = 7.5, colour = faint),
+    panel.grid   = element_blank(),
+    plot.background = element_rect(fill = "white", colour = NA),
+    plot.margin = margin(36, 36, 36, 36))
 
-
-p+theme_minimal()+
-  theme(plot.margin           = margin(t = 20, r = 15, b = 10, l = 25),
-        plot.title            = element_text(
-          family= 'title',face= "bold",size= 30,hjust = 0,
-          colour="#2E6D99",
-          margin= margin(t = 16, b = 5)),
-        plot.subtitle = element_text(
-          family= 'subtitle', hjust = 0,
-          lineheight= 0.9,size  = 18,colour="#6B6260",
-          margin= margin(t = 5, b = 10)),
-        plot.caption = element_text(colour="#6B6260"),
-        plot.caption.position = "plot",
-        #axis
-        axis.title.x = element_text(size=14,family="x",color="#6B6260"),
-        axis.title.y = element_text(size=14,family="x",color="#6B6260"),
-        axis.text.x = element_text(size=12,family="x",color="#6B6260"),
-        axis.text.y = element_text(size=12,family="x",color="#6B6260"),
-        #legend
-        legend.position = c(1, 1.05),  # Places the legend in the top-right corner
-        legend.justification = c("right", "top"),
-        legend.text = element_text(color = "grey40", size = 10),
-        legend.box.margin = margin(t = 30),
-        #background
-        panel.background = element_blank(),
-        panel.grid.major = element_line(color="#dcd5c6",
-                                        linewidth = 0.3,
-                                        linetype = 1),
-        panel.grid.minor= element_line(color="#dcd5c6",
-                                       linewidth = 0.3,
-                                       linetype = 1),
-        plot.background = element_rect(fill = "#F5EDDC", color = NA),
-        axis.line = element_line(color = "#7a766e")  # Add this to make axis lines visible
-  )
-
-
-#4. SAVE THE PLOT
-ggsave("TT2024Week18.svg", width = 12, height = 8, 
-       dpi = 300, bg = "white") 
-
+# 6. SAVE ------------------------------------------------------------------
+ggsave("TT2024Week18.png", p, width = 7.5, height = 7.5, dpi = 288, bg = "white")
+ggsave("TT2024Week18.svg", p, width = 7.5, height = 7.5, bg = "white")
