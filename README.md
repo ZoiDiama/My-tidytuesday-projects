@@ -1,10 +1,10 @@
 # TidyTuesday: three years of data, one chart at a time
 
-[TidyTuesday](https://github.com/rfordatascience/tidytuesday) is a weekly data challenge. Every week, the R community shares a new dataset, and people around the world make something from it in R. Almost every week since 2023, I've picked one question from it and tried to answer it with one clear chart.
+[TidyTuesday](https://github.com/rfordatascience/tidytuesday) is a weekly data challenge. Every week, the R community shares a new dataset, and people around the world use it to create data visuals, most times in R. I also took part from 2023 until 2025: almost every week since 2023, I've picked one question from it and tried to answer it with one clear chart. 
 
-This repo holds 67 visualizations and the R code behind every one of them, all built in R with ggplot2. Below are the ones I'm proudest of. Every chart, week by week, is in the [chart catalogue](Chart_Catalogue.md).
+This repo holds 67 visualizations and their R code. All built in R with ggplot2. Below are the ones I'm proudest of. Every chart, week by week, is in the [chart catalogue](Chart_Catalogue.md).
 
-**2026 revision:** I went back over every chart. Each one now has a headline that states its finding, a consistent layout, and numbers re-checked against the data. That review caught some errors, like duplicated records and mislabelled categories, which are now fixed. Earlier versions were finished by hand in Figma; the revised charts are made fully in code.
+**2026 revision:** After having some break, I went back over every chart. Each one now has a headline that states its finding, a consistent layout, and numbers re-checked against the data. That review caught some errors, like duplicated records and mislabeled categories, which are now fixed. Earlier versions were finished by hand in Figma; the revised charts are made fully in code.
 
 ## Featured charts
 
@@ -22,8 +22,8 @@ This repo holds 67 visualizations and the R code behind every one of them, all b
 
 ## How I approach each chart
 
-1. **Start with one question.** Not "what's in this data?" but "what would someone want to know?"
-2. **Clean and check.** Every dataset has quirks: missing values, odd categories, duplicates.
+1. **Question comes first.** It is not about "what's in this data?" but "what would someone want to know?"
+2. **Data cleaning and checking.** Every dataset has quirks: missing values, odd categories, duplicates.
 3. **Break it down.** The story is usually in the split (by gender, country, year), not the total.
 4. **Pick the simplest chart that answers it (unless you want to be creative).**
 5. **Write the headline last.** It should state the finding, not the topic.
